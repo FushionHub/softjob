@@ -1,0 +1,489 @@
+> npm run dev
+
+> nextjs@0.1.0 dev
+> next dev --turbopack
+
+   ▲ Next.js 16.0.10 (Turbopack)
+   - Local:         http://localhost:3000
+   - Network:       http://172.17.32.1:3000
+   - Environments: .env.local, .env
+
+ ✓ Starting...
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+ ○ Compiling middleware ...
+ ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+ ✓ Ready in 36.5s
+ ○ Compiling / ...
+ GET / 200 in 41s (compile: 40s, proxy.ts: 433ms, render: 785ms)
+ ○ Compiling /dashboard ...
+ GET /dashboard 200 in 3.7s (compile: 3.6s, proxy.ts: 10ms, render: 146ms)
+ ○ Compiling /api/user/me ...
+ GET /api/user/me 404 in 7.1s (compile: 6.4s, proxy.ts: 18ms, render: 684ms)
+ GET /api/user/me 404 in 216ms (compile: 38ms, proxy.ts: 14ms, render: 164ms)
+C:\Users\user\Desktop\softjob\.next\dev\server\chunks\node_modules_64c401f7._.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\user\Desktop\softjob\.next\dev\server\chunks\[root-of-the-server]__4d09b7cc._.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\user\Desktop\softjob\node_modules\next\dist\compiled\next-server\app-route-turbo.runtime.dev.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\user\Desktop\softjob\node_modules\next\dist\server\base-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\user\Desktop\softjob\node_modules\next\dist\server\next-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\user\Desktop\softjob\node_modules\next\dist\server\dev\next-dev-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\user\Desktop\softjob\node_modules\next\dist\trace\trace.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\user\Desktop\softjob\node_modules\next\dist\server\lib\router-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\user\Desktop\softjob\node_modules\next\dist\server\lib\start-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+Database query error: Error [NeonDbError]: Error connecting to database: fetch failed
+    at async query (C:\Users\user\Desktop\softjob\.next\dev\server\chunks\[root-of-the-server]__4d09b7cc._.js:69:24)
+    at async GET (C:\Users\user\Desktop\softjob\.next\dev\server\chunks\[root-of-the-server]__4d09b7cc._.js:197:31) {
+  severity: undefined,
+  code: undefined,
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: undefined,
+  line: undefined,
+  routine: undefined,
+  sourceError: [TypeError: fetch failed] {
+    [cause]: Error: read ECONNRESET
+        at ignore-listed frames {
+      errno: -4077,
+      code: 'ECONNRESET',
+      syscall: 'read'
+    }
+  }
+}
+SQL: SELECT COALESCE(SUM(CASE WHEN status = $1 THEN amount ELSE 0 END), 0) as total_deposits FROM deposits WHERE user_id = $2
+Params: [ 'approved', 2 ]
+C:\Users\user\Desktop\softjob\.next\dev\server\chunks\node_modules_64c401f7._.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\user\Desktop\softjob\.next\dev\server\chunks\[root-of-the-server]__4d09b7cc._.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\user\Desktop\softjob\node_modules\next\dist\compiled\next-server\app-route-turbo.runtime.dev.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\user\Desktop\softjob\node_modules\next\dist\server\base-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\user\Desktop\softjob\node_modules\next\dist\server\next-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\user\Desktop\softjob\node_modules\next\dist\server\dev\next-dev-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\user\Desktop\softjob\node_modules\next\dist\trace\trace.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\user\Desktop\softjob\node_modules\next\dist\server\lib\router-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\user\Desktop\softjob\node_modules\next\dist\server\lib\start-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+Dashboard API Error: Error [NeonDbError]: Error connecting to database: fetch failed
+    at async query (C:\Users\user\Desktop\softjob\.next\dev\server\chunks\[root-of-the-server]__4d09b7cc._.js:69:24)
+    at async GET (C:\Users\user\Desktop\softjob\.next\dev\server\chunks\[root-of-the-server]__4d09b7cc._.js:197:31) {
+  severity: undefined,
+  code: undefined,
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: undefined,
+  line: undefined,
+  routine: undefined,
+  sourceError: [TypeError: fetch failed] {
+    [cause]: Error: read ECONNRESET
+        at ignore-listed frames {
+      errno: -4077,
+      code: 'ECONNRESET',
+      syscall: 'read'
+    }
+  }
+}
+ GET /api/dashboard 500 in 18.8s (compile: 6.0s, proxy.ts: 17ms, render: 12.8s)
+ GET /api/dashboard 200 in 594ms (compile: 13ms, proxy.ts: 12ms, render: 568ms)
+ GET /dashboard 200 in 487ms (compile: 22ms, proxy.ts: 20ms, render: 445ms)
+ GET /api/user/me 404 in 321ms (compile: 103ms, proxy.ts: 34ms, render: 184ms)
+ GET /api/dashboard 200 in 1037ms (compile: 33ms, proxy.ts: 19ms, render: 985ms)
+ POST /api/auth/resend-verification 200 in 4.4s (compile: 3.6s, proxy.ts: 25ms, render: 797ms)
+ GET /profile 200 in 4.7s (compile: 3.7s, proxy.ts: 18ms, render: 1024ms)
+ GET /api/user/me 404 in 1259ms (compile: 66ms, proxy.ts: 32ms, render: 1161ms)
+ GET /dashboard 200 in 618ms (compile: 248ms, proxy.ts: 52ms, render: 318ms)
+ GET /api/user/me 404 in 800ms (compile: 131ms, proxy.ts: 88ms, render: 581ms)
+ GET /dashboard 200 in 171ms (compile: 47ms, proxy.ts: 15ms, render: 109ms)
+ GET /api/user/me 404 in 470ms (compile: 92ms, proxy.ts: 22ms, render: 356ms)
+ GET /api/user/me 404 in 211ms (compile: 35ms, proxy.ts: 12ms, render: 164ms)
+ GET /api/dashboard 200 in 1784ms (compile: 26ms, proxy.ts: 22ms, render: 1735ms)
+ GET /api/dashboard 200 in 1008ms (compile: 15ms, proxy.ts: 17ms, render: 976ms)
+ GET /profile 200 in 164ms (compile: 15ms, proxy.ts: 17ms, render: 132ms)
+ GET /dashboard 200 in 288ms (compile: 156ms, proxy.ts: 29ms, render: 103ms)
+ GET /api/user/me 404 in 616ms (compile: 42ms, proxy.ts: 35ms, render: 539ms)
+ GET /api/user/me 404 in 506ms (compile: 55ms, proxy.ts: 36ms, render: 415ms)
+ GET /dashboard 200 in 165ms (compile: 19ms, proxy.ts: 12ms, render: 135ms)
+ GET /api/user/me 404 in 581ms (compile: 130ms, proxy.ts: 35ms, render: 417ms)
+ GET /api/user/me 404 in 255ms (compile: 41ms, proxy.ts: 24ms, render: 189ms)
+ GET /api/dashboard 200 in 1030ms (compile: 24ms, proxy.ts: 28ms, render: 978ms)
+ GET /api/dashboard 200 in 997ms (compile: 8ms, proxy.ts: 12ms, render: 977ms)
+ ○ Compiling /deposit ...
+ GET /deposit 200 in 4.9s (compile: 4.2s, proxy.ts: 25ms, render: 600ms)
+ ○ Compiling /api/auth/[...nextauth] ...
+[next-auth][warn][NEXTAUTH_URL]
+https://next-auth.js.org/warnings#nextauth_url
+[next-auth][warn][NO_SECRET]
+https://next-auth.js.org/warnings#no_secret
+ GET /api/auth/me 400 in 21.9s (compile: 21.8s, proxy.ts: 33ms, render: 74ms)
+ GET /api/auth/me 400 in 1805ms (compile: 1708ms, proxy.ts: 12ms, render: 85ms)
+ GET /api/investment-plans 200 in 1618ms (compile: 1099ms, proxy.ts: 5ms, render: 513ms)
+ GET /api/investment-plans 200 in 234ms (compile: 14ms, proxy.ts: 7ms, render: 213ms)
+ GET /dashboard 200 in 551ms (compile: 61ms, proxy.ts: 19ms, render: 472ms)
+ GET /api/user/me 404 in 547ms (compile: 261ms, proxy.ts: 101ms, render: 186ms)
+ GET /api/dashboard 200 in 1947ms (compile: 134ms, proxy.ts: 84ms, render: 1729ms)
+ GET /dashboard 200 in 464ms (compile: 33ms, proxy.ts: 13ms, render: 417ms)
+ GET /api/user/me 404 in 430ms (compile: 150ms, proxy.ts: 33ms, render: 247ms)
+ GET /api/dashboard 200 in 1646ms (compile: 35ms, proxy.ts: 31ms, render: 1580ms)
+ GET /deposit 200 in 113ms (compile: 18ms, proxy.ts: 19ms, render: 76ms)
+ GET /api/auth/me 400 in 108ms (compile: 39ms, proxy.ts: 7ms, render: 62ms)
+ GET /api/auth/me 400 in 136ms (compile: 83ms, proxy.ts: 22ms, render: 32ms)
+ GET /api/investment-plans 200 in 717ms (compile: 35ms, proxy.ts: 17ms, render: 665ms)
+ GET /api/investment-plans 200 in 241ms (compile: 19ms, proxy.ts: 8ms, render: 214ms)
+ GET /dashboard 200 in 638ms (compile: 57ms, proxy.ts: 36ms, render: 545ms)
+ GET /api/user/me 404 in 379ms (compile: 136ms, proxy.ts: 30ms, render: 213ms)
+ GET /api/dashboard 200 in 1968ms (compile: 46ms, proxy.ts: 23ms, render: 1899ms)
+ GET /deposit 200 in 286ms (compile: 110ms, proxy.ts: 16ms, render: 160ms)
+ GET /api/auth/me 400 in 124ms (compile: 63ms, proxy.ts: 10ms, render: 51ms)
+ GET /api/auth/me 400 in 168ms (compile: 112ms, proxy.ts: 18ms, render: 38ms)
+ GET /api/investment-plans 200 in 628ms (compile: 35ms, proxy.ts: 28ms, render: 566ms)
+ GET /api/investment-plans 200 in 217ms (compile: 16ms, proxy.ts: 16ms, render: 185ms)
+ GET /packages 200 in 2.5s (compile: 1584ms, proxy.ts: 15ms, render: 887ms)
+ GET /api/auth/me 400 in 656ms (compile: 544ms, proxy.ts: 8ms, render: 104ms)
+ GET /api/auth/me 400 in 458ms (compile: 301ms, proxy.ts: 17ms, render: 140ms)
+ GET /api/investment-plans 200 in 1040ms (compile: 58ms, proxy.ts: 180ms, render: 802ms)
+ GET /api/investment-plans 200 in 761ms (compile: 318ms, proxy.ts: 211ms, render: 233ms)
+ GET /trading 200 in 3.1s (compile: 2.6s, proxy.ts: 10ms, render: 529ms)
+ GET /trading 200 in 1021ms (compile: 544ms, proxy.ts: 38ms, render: 438ms)
+ GET /api/auth/me 400 in 317ms (compile: 236ms, proxy.ts: 16ms, render: 65ms)
+ GET /api/auth/me 400 in 669ms (compile: 61ms, proxy.ts: 7ms, render: 601ms)
+ GET /wallet-connect 200 in 1825ms (compile: 1712ms, proxy.ts: 10ms, render: 104ms)
+ GET /api/auth/me 400 in 194ms (compile: 130ms, proxy.ts: 9ms, render: 54ms)
+ GET /api/auth/me 400 in 217ms (compile: 44ms, proxy.ts: 25ms, render: 148ms)
+ GET /api/wallet-connect 200 in 1467ms (compile: 986ms, proxy.ts: 19ms, render: 462ms)
+ GET /api/wallet-connect 200 in 202ms (compile: 18ms, proxy.ts: 13ms, render: 170ms)
+ POST /api/wallet-connect 200 in 8.1s (compile: 29ms, proxy.ts: 22ms, render: 8.0s)
+ GET /api/wallet-connect 200 in 548ms (compile: 20ms, proxy.ts: 15ms, render: 513ms)
+
+npm run dev
+
+> nextjs@0.1.0 dev
+> next dev --turbopack
+
+   ▲ Next.js 16.0.10 (Turbopack)
+   - Local:         http://localhost:3000
+   - Network:       http://172.17.32.1:3000
+   - Environments: .env.local, .env
+
+ ✓ Starting...
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+ ○ Compiling middleware ...
+ ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+ ✓ Ready in 36.5s
+ ○ Compiling / ...
+ GET / 200 in 41s (compile: 40s, proxy.ts: 433ms, render: 785ms)
+ ○ Compiling /dashboard ...
+ GET /dashboard 200 in 3.7s (compile: 3.6s, proxy.ts: 10ms, render: 146ms)
+ ○ Compiling /api/user/me ...
+ GET /api/user/me 404 in 7.1s (compile: 6.4s, proxy.ts: 18ms, render: 684ms)
+ GET /api/user/me 404 in 216ms (compile: 38ms, proxy.ts: 14ms, render: 164ms)
+C:\Users\user\Desktop\softjob\.next\dev\server\chunks\node_modules_64c401f7._.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\user\Desktop\softjob\.next\dev\server\chunks\[root-of-the-server]__4d09b7cc._.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\user\Desktop\softjob\node_modules\next\dist\compiled\next-server\app-route-turbo.runtime.dev.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\user\Desktop\softjob\node_modules\next\dist\server\base-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\user\Desktop\softjob\node_modules\next\dist\server\next-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\user\Desktop\softjob\node_modules\next\dist\server\dev\next-dev-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\user\Desktop\softjob\node_modules\next\dist\trace\trace.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\user\Desktop\softjob\node_modules\next\dist\server\lib\router-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\user\Desktop\softjob\node_modules\next\dist\server\lib\start-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+Database query error: Error [NeonDbError]: Error connecting to database: fetch failed
+    at async query (C:\Users\user\Desktop\softjob\.next\dev\server\chunks\[root-of-the-server]__4d09b7cc._.js:69:24)
+    at async GET (C:\Users\user\Desktop\softjob\.next\dev\server\chunks\[root-of-the-server]__4d09b7cc._.js:197:31) {
+  severity: undefined,
+  code: undefined,
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: undefined,
+  line: undefined,
+  routine: undefined,
+  sourceError: [TypeError: fetch failed] {
+    [cause]: Error: read ECONNRESET
+        at ignore-listed frames {
+      errno: -4077,
+      code: 'ECONNRESET',
+      syscall: 'read'
+    }
+  }
+}
+SQL: SELECT COALESCE(SUM(CASE WHEN status = $1 THEN amount ELSE 0 END), 0) as total_deposits FROM deposits WHERE user_id = $2
+Params: [ 'approved', 2 ]
+C:\Users\user\Desktop\softjob\.next\dev\server\chunks\node_modules_64c401f7._.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\user\Desktop\softjob\.next\dev\server\chunks\[root-of-the-server]__4d09b7cc._.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\user\Desktop\softjob\node_modules\next\dist\compiled\next-server\app-route-turbo.runtime.dev.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\user\Desktop\softjob\node_modules\next\dist\server\base-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\user\Desktop\softjob\node_modules\next\dist\server\next-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\user\Desktop\softjob\node_modules\next\dist\server\dev\next-dev-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\user\Desktop\softjob\node_modules\next\dist\trace\trace.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\user\Desktop\softjob\node_modules\next\dist\server\lib\router-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\user\Desktop\softjob\node_modules\next\dist\server\lib\start-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+Dashboard API Error: Error [NeonDbError]: Error connecting to database: fetch failed
+    at async query (C:\Users\user\Desktop\softjob\.next\dev\server\chunks\[root-of-the-server]__4d09b7cc._.js:69:24)
+    at async GET (C:\Users\user\Desktop\softjob\.next\dev\server\chunks\[root-of-the-server]__4d09b7cc._.js:197:31) {
+  severity: undefined,
+  code: undefined,
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: undefined,
+  line: undefined,
+  routine: undefined,
+  sourceError: [TypeError: fetch failed] {
+    [cause]: Error: read ECONNRESET
+        at ignore-listed frames {
+      errno: -4077,
+      code: 'ECONNRESET',
+      syscall: 'read'
+    }
+  }
+}
+ GET /api/dashboard 500 in 18.8s (compile: 6.0s, proxy.ts: 17ms, render: 12.8s)
+ GET /api/dashboard 200 in 594ms (compile: 13ms, proxy.ts: 12ms, render: 568ms)
+ GET /dashboard 200 in 487ms (compile: 22ms, proxy.ts: 20ms, render: 445ms)
+ GET /api/user/me 404 in 321ms (compile: 103ms, proxy.ts: 34ms, render: 184ms)
+ GET /api/dashboard 200 in 1037ms (compile: 33ms, proxy.ts: 19ms, render: 985ms)
+ POST /api/auth/resend-verification 200 in 4.4s (compile: 3.6s, proxy.ts: 25ms, render: 797ms)
+ GET /profile 200 in 4.7s (compile: 3.7s, proxy.ts: 18ms, render: 1024ms)
+ GET /api/user/me 404 in 1259ms (compile: 66ms, proxy.ts: 32ms, render: 1161ms)
+ GET /dashboard 200 in 618ms (compile: 248ms, proxy.ts: 52ms, render: 318ms)
+ GET /api/user/me 404 in 800ms (compile: 131ms, proxy.ts: 88ms, render: 581ms)
+ GET /dashboard 200 in 171ms (compile: 47ms, proxy.ts: 15ms, render: 109ms)
+ GET /api/user/me 404 in 470ms (compile: 92ms, proxy.ts: 22ms, render: 356ms)
+ GET /api/user/me 404 in 211ms (compile: 35ms, proxy.ts: 12ms, render: 164ms)
+ GET /api/dashboard 200 in 1784ms (compile: 26ms, proxy.ts: 22ms, render: 1735ms)
+ GET /api/dashboard 200 in 1008ms (compile: 15ms, proxy.ts: 17ms, render: 976ms)
+ GET /profile 200 in 164ms (compile: 15ms, proxy.ts: 17ms, render: 132ms)
+ GET /dashboard 200 in 288ms (compile: 156ms, proxy.ts: 29ms, render: 103ms)
+ GET /api/user/me 404 in 616ms (compile: 42ms, proxy.ts: 35ms, render: 539ms)
+ GET /api/user/me 404 in 506ms (compile: 55ms, proxy.ts: 36ms, render: 415ms)
+ GET /dashboard 200 in 165ms (compile: 19ms, proxy.ts: 12ms, render: 135ms)
+ GET /api/user/me 404 in 581ms (compile: 130ms, proxy.ts: 35ms, render: 417ms)
+ GET /api/user/me 404 in 255ms (compile: 41ms, proxy.ts: 24ms, render: 189ms)
+ GET /api/dashboard 200 in 1030ms (compile: 24ms, proxy.ts: 28ms, render: 978ms)
+ GET /api/dashboard 200 in 997ms (compile: 8ms, proxy.ts: 12ms, render: 977ms)
+ ○ Compiling /deposit ...
+ GET /deposit 200 in 4.9s (compile: 4.2s, proxy.ts: 25ms, render: 600ms)
+ ○ Compiling /api/auth/[...nextauth] ...
+[next-auth][warn][NEXTAUTH_URL]
+https://next-auth.js.org/warnings#nextauth_url
+[next-auth][warn][NO_SECRET]
+https://next-auth.js.org/warnings#no_secret
+ GET /api/auth/me 400 in 21.9s (compile: 21.8s, proxy.ts: 33ms, render: 74ms)
+ GET /api/auth/me 400 in 1805ms (compile: 1708ms, proxy.ts: 12ms, render: 85ms)
+ GET /api/investment-plans 200 in 1618ms (compile: 1099ms, proxy.ts: 5ms, render: 513ms)
+ GET /api/investment-plans 200 in 234ms (compile: 14ms, proxy.ts: 7ms, render: 213ms)
+ GET /dashboard 200 in 551ms (compile: 61ms, proxy.ts: 19ms, render: 472ms)
+ GET /api/user/me 404 in 547ms (compile: 261ms, proxy.ts: 101ms, render: 186ms)
+ GET /api/dashboard 200 in 1947ms (compile: 134ms, proxy.ts: 84ms, render: 1729ms)
+ GET /dashboard 200 in 464ms (compile: 33ms, proxy.ts: 13ms, render: 417ms)
+ GET /api/user/me 404 in 430ms (compile: 150ms, proxy.ts: 33ms, render: 247ms)
+ GET /api/dashboard 200 in 1646ms (compile: 35ms, proxy.ts: 31ms, render: 1580ms)
+ GET /deposit 200 in 113ms (compile: 18ms, proxy.ts: 19ms, render: 76ms)
+ GET /api/auth/me 400 in 108ms (compile: 39ms, proxy.ts: 7ms, render: 62ms)
+ GET /api/auth/me 400 in 136ms (compile: 83ms, proxy.ts: 22ms, render: 32ms)
+ GET /api/investment-plans 200 in 717ms (compile: 35ms, proxy.ts: 17ms, render: 665ms)
+ GET /api/investment-plans 200 in 241ms (compile: 19ms, proxy.ts: 8ms, render: 214ms)
+ GET /dashboard 200 in 638ms (compile: 57ms, proxy.ts: 36ms, render: 545ms)
+ GET /api/user/me 404 in 379ms (compile: 136ms, proxy.ts: 30ms, render: 213ms)
+ GET /api/dashboard 200 in 1968ms (compile: 46ms, proxy.ts: 23ms, render: 1899ms)
+ GET /deposit 200 in 286ms (compile: 110ms, proxy.ts: 16ms, render: 160ms)
+ GET /api/auth/me 400 in 124ms (compile: 63ms, proxy.ts: 10ms, render: 51ms)
+ GET /api/auth/me 400 in 168ms (compile: 112ms, proxy.ts: 18ms, render: 38ms)
+ GET /api/investment-plans 200 in 628ms (compile: 35ms, proxy.ts: 28ms, render: 566ms)
+ GET /api/investment-plans 200 in 217ms (compile: 16ms, proxy.ts: 16ms, render: 185ms)
+ GET /packages 200 in 2.5s (compile: 1584ms, proxy.ts: 15ms, render: 887ms)
+ GET /api/auth/me 400 in 656ms (compile: 544ms, proxy.ts: 8ms, render: 104ms)
+ GET /api/auth/me 400 in 458ms (compile: 301ms, proxy.ts: 17ms, render: 140ms)
+ GET /api/investment-plans 200 in 1040ms (compile: 58ms, proxy.ts: 180ms, render: 802ms)
+ GET /api/investment-plans 200 in 761ms (compile: 318ms, proxy.ts: 211ms, render: 233ms)
+ GET /trading 200 in 3.1s (compile: 2.6s, proxy.ts: 10ms, render: 529ms)
+ GET /trading 200 in 1021ms (compile: 544ms, proxy.ts: 38ms, render: 438ms)
+ GET /api/auth/me 400 in 317ms (compile: 236ms, proxy.ts: 16ms, render: 65ms)
+ GET /api/auth/me 400 in 669ms (compile: 61ms, proxy.ts: 7ms, render: 601ms)
+ GET /wallet-connect 200 in 1825ms (compile: 1712ms, proxy.ts: 10ms, render: 104ms)
+ GET /api/auth/me 400 in 194ms (compile: 130ms, proxy.ts: 9ms, render: 54ms)
+ GET /api/auth/me 400 in 217ms (compile: 44ms, proxy.ts: 25ms, render: 148ms)
+ GET /api/wallet-connect 200 in 1467ms (compile: 986ms, proxy.ts: 19ms, render: 462ms)
+ GET /api/wallet-connect 200 in 202ms (compile: 18ms, proxy.ts: 13ms, render: 170ms)
+ POST /api/wallet-connect 200 in 8.1s (compile: 29ms, proxy.ts: 22ms, render: 8.0s)
+ GET /api/wallet-connect 200 in 548ms (compile: 20ms, proxy.ts: 15ms, render: 513ms)
+ POST /api/wallet-connect 200 in 7.6s (compile: 37ms, proxy.ts: 19ms, render: 7.6s)
+ GET /api/wallet-connect 200 in 665ms (compile: 18ms, proxy.ts: 13ms, render: 634ms)
+ GET /dashboard 200 in 95ms (compile: 14ms, proxy.ts: 15ms, render: 66ms)
+ GET /api/user/me 404 in 749ms (compile: 282ms, proxy.ts: 17ms, render: 449ms)
+ GET /api/user/me 404 in 252ms (compile: 49ms, proxy.ts: 9ms, render: 193ms)
+C:\Users\user\Desktop\softjob\.next\dev\server\chunks\node_modules_64c401f7._.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\user\Desktop\softjob\.next\dev\server\chunks\[root-of-the-server]__4d09b7cc._.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\user\Desktop\softjob\node_modules\next\dist\compiled\next-server\app-route-turbo.runtime.dev.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\user\Desktop\softjob\node_modules\next\dist\server\base-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\user\Desktop\softjob\node_modules\next\dist\server\next-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\user\Desktop\softjob\node_modules\next\dist\server\dev\next-dev-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\user\Desktop\softjob\node_modules\next\dist\trace\trace.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\user\Desktop\softjob\node_modules\next\dist\server\lib\router-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\user\Desktop\softjob\node_modules\next\dist\server\lib\start-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+Database query error: Error [NeonDbError]: Error connecting to database: fetch failed
+    at async query (C:\Users\user\Desktop\softjob\.next\dev\server\chunks\[root-of-the-server]__4d09b7cc._.js:69:24)
+    at async GET (C:\Users\user\Desktop\softjob\.next\dev\server\chunks\[root-of-the-server]__4d09b7cc._.js:185:23) {
+  severity: undefined,
+  code: undefined,
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: undefined,
+  line: undefined,
+  routine: undefined,
+  sourceError: [TypeError: fetch failed] {
+    [cause]: Error [ConnectTimeoutError]: Connect Timeout Error (attempted address: api.c-2.eu-west-2.aws.neon.tech:443, timeout: 10000ms)
+        at ignore-listed frames {
+      code: 'UND_ERR_CONNECT_TIMEOUT'
+    }
+  }
+}
+SQL: SELECT id, name, email, username, phone, balance, total_profit, total_bonus, total_withdrawal, kyc_verified, last_login, two_factor_enabled FROM users WHERE id = $1
+Params: [ 2 ]
+C:\Users\user\Desktop\softjob\.next\dev\server\chunks\node_modules_64c401f7._.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\user\Desktop\softjob\.next\dev\server\chunks\[root-of-the-server]__4d09b7cc._.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\user\Desktop\softjob\node_modules\next\dist\compiled\next-server\app-route-turbo.runtime.dev.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\user\Desktop\softjob\node_modules\next\dist\server\base-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\user\Desktop\softjob\node_modules\next\dist\server\next-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\user\Desktop\softjob\node_modules\next\dist\server\dev\next-dev-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\user\Desktop\softjob\node_modules\next\dist\trace\trace.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\user\Desktop\softjob\node_modules\next\dist\server\lib\router-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\user\Desktop\softjob\node_modules\next\dist\server\lib\start-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+Dashboard API Error: Error [NeonDbError]: Error connecting to database: fetch failed
+    at async query (C:\Users\user\Desktop\softjob\.next\dev\server\chunks\[root-of-the-server]__4d09b7cc._.js:69:24)
+    at async GET (C:\Users\user\Desktop\softjob\.next\dev\server\chunks\[root-of-the-server]__4d09b7cc._.js:185:23) {
+  severity: undefined,
+  code: undefined,
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: undefined,
+  line: undefined,
+  routine: undefined,
+  sourceError: [TypeError: fetch failed] {
+    [cause]: Error [ConnectTimeoutError]: Connect Timeout Error (attempted address: api.c-2.eu-west-2.aws.neon.tech:443, timeout: 10000ms)
+        at ignore-listed frames {
+      code: 'UND_ERR_CONNECT_TIMEOUT'
+    }
+  }
+}
+ GET /api/dashboard 500 in 11.1s (compile: 52ms, proxy.ts: 14ms, render: 11.0s)
+C:\Users\user\Desktop\softjob\.next\dev\server\chunks\node_modules_64c401f7._.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\user\Desktop\softjob\.next\dev\server\chunks\[root-of-the-server]__4d09b7cc._.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\user\Desktop\softjob\node_modules\next\dist\compiled\next-server\app-route-turbo.runtime.dev.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\user\Desktop\softjob\node_modules\next\dist\server\base-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\user\Desktop\softjob\node_modules\next\dist\server\next-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\user\Desktop\softjob\node_modules\next\dist\server\dev\next-dev-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\user\Desktop\softjob\node_modules\next\dist\trace\trace.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\user\Desktop\softjob\node_modules\next\dist\server\lib\router-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\user\Desktop\softjob\node_modules\next\dist\server\lib\start-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+Database query error: Error [NeonDbError]: Error connecting to database: fetch failed
+    at async query (C:\Users\user\Desktop\softjob\.next\dev\server\chunks\[root-of-the-server]__4d09b7cc._.js:69:24)
+    at async GET (C:\Users\user\Desktop\softjob\.next\dev\server\chunks\[root-of-the-server]__4d09b7cc._.js:185:23) {
+  severity: undefined,
+  code: undefined,
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: undefined,
+  line: undefined,
+  routine: undefined,
+  sourceError: [TypeError: fetch failed] {
+    [cause]: Error [ConnectTimeoutError]: Connect Timeout Error (attempted address: api.c-2.eu-west-2.aws.neon.tech:443, timeout: 10000ms)
+        at ignore-listed frames {
+      code: 'UND_ERR_CONNECT_TIMEOUT'
+    }
+  }
+}
+SQL: SELECT id, name, email, username, phone, balance, total_profit, total_bonus, total_withdrawal, kyc_verified, last_login, two_factor_enabled FROM users WHERE id = $1
+Params: [ 2 ]
+C:\Users\user\Desktop\softjob\.next\dev\server\chunks\node_modules_64c401f7._.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\user\Desktop\softjob\.next\dev\server\chunks\[root-of-the-server]__4d09b7cc._.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\user\Desktop\softjob\node_modules\next\dist\compiled\next-server\app-route-turbo.runtime.dev.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\user\Desktop\softjob\node_modules\next\dist\server\base-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\user\Desktop\softjob\node_modules\next\dist\server\next-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\user\Desktop\softjob\node_modules\next\dist\server\dev\next-dev-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\user\Desktop\softjob\node_modules\next\dist\trace\trace.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\user\Desktop\softjob\node_modules\next\dist\server\lib\router-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\user\Desktop\softjob\node_modules\next\dist\server\lib\start-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+Dashboard API Error: Error [NeonDbError]: Error connecting to database: fetch failed
+    at async query (C:\Users\user\Desktop\softjob\.next\dev\server\chunks\[root-of-the-server]__4d09b7cc._.js:69:24)
+    at async GET (C:\Users\user\Desktop\softjob\.next\dev\server\chunks\[root-of-the-server]__4d09b7cc._.js:185:23) {
+  severity: undefined,
+  code: undefined,
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: undefined,
+  line: undefined,
+  routine: undefined,
+  sourceError: [TypeError: fetch failed] {
+    [cause]: Error [ConnectTimeoutError]: Connect Timeout Error (attempted address: api.c-2.eu-west-2.aws.neon.tech:443, timeout: 10000ms)
+        at ignore-listed frames {
+      code: 'UND_ERR_CONNECT_TIMEOUT'
+    }
+  }
+}
+ GET /api/dashboard 500 in 10.8s (compile: 14ms, proxy.ts: 12ms, render: 10.8s)
+

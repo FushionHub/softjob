@@ -1,0 +1,156 @@
+@import "tailwindcss";
+
+@theme {
+    --font-sans: 'Inter', sans-serif;
+    --color-brand-primary: var(--brand-primary);
+    --color-brand-secondary: var(--brand-secondary);
+    --color-bg-base: var(--bg-base);
+    --color-bg-card: var(--bg-card);
+    --color-text-main: var(--text-main);
+    --color-text-muted: var(--text-muted);
+    --color-border-subtle: var(--border-subtle);
+}
+
+:root {
+    /* Default to Dark Mode because Emporium Capitals is dark */
+    --brand-primary: #086669ff;
+    --brand-secondary: #008c6eff;
+    --bg-base: #010e14ff;
+    --bg-card: #02425cff;
+    --text-main: #ffffff;
+    --text-muted: #babbc4;
+    --border-subtle: rgba(255, 255, 255, 0.08);
+}
+
+html.light {
+    --bg-base: #f8f9fa;
+    --bg-card: #c5c0c0ff;
+    --text-main: #13181fff;
+    --text-muted: #484b52ff;
+    --border-subtle: rgba(24, 24, 24, 0.08);
+}
+
+body {
+    background-color: var(--bg-base);
+    color: var(--text-main);
+    font-family: var(--font-sans);
+    @apply text-sm antialiased transition-colors duration-300;
+}
+
+/* Custom styled scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+::-webkit-scrollbar-track {
+    background: var(--bg-base);
+}
+::-webkit-scrollbar-thumb {
+    background: var(--brand-secondary);
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: var(--brand-primary);
+}
+
+/* Custom buttons */
+.btn-primary {
+    @apply relative overflow-hidden inline-flex items-center justify-center font-semibold rounded-full bg-gradient-to-r from-[#ef4d45] to-[#8c0030] text-white px-6 py-2.5 transition-all duration-300 hover:scale-105 active:scale-95 shadow-md shadow-[#ef4d45]/20 cursor-pointer;
+}
+
+.btn-secondary {
+    @apply relative overflow-hidden inline-flex items-center justify-center font-semibold rounded-full border border-brand-primary text-brand-primary hover:bg-brand-primary hover:text-white px-6 py-2.5 transition-all duration-300 active:scale-95 cursor-pointer;
+}
+
+/* Glassmorphic elements */
+.glass-panel {
+    background: rgba(21, 20, 54, 0.6);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    @apply rounded-2xl shadow-xl;
+}
+
+html.light .glass-panel {
+    background: rgba(255, 255, 255, 0.85);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+/* Custom Google Translate Selector styling */
+.gt_selector {
+    background-color: var(--bg-card);
+    color: var(--text-main);
+    border: 1px solid var(--border-subtle);
+    padding: 6px 14px;
+    border-radius: 9999px;
+    outline: none;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.gt_selector:hover {
+    border-color: var(--brand-primary);
+}
+
+.skiptranslate {
+    display: none !important;
+}
+
+body {
+    top: 0px !important;
+}
+
+/* Custom Animations for Toasts and Modals */
+@keyframes slideIn {
+    from {
+        transform: translate(-50%, -20px);
+        opacity: 0;
+    }
+    to {
+        transform: translate(-50%, 0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideRight {
+    from {
+        transform: translateX(-15px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
+}
+
+.animate-slide-in {
+    animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-slide-right {
+    animation: slideRight 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-shake {
+    animation: shake 0.2s ease-in-out 2;
+}
