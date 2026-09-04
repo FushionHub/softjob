@@ -6,15 +6,17 @@ Premium, enterprise-grade crypto investment and trading platform engineered with
 
 ## ⚡ Quick Start
 
+### Isolated Self-Contained Setup (Docker)
+
 ```bash
-# 1. Install dependencies
+# 1. Start local PostgreSQL container
+docker compose up -d db
+
+# 2. Install dependencies & configure env
 npm install
-
-# 2. Configure Environment Variables
 cp env.example .env.local
-# (Edit .env.local with your Neon DATABASE_URL, JWT_SECRET, etc.)
 
-# 3. Initialize & Verify Database Schema (All 19 Tables + Seed Data)
+# 3. Initialize & Verify Database Schema
 node scripts/init-db.js
 
 # 4. Start Development Server
@@ -25,18 +27,12 @@ npm run dev
 
 ---
 
-## 👑 Admin Access & Default Credentials
+## 👑 Admin Access & Initial Credentials
 
-The database automatically initializes default super admin accounts with encrypted bcrypt passwords:
+Initial admin accounts can be seeded at database initialization by specifying `ADMIN_INITIAL_PASSWORD` in your environment (`.env.local`).
 
-| Email | Password | Role | Permissions |
-|-------|----------|------|-------------|
-| `admin@emporiumcapitals.com` | `admin123` | `super_admin` | Full Access |
-| `jmauricennadi@gmail.com` | `admin123` | `super_admin` | Full Access |
-| `admin@example.com` | `admin123` | `admin` | Standard Admin |
-
-> [!TIP]
-> You can also specify an `ADMIN_EMAIL` in your `.env.local`. It will automatically be granted super admin status on startup with password `admin123`.
+> [!IMPORTANT]
+> Always set a strong `ADMIN_INITIAL_PASSWORD` in your `.env.local` prior to running initial database migration.
 
 ---
 
