@@ -19,12 +19,13 @@ import {
   ArrowUpRight,
 } from 'lucide-react';
 import AdminLayoutClient from '../admin-layout-client';
+import { useAdminResource } from '@/lib/hooks/useAdminResource';
 
 export default function InvestmentsClient() {
-  const [investments, setInvestments] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [filter, setFilter] = useState('all');
+  const endpoint = filter !== 'all' ? `/api/admin/investments?status=${filter}` : '/api/admin/investments';
+  const { data: invData, loading, error, refetch: fetchInvestments } = useAdminResource(endpoint);
+  const investments = Array.isArray(invData) ? invData : invData?.investments || [];
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState(null);
   const [page, setPage] = useState(1);
@@ -32,27 +33,6 @@ export default function InvestmentsClient() {
   const [editModal, setEditModal] = useState(null);
   const [editValue, setEditValue] = useState({ profit: '', status: '', extend_days: '' });
   const perPage = 10;
-
-  const fetchInvestments = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const params = new URLSearchParams();
-      if (filter !== 'all') params.set('status', filter);
-      const res = await fetch(`/api/admin/investments?${params}`);
-      if (!res.ok) throw new Error('Failed to fetch investments');
-      const data = await res.json();
-      setInvestments(Array.isArray(data) ? data : data.investments || []);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchInvestments();
-  }, [filter]);
 
   const filtered = investments.filter((inv) => {
     if (!search) return true;

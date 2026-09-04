@@ -3,12 +3,12 @@
 import { useState, useEffect } from 'react'
 import { Mail, Plus, Edit2, Trash2, Send, X, FileText, Search } from 'lucide-react'
 import AdminLayoutClient from '../admin-layout-client'
+import { useAdminResource } from '@/lib/hooks/useAdminResource'
 
 export default function EmailClient() {
   const [activeTab, setActiveTab] = useState('templates')
-  const [templates, setTemplates] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const { data: emailData, loading, error, refetch: fetchTemplates } = useAdminResource('/api/admin/email')
+  const templates = emailData?.templates || []
   const [showModal, setShowModal] = useState(false)
   const [editingTemplate, setEditingTemplate] = useState(null)
   const [templateForm, setTemplateForm] = useState({ name: '', subject: '', body: '' })
@@ -25,24 +25,6 @@ export default function EmailClient() {
   const [searching, setSearching] = useState(false)
   const [sending, setSending] = useState(false)
 
-  const fetchTemplates = async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      const res = await fetch('/api/admin/email')
-      if (!res.ok) throw new Error('Failed to fetch templates')
-      const data = await res.json()
-      setTemplates(data.templates || [])
-    } catch (err) {
-      setError(err.message)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    fetchTemplates()
-  }, [])
 
   const searchUsers = async (query) => {
     if (!query.trim()) {
