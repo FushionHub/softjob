@@ -19,39 +19,19 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import AdminLayoutClient from '../admin-layout-client';
+import { useAdminResource } from '@/lib/hooks/useAdminResource';
 
 export default function KycClient() {
-  const [submissions, setSubmissions] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [filter, setFilter] = useState('all');
+  const endpoint = filter !== 'all' ? `/api/admin/kyc?status=${filter}` : '/api/admin/kyc';
+  const { data: kycData, loading, error, refetch: fetchSubmissions } = useAdminResource(endpoint);
+  const submissions = Array.isArray(kycData) ? kycData : kycData?.submissions || [];
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState(null);
   const [rejectionReason, setRejectionReason] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
   const [page, setPage] = useState(1);
   const perPage = 10;
-
-  const fetchSubmissions = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const params = new URLSearchParams();
-      if (filter !== 'all') params.set('status', filter);
-      const res = await fetch(`/api/admin/kyc?${params}`);
-      if (!res.ok) throw new Error('Failed to fetch KYC submissions');
-      const data = await res.json();
-      setSubmissions(Array.isArray(data) ? data : data.submissions || []);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchSubmissions();
-  }, [filter]);
 
   const filtered = submissions.filter((s) => {
     if (!search) return true;

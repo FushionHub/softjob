@@ -1,0 +1,41 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  lint-test-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Run Test Suite
+        run: npm test
+
+      - name: Verify Build
+        run: npm run build
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/testdb
+          JWT_SECRET: supersecretjwtkeyforcibuilds123456789
+          ADMIN_JWT_SECRET: supersecretadminjwtkeyforcibuilds123456789
+          WALLET_ENCRYPTION_KEY: a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2
+
+      - name: Production Dependency Audit
+        run: npm audit --production

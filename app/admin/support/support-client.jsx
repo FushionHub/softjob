@@ -3,14 +3,14 @@
 import { useState, useEffect, useRef } from 'react'
 import { Headphones, Send, Paperclip, Mic, MicOff, Image, File, Play, Pause, MessageSquare, Clock, Circle, CheckCircle, XCircle, StopCircle } from 'lucide-react'
 import AdminLayoutClient from '../admin-layout-client'
+import { useAdminResource } from '@/lib/hooks/useAdminResource'
 
 export default function SupportClient() {
-  const [tickets, setTickets] = useState([])
+  const { data: supportData, loading, error, refetch: fetchTickets } = useAdminResource('/api/admin/support')
+  const tickets = supportData?.tickets || []
   const [selectedTicket, setSelectedTicket] = useState(null)
   const [messages, setMessages] = useState([])
   const [newMessage, setNewMessage] = useState('')
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
   const [sending, setSending] = useState(false)
   const [isRecording, setIsRecording] = useState(false)
   const [recordingTime, setRecordingTime] = useState(0)
@@ -19,21 +19,6 @@ export default function SupportClient() {
   const mediaRecorderRef = useRef(null)
   const audioChunksRef = useRef([])
   const timerRef = useRef(null)
-
-  const fetchTickets = async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      const res = await fetch('/api/admin/support')
-      if (!res.ok) throw new Error('Failed to fetch tickets')
-      const data = await res.json()
-      setTickets(data.tickets || [])
-    } catch (err) {
-      setError(err.message)
-    } finally {
-      setLoading(false)
-    }
-  }
 
   const fetchMessages = async (ticketId) => {
     try {
