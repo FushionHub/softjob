@@ -29,17 +29,31 @@ export async function PUT(request, { params }) {
       return NextResponse.json({ error: 'Withdrawal already processed' }, { status: 400 });
     }
 
+    if (status === 'approved') {
+      const userRes = await query('SELECT balance FROM users WHERE id = $1', [withdrawal.user_id]);
+      const currentBalance = parseFloat(userRes[0]?.balance || 0);
+      const reqAmount = parseFloat(withdrawal.amount);
+
+      if (currentBalance < reqAmount) {
+        return NextResponse.json({
+          error: `Cannot approve withdrawal: User balance ($${currentBalance.toFixed(2)}) is less than requested withdrawal amount ($${reqAmount.toFixed(2)}).`
+        }, { status: 400 });
+      }
+
+      const updateRes = await query(
+        `UPDATE users SET balance = balance - $1, total_withdrawal = COALESCE(total_withdrawal, 0) + $1 WHERE id = $2 AND balance >= $1 RETURNING balance`,
+        [reqAmount, withdrawal.user_id]
+      );
+
+      if (!updateRes.length) {
+        return NextResponse.json({ error: 'Failed to debit balance: Insufficient funds or concurrent update.' }, { status: 400 });
+      }
+    }
+
     await query(
       `UPDATE withdrawals SET status = $1, processed_at = NOW() WHERE id = $2`,
       [status, id]
     );
-
-    if (status === 'approved') {
-      await query(
-        `UPDATE users SET balance = GREATEST(0, balance - $1), total_withdrawal = total_withdrawal + $1 WHERE id = $2`,
-        [withdrawal.amount, withdrawal.user_id]
-      );
-    }
 
     const userRows = await query('SELECT id, name, email FROM users WHERE id = $1', [withdrawal.user_id]);
     if (userRows[0]) {

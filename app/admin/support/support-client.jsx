@@ -402,7 +402,7 @@ export default function SupportClient() {
                           type="text"
                           value={newMessage}
                           onChange={(e) => setNewMessage(e.target.value)}
-                          onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
+                          onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
                           placeholder="Type a message..."
                           className="flex-1 px-4 py-2 bg-[#010214] border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#ef4d45]"
                           disabled={sending}

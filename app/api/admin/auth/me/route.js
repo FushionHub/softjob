@@ -3,7 +3,7 @@ import { getAdminSession } from '@/lib/admin-auth';
 
 export async function GET(request) {
     try {
-        const admin = await getAdminSession(request);
+        const admin = await getAdminSession();
         if (!admin) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }

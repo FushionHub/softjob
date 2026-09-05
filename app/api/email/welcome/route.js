@@ -3,7 +3,7 @@ import { sendWelcomeEmail, sendAdminNotification } from '@/lib/email';
 
 export async function POST(request) {
     try {
-        const session = await getSessionUser(request);
+        const session = await getSessionUser();
         if (!session) {
             return Response.json({ error: 'Unauthorized' }, { status: 401 });
         }

@@ -1,8 +1,15 @@
 import { query } from '@/lib/db';
 import bcrypt from 'bcryptjs';
+import { getAdminSession } from '@/lib/admin-auth';
 
 export async function POST(request) {
     try {
+        // Admin-only: open registration lives at /api/auth/register.
+        // This endpoint exists for admin-created accounts (dashboard / scripts).
+        const admin = await getAdminSession();
+        if (!admin) {
+            return Response.json({ error: 'Unauthorized — admin only' }, { status: 401 });
+        }
         const { name, email, username, phone, password, referrer } = await request.json();
 
         if (!name || !email || !username || !password) {

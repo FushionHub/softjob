@@ -88,12 +88,11 @@ export async function PUT(request, { params }) {
       paramIndex++;
     }
 
-    if (body.coin !== undefined && body.coin_amount !== undefined) {
-      const coinField = `coins_${body.coin}`;
-      updates.push(`${coinField} = COALESCE(${coinField}, 0) + $${paramIndex}`);
-      values.push(body.coin_amount);
-      changes[`coin_${body.coin}`] = body.coin_amount;
-      paramIndex++;
+    // NOTE: per-coin balance columns (coins_*) do not exist in the schema.
+    // The injectable dynamic-column branch was removed. Use the atomic
+    // POST /api/admin/users/[id]/balance endpoint for balance adjustments.
+    if (body.coin !== undefined || body.coin_amount !== undefined) {
+      return NextResponse.json({ error: 'Per-coin balances are not supported. Use add_balance or the /balance endpoint.' }, { status: 400 });
     }
 
     if (updates.length === 0) {

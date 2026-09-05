@@ -22,9 +22,13 @@ export async function GET(request) {
     let paramIndex = 1;
 
     if (status) {
-      conditions.push(`d.status = $${paramIndex}`);
-      params.push(status);
-      paramIndex++;
+      if (status === 'confirmed' || status === 'approved') {
+        conditions.push(`(d.status = 'confirmed' OR d.status = 'approved')`);
+      } else {
+        conditions.push(`d.status = $${paramIndex}`);
+        params.push(status);
+        paramIndex++;
+      }
     }
 
     if (userId) {
@@ -34,7 +38,7 @@ export async function GET(request) {
     }
 
     if (search) {
-      conditions.push(`(u.name ILIKE $${paramIndex} OR u.email ILIKE $${paramIndex})`);
+      conditions.push(`(u.name ILIKE $${paramIndex} OR u.email ILIKE $${paramIndex} OR d.reference ILIKE $${paramIndex})`);
       params.push(`%${search}%`);
       paramIndex++;
     }
@@ -50,7 +54,7 @@ export async function GET(request) {
     );
 
     const depositsResult = await query(
-      `SELECT d.id, d.user_id, d.amount, d.currency, d.status, d.tx_hash,
+      `SELECT d.id, d.user_id, d.amount, d.currency, d.status, d.tx_hash, d.payment, d.reference,
               d.created_at, d.updated_at,
               u.name as user_name, u.email as user_email
        FROM deposits d
@@ -65,9 +69,9 @@ export async function GET(request) {
       SELECT
         COUNT(*) as total,
         COUNT(*) FILTER (WHERE status = 'pending') as pending,
-        COUNT(*) FILTER (WHERE status = 'confirmed') as confirmed,
-        COUNT(*) FILTER (WHERE status = 'rejected') as rejected,
-        COALESCE(SUM(amount) FILTER (WHERE status = 'confirmed'), 0) as total_confirmed_amount
+        COUNT(*) FILTER (WHERE status = 'confirmed' OR status = 'approved') as confirmed,
+        COUNT(*) FILTER (WHERE status = 'rejected' OR status = 'failed') as rejected,
+        COALESCE(SUM(amount) FILTER (WHERE status = 'confirmed' OR status = 'approved'), 0) as total_confirmed_amount
       FROM deposits
     `);
 

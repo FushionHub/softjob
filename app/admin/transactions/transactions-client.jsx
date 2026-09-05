@@ -64,10 +64,6 @@ export default function TransactionsClient() {
   const [exporting, setExporting] = useState(false)
   const [showFilters, setShowFilters] = useState(false)
 
-  useEffect(() => {
-    fetchTransactions()
-  }, [])
-
   async function fetchTransactions() {
     setLoading(true)
     try {

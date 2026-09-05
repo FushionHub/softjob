@@ -12,7 +12,6 @@ export default function TransactionsPage(){
     if(tR.ok) setTxs((await tR.json()).transactions||[]);
     setLoading(false);
   };
-  useEffect(()=>{ fetchData('all'); },[]);
   useEffect(()=>{ fetchData(filter); },[filter]);
   if(loading) return <div className="min-h-screen bg-[#010214] flex items-center justify-center"><div className="size-10 border-4 border-[#ef4d45] border-t-transparent rounded-full animate-spin"/></div>;
   const tabs = ['all','deposit','withdrawal','swap','trade'];

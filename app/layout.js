@@ -27,14 +27,7 @@ export default function RootLayout({ children }) {
                         
                         function GTranslateFireEvent(a, b) {
                             try {
-                                if (document.createEvent) {
-                                    var c = document.createEvent("HTMLEvents");
-                                    c.initEvent(b, true, true);
-                                    a.dispatchEvent(c);
-                                } else {
-                                    var c = document.createEventObject();
-                                    a.fireEvent('on' + b, c);
-                                }
+                                a.dispatchEvent(new Event(b, { bubbles: true, cancelable: true }));
                             } catch (e) {}
                         }
                         

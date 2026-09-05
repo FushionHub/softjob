@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import Link from 'next/link'
 import {
   Search,
   ChevronLeft,
@@ -16,6 +17,7 @@ import {
   AtSign,
   Calendar,
   Eye,
+  FileCheck,
 } from 'lucide-react'
 
 function UserDetailModal({ user, onClose, onAction }) {
@@ -195,7 +197,13 @@ function UserDetailModal({ user, onClose, onAction }) {
             </div>
           </div>
 
-          <div className="border-t border-white/5 pt-4 flex flex-wrap gap-2">
+          <div className="border-t border-white/5 pt-4 flex flex-wrap gap-2 items-center">
+            <Link
+              href={`/admin/kyc?user_id=${user.id}`}
+              className="flex items-center gap-1.5 px-3 py-2 bg-[#ef4d45]/15 hover:bg-[#ef4d45]/25 text-[#ef4d45] border border-[#ef4d45]/30 rounded-lg text-sm transition-colors font-medium"
+            >
+              <FileCheck className="w-3.5 h-3.5" /> View ID & KYC Docs
+            </Link>
             <button onClick={() => setEditMode(true)} className="flex items-center gap-1.5 px-3 py-2 bg-white/10 hover:bg-white/15 text-white rounded-lg text-sm transition-colors">
               <Edit2 className="w-3.5 h-3.5" /> Edit User
             </button>

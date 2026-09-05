@@ -3,6 +3,40 @@ import bcrypt from 'bcryptjs';
 import { query } from '@/lib/db';
 import { signToken } from '@/lib/auth';
 
+// Self-healing: guarantees the users table exists on stale DBs.
+let _userSchemaReady = false;
+async function ensureUserSchema() {
+  if (_userSchemaReady) return;
+  try {
+    await query(`CREATE TABLE IF NOT EXISTS users (
+      id SERIAL PRIMARY KEY,
+      name VARCHAR(255) NOT NULL,
+      email VARCHAR(255) UNIQUE NOT NULL,
+      username VARCHAR(255) UNIQUE NOT NULL,
+      phone VARCHAR(255),
+      password VARCHAR(255) NOT NULL,
+      referrer VARCHAR(255) DEFAULT NULL,
+      referral_code VARCHAR(20) UNIQUE DEFAULT NULL,
+      email_verified BOOLEAN DEFAULT FALSE,
+      verification_token TEXT DEFAULT NULL,
+      accept_terms BOOLEAN DEFAULT FALSE,
+      balance DECIMAL(15,2) DEFAULT 0.00,
+      kyc_verified BOOLEAN DEFAULT FALSE,
+      kyc_status VARCHAR(20) DEFAULT 'none',
+      google_id VARCHAR(255) UNIQUE DEFAULT NULL,
+      auth_provider VARCHAR(20) DEFAULT 'local',
+      onboarding_completed BOOLEAN DEFAULT FALSE,
+      onboarding_skipped BOOLEAN DEFAULT FALSE,
+      last_login TIMESTAMP NULL DEFAULT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+    _userSchemaReady = true;
+  } catch (e) {
+    console.error('ensureUserSchema failed:', e.message);
+  }
+}
+
 function failRedirect(request, code) {
   const url = new URL('/login', request.url);
   url.searchParams.set('error', code);
@@ -11,6 +45,7 @@ function failRedirect(request, code) {
 
 export async function POST(request) {
   try {
+    await ensureUserSchema();
     const contentType = request.headers.get('content-type') || '';
     let email, password, redirectTo;
 
@@ -75,7 +110,7 @@ export async function POST(request) {
       });
       response.cookies.set('auth_token', token, {
         httpOnly: true,
-        secure: false,
+        secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
         path: '/',
         maxAge: 60 * 60 * 24 * 7,
@@ -87,7 +122,7 @@ export async function POST(request) {
     const response = NextResponse.redirect(redirectUrl, 302);
     response.cookies.set('auth_token', token, {
       httpOnly: true,
-      secure: false,
+      secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       path: '/',
       maxAge: 60 * 60 * 24 * 7,

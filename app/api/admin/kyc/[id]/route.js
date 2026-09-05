@@ -14,6 +14,9 @@ export async function GET(request, { params }) {
 
         const rows = await query(
             `SELECT k.*,
+                    k.id_front_url as front_image_url,
+                    k.id_back_url as back_image_url,
+                    k.country as nationality,
                     u.name as user_name, u.email as user_email, u.username, u.phone as user_phone,
                     u.country as user_country, u.kyc_verified as current_kyc_verified
              FROM kyc_submissions k

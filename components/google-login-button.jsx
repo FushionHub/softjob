@@ -8,7 +8,7 @@ export default function GoogleLoginButton({ onError, referrer, mode = 'login', t
   const [loading, setLoading] = useState(false);
   const [ready, setReady] = useState(false);
   const btnRef = useRef(null);
-  const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || process.env.GOOGLE_CLIENT_ID || '';
+  const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '';
 
   useEffect(() => {
     if (!clientId) { setReady(false); return; }

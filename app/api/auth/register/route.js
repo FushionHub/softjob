@@ -2,10 +2,66 @@ import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { query } from '@/lib/db';
 import { signToken } from '@/lib/auth';
-import { sendVerificationEmail, sendWelcomeEmail, sendAdminNotification } from '@/lib/email';
+import { sendVerificationEmail, sendAdminNotification } from '@/lib/email';
+
+// Self-healing: guarantees the users table + auth columns exist on stale DBs.
+let _userSchemaReady = false;
+async function ensureUserSchema() {
+  if (_userSchemaReady) return;
+  try {
+    await query(`CREATE TABLE IF NOT EXISTS users (
+      id SERIAL PRIMARY KEY,
+      name VARCHAR(255) NOT NULL,
+      email VARCHAR(255) UNIQUE NOT NULL,
+      username VARCHAR(255) UNIQUE NOT NULL,
+      phone VARCHAR(255),
+      password VARCHAR(255) NOT NULL,
+      referrer VARCHAR(255) DEFAULT NULL,
+      referral_code VARCHAR(20) UNIQUE DEFAULT NULL,
+      email_verified BOOLEAN DEFAULT FALSE,
+      verification_token TEXT DEFAULT NULL,
+      accept_terms BOOLEAN DEFAULT FALSE,
+      balance DECIMAL(15,2) DEFAULT 0.00,
+      total_profit DECIMAL(15,2) DEFAULT 0.00,
+      total_bonus DECIMAL(15,2) DEFAULT 0.00,
+      total_withdrawal DECIMAL(15,2) DEFAULT 0.00,
+      total_deposit DECIMAL(15,2) DEFAULT 0.00,
+      kyc_verified BOOLEAN DEFAULT FALSE,
+      kyc_status VARCHAR(20) DEFAULT 'none',
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+    const cols = [
+      ['referral_code', 'VARCHAR(20) UNIQUE DEFAULT NULL'],
+      ['verification_token', 'TEXT DEFAULT NULL'],
+      ['referrer', 'VARCHAR(255) DEFAULT NULL'],
+      ['email_verified', 'BOOLEAN DEFAULT FALSE'],
+      ['accept_terms', 'BOOLEAN DEFAULT FALSE'],
+      ['balance', 'DECIMAL(15,2) DEFAULT 0.00'],
+      ['total_profit', 'DECIMAL(15,2) DEFAULT 0.00'],
+      ['total_bonus', 'DECIMAL(15,2) DEFAULT 0.00'],
+      ['total_withdrawal', 'DECIMAL(15,2) DEFAULT 0.00'],
+      ['total_deposit', 'DECIMAL(15,2) DEFAULT 0.00'],
+      ['kyc_verified', 'BOOLEAN DEFAULT FALSE'],
+      ['kyc_status', "VARCHAR(20) DEFAULT 'none'"],
+      ['google_id', 'VARCHAR(255) UNIQUE DEFAULT NULL'],
+      ['auth_provider', "VARCHAR(20) DEFAULT 'local'"],
+      ['onboarding_completed', 'BOOLEAN DEFAULT FALSE'],
+      ['onboarding_skipped', 'BOOLEAN DEFAULT FALSE'],
+      ['last_login', 'TIMESTAMP NULL DEFAULT NULL'],
+    ];
+    for (const [col, def] of cols) {
+      try { await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS ${col} ${def}`); } catch {}
+    }
+    _userSchemaReady = true;
+  } catch (e) {
+    console.error('ensureUserSchema failed:', e.message);
+  }
+}
 
 export async function POST(request) {
   try {
+    await ensureUserSchema();
     const { name, email, username, phone, password, referrer, acceptTerms } = await request.json();
 
     if (!name || !email || !username || !password) {

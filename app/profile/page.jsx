@@ -95,7 +95,7 @@ export default function ProfilePage(){
     if(!f) return;
     if(f.size>5*1024*1024){ setMsg({type:'error', text:'Avatar max 5MB'}); return; }
     setAvatarFile(f);
-    setAvatarPreview(URL.createObjectURL(f));
+    setAvatarPreview((prev) => { if (prev) URL.revokeObjectURL(prev); return URL.createObjectURL(f); });
   };
 
   const uploadAvatar = async()=>{

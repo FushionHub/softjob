@@ -27,51 +27,73 @@ export async function POST(request, { params }) {
       );
     }
 
-    let balanceExpr;
     if (type === 'deduct') {
-      balanceExpr = `CASE WHEN balance >= $1 THEN balance - $1 ELSE balance END`;
-    } else {
-      balanceExpr = `balance + $1`;
-    }
-
-    const result = await query(
-      `UPDATE users SET balance = ${balanceExpr}, updated_at = NOW()
-       WHERE id = $2
-       RETURNING id, balance`,
-      [numericAmount, id]
-    );
-
-    if (result.length === 0) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
-
-    const updatedUser = result[0];
-    const newBalance = parseFloat(updatedUser.balance);
-
-    if (type === 'deduct' && newBalance === parseFloat(updatedUser.balance)) {
       const userCheck = await query('SELECT balance FROM users WHERE id = $1', [id]);
-      if (userCheck.length > 0 && parseFloat(userCheck[0].balance) === newBalance + numericAmount) {
+      if (userCheck.length === 0) {
+        return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      }
+      const currentBalance = parseFloat(userCheck[0].balance || 0);
+      if (currentBalance < numericAmount) {
         return NextResponse.json(
-          { error: 'Insufficient balance' },
+          { error: `Insufficient balance. Current user balance is $${currentBalance.toFixed(2)}.` },
           { status: 400 }
         );
       }
+
+      const result = await query(
+        `UPDATE users SET balance = balance - $1, updated_at = NOW()
+         WHERE id = $2 AND balance >= $1
+         RETURNING id, balance`,
+        [numericAmount, id]
+      );
+
+      if (result.length === 0) {
+        return NextResponse.json({ error: 'Insufficient balance' }, { status: 400 });
+      }
+
+      const newBalance = parseFloat(result[0].balance);
+      await logAdminAction(admin.id, 'adjust_balance', 'user', id, {
+        amount: numericAmount,
+        coin: coin || 'USD',
+        type,
+        note,
+        new_balance: newBalance
+      });
+
+      return NextResponse.json({
+        success: true,
+        new_balance: newBalance,
+        adjustment: numericAmount,
+        type
+      });
+    } else {
+      const result = await query(
+        `UPDATE users SET balance = balance + $1, updated_at = NOW()
+         WHERE id = $2
+         RETURNING id, balance`,
+        [numericAmount, id]
+      );
+
+      if (result.length === 0) {
+        return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      }
+
+      const newBalance = parseFloat(result[0].balance);
+      await logAdminAction(admin.id, 'adjust_balance', 'user', id, {
+        amount: numericAmount,
+        coin: coin || 'USD',
+        type,
+        note,
+        new_balance: newBalance
+      });
+
+      return NextResponse.json({
+        success: true,
+        new_balance: newBalance,
+        adjustment: numericAmount,
+        type
+      });
     }
-
-    await logAdminAction(admin.id, 'adjust_balance', 'user', id, {
-      amount: numericAmount,
-      coin: coin || 'USD',
-      type,
-      note,
-      new_balance: newBalance
-    });
-
-    return NextResponse.json({
-      success: true,
-      new_balance: newBalance,
-      adjustment: numericAmount,
-      type
-    });
   } catch (error) {
     console.error('Adjust balance error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

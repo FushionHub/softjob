@@ -32,13 +32,15 @@ export async function POST(req) {
     if (!amt || amt <= 0) return NextResponse.json({ error: 'Invalid amount' }, { status: 400 });
     if (amt < 10) return NextResponse.json({ error: 'Minimum deposit is $10' }, { status: 400 });
 
-    // Live-only — no demo fallback. Bachs live key required for every deposit.
+    // Bachs API Key (supports live and sandbox)
     const bachsKey = process.env.BACHS_API_KEY || process.env.BACHS_SECRET_KEY;
-    const baseUrl = process.env.BACHS_API_BASE || 'https://api.bachs.io';
-    const hasKey = !!bachsKey && !bachsKey.startsWith('sk_sandbox_') && !bachsKey.startsWith('sk_test_');
+    const isSandbox = bachsKey?.startsWith('sk_sandbox_') || bachsKey?.startsWith('sk_test_');
+    const defaultBase = isSandbox ? 'https://sandbox-api.bachs.io' : 'https://api.bachs.io';
+    const baseUrl = process.env.BACHS_API_BASE || defaultBase;
+    const hasKey = !!bachsKey && bachsKey !== 'sk_sandbox_your_key_here';
 
     if (!hasKey) {
-      return NextResponse.json({ error: 'Live checkout unavailable — BACHS_API_KEY (sk_live_...) not configured. Set it in .env to enable real-time deposits via Bachs.io.' }, { status: 503 });
+      return NextResponse.json({ error: 'Checkout unavailable — BACHS_API_KEY not configured. Set it in .env to enable deposits via Bachs.io.' }, { status: 503 });
     }
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';

@@ -38,8 +38,17 @@ export async function POST(req) {
         }
 
         const balance = parseFloat(users[0].balance || 0);
-        if (balance < parseFloat(amount)) {
-            return NextResponse.json({ error: 'Insufficient balance' }, { status: 400 });
+        const pendingRes = await query(
+            "SELECT COALESCE(SUM(amount), 0) as pending_total FROM withdrawals WHERE user_id = $1 AND status = 'pending'",
+            [userId]
+        );
+        const pendingAmount = parseFloat(pendingRes[0]?.pending_total || 0);
+        const availableBalance = balance - pendingAmount;
+
+        if (availableBalance < parseFloat(amount)) {
+            return NextResponse.json({
+                error: `Insufficient available balance. Pending withdrawals: $${pendingAmount.toFixed(2)}. Available: $${Math.max(0, availableBalance).toFixed(2)}`
+            }, { status: 400 });
         }
 
         const amt = parseFloat(amount);

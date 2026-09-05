@@ -1,15 +1,15 @@
 import { NextResponse } from 'next/server';
 import { query } from '@/lib/db';
-import { getSessionUser } from '@/lib/auth';
+import { getAdminSession } from '@/lib/admin-auth';
 import { sendKycApprovedToUser, sendKycRejectedToUser, safeSend } from '@/lib/email';
 
 export async function POST(req) {
   try {
-    const session = await getSessionUser();
-    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    const adminEmail = process.env.ADMIN_EMAIL;
-    const me = await query('SELECT email FROM users WHERE id=$1', [session.userId]);
-    if (!me.length || me[0].email !== adminEmail) return NextResponse.json({ error: 'Forbidden — admin only' }, { status: 403 });
+    // Privilege is proven by the admin_users session — never by matching
+    // an email in the users table (that address can be self-registered).
+    const admin = await getAdminSession();
+    if (!admin) return NextResponse.json({ error: 'Forbidden — admin only' }, { status: 403 });
+    const me = [{ email: admin.email }];
 
     const { userId, action, reason } = await req.json();
     if (!userId || !['approve','reject'].includes(action)) return NextResponse.json({ error: 'userId and action (approve|reject) required' }, { status: 400 });

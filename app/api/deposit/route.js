@@ -68,21 +68,21 @@ export async function POST(req) {
             }
         } catch {}
 
-        // Handle reinvest from balance (real-time deduction) with row lock
+        // Handle reinvest from balance (real-time deduction) with atomic SQL check
         if (paymentMethod === 'balance') {
-            const db = getDb();
-            await db('BEGIN');
+            const deductRes = await query(
+                'UPDATE users SET balance = balance - $1 WHERE id = $2 AND balance >= $1 RETURNING balance, email, name',
+                [amt, userId]
+            );
+            if (!deductRes.length) {
+                return NextResponse.json({ error: 'Insufficient balance for reinvestment' }, { status: 400 });
+            }
+            const uUser = deductRes[0];
             try {
-                const uRows = await db('SELECT balance, email, name FROM users WHERE id=$1 FOR UPDATE', [userId]);
-                if (!uRows.length) { await db('ROLLBACK'); return NextResponse.json({ error: 'User not found' }, { status: 404 }); }
-                const bal = Number(uRows[0].balance||0);
-                if (bal < amt) { await db('ROLLBACK'); return NextResponse.json({ error: 'Insufficient balance' }, { status: 400 }); }
-                await db('UPDATE users SET balance = balance - $1 WHERE id=$2', [amt, userId]);
-                await db('INSERT INTO notifications (user_id,title,message,type) VALUES ($1,$2,$3,$4)', [userId, 'Reinvestment Started', `$${amt.toFixed(2)} reinvested from balance • Awaiting profit accrual`, 'success']);
-                await db('COMMIT');
-                // email
-                safeSend(sendDepositEmail({ to: uRows[0].email, name: uRows[0].name, amount: amt, method: 'balance reinvest', reference, status: 'initiated' }));
-            } catch (e) { try { await getDb()('ROLLBACK'); } catch {} throw e; }
+                await query('INSERT INTO notifications (user_id,title,message,type) VALUES ($1,$2,$3,$4)', [userId, 'Reinvestment Started', `$${amt.toFixed(2)} reinvested from balance • Awaiting profit accrual`, 'success']);
+            } catch {}
+            // email
+            safeSend(sendDepositEmail({ to: uUser.email, name: uUser.name, amount: amt, method: 'balance reinvest', reference, status: 'initiated' }));
         }
 
         // If planId is provided, create investment
@@ -103,31 +103,38 @@ export async function POST(req) {
                     const days = parseInt(planData.duration);
                     endDate.setDate(endDate.getDate() + days);
                 }
+
                 await query(
                     'INSERT INTO user_investments (user_id, plan_id, amount, start_date, end_date, status) VALUES ($1, $2, $3, $4, $5, $6)',
                     [userId, planId, amt, startDate.toISOString(), endDate.toISOString(), 'active']
                 );
-                // Email for investment
+
+                let referrerId = null;
+                let bonusAmt = 0;
+                try {
+                    const ref = await query('SELECT referrer_id FROM referrals WHERE referred_id=$1 LIMIT 1', [userId]);
+                    if (ref.length) {
+                        referrerId = ref[0].referrer_id;
+                        bonusAmt = amt * 0.05;
+                        await query('UPDATE users SET total_bonus = total_bonus + $1, balance = balance + $1 WHERE id=$2', [bonusAmt, referrerId]);
+                        await query('UPDATE referrals SET bonus_amount = bonus_amount + $1, status=$2 WHERE referred_id=$3', [bonusAmt, 'active', userId]);
+                        await query('INSERT INTO profit_history (user_id, amount, type, description) VALUES ($1,$2,$3,$4)', [referrerId, bonusAmt, 'referral', `5% referral bonus from user ${userId} investment $${amt}`]);
+                        await query('INSERT INTO notifications (user_id,title,message,type) VALUES ($1,$2,$3,$4)', [referrerId, 'Referral Bonus Earned!', `You earned $${bonusAmt.toFixed(2)} (5%) from your referral's investment of $${amt.toFixed(2)} - credited instantly`, 'success']);
+                    }
+                } catch (e) {
+                    console.error('Referral bonus error:', e.message);
+                }
+                // Emails (non-blocking, after commit)
                 try {
                     const u = await query('SELECT email, name FROM users WHERE id=$1', [userId]);
                     if (u.length) safeSend(sendInvestmentEmail({ to: u[0].email, name: u[0].name, planName: planData.name, amount: amt, percentage: planData.percentage, duration: planData.duration }));
                 } catch {}
-                // Referral bonus 5% to referrer on reinvest/deposit with plan
-                try {
-                  const ref = await query('SELECT referrer_id FROM referrals WHERE referred_id=$1 LIMIT 1', [userId]);
-                  if (ref.length) {
-                    const bonus = amt * 0.05;
-                    await query('UPDATE users SET total_bonus = total_bonus + $1, balance = balance + $1 WHERE id=$2', [bonus, ref[0].referrer_id]);
-                    await query('UPDATE referrals SET bonus_amount = bonus_amount + $1, status=$2 WHERE referred_id=$3', [bonus, 'active', userId]);
-                    await query('INSERT INTO profit_history (user_id, amount, type, description) VALUES ($1,$2,$3,$4)', [ref[0].referrer_id, bonus, 'referral', `5% referral bonus from user ${userId} investment $${amt}`]);
-                    await query('INSERT INTO notifications (user_id,title,message,type) VALUES ($1,$2,$3,$4)', [ref[0].referrer_id, 'Referral Bonus Earned!', `You earned $${bonus.toFixed(2)} (5%) from your referral's investment of $${amt.toFixed(2)} - credited instantly`, 'success']);
-                    // email to referrer
+                if (referrerId) {
                     try {
-                        const rUser = await query('SELECT email, name FROM users WHERE id=$1', [ref[0].referrer_id]);
-                        if (rUser.length) safeSend(sendInvestmentEmail({ to: rUser[0].email, name: rUser[0].name, planName: `Referral Bonus from ${userId}`, amount: bonus, percentage: 5, duration: 'instant' }));
+                        const rUser = await query('SELECT email, name FROM users WHERE id=$1', [referrerId]);
+                        if (rUser.length) safeSend(sendInvestmentEmail({ to: rUser[0].email, name: rUser[0].name, planName: `Referral Bonus from ${userId}`, amount: bonusAmt, percentage: 5, duration: 'instant' }));
                     } catch {}
-                  }
-                } catch (e) { console.error('referral bonus', e.message); }
+                }
             }
         }
 

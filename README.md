@@ -31,12 +31,14 @@ The database automatically initializes default super admin accounts with encrypt
 
 | Email | Password | Role | Permissions |
 |-------|----------|------|-------------|
-| `admin@emporiumcapitals.com` | `admin123` | `super_admin` | Full Access |
 | `jmauricennadi@gmail.com` | `admin123` | `super_admin` | Full Access |
-| `admin@example.com` | `admin123` | `admin` | Standard Admin |
+| `admin@emporiumcapitals.com` | `admin123` | `super_admin` | Full Access |
 
 > [!TIP]
 > You can also specify an `ADMIN_EMAIL` in your `.env.local`. It will automatically be granted super admin status on startup with password `admin123`.
+>
+> [!WARNING]
+> Change the default `admin123` password immediately after first login, and never commit real credentials to git.
 
 ---
 
@@ -245,11 +247,30 @@ node scripts/init-db.js
 ## 🚀 Deployment (Vercel & Production)
 
 1. Connect your GitHub repository to **Vercel**.
-2. Add all environment variables from `.env.local` to the **Vercel Project Settings**.
-3. Run `node scripts/init-db.js` locally or in a build step against your production Neon DB.
+2. Add all environment variables from `.env.local` to the **Vercel Project Settings** (at minimum: `JWT_SECRET`, `DATABASE_URL`, `SMTP_*`, `ADMIN_EMAIL`, `NEXT_PUBLIC_APP_URL`).
+3. Initialize the database — run **both** schema files against your production Neon DB, in order:
+   ```bash
+   psql $DATABASE_URL -f schema.sql
+   psql $DATABASE_URL -f admin-schema.sql
+   ```
+   (If you skip this, the API self-heals: `ensureAdminSchema()` / `ensureUserSchema()` create the missing tables on first request — but running the SQL files is faster and recommended.)
 4. Set `NEXT_PUBLIC_APP_URL` to your live domain (e.g. `https://emporiumcapitals.com`).
-5. Configure your Bachs.io webhook endpoint to `https://emporiumcapitals.com/api/bachs/webhook`.
+5. Configure your Bachs.io webhook endpoint to `https://yourdomain.com/api/bachs/webhook`.
 6. Add your domain to Google Cloud Console **Authorized JavaScript Origins** for Google OAuth.
+7. Log in at `https://yourdomain.com/admin/login` and change the default admin password.
+
+---
+
+## 🧯 Troubleshooting (Production)
+
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| `POST /api/admin/auth/login 500` + `relation "admin_users" does not exist` (`42P01`) | `admin-schema.sql` was never run on the deployed DB | Run `psql $DATABASE_URL -f admin-schema.sql`. The API also self-heals on the next login attempt via `ensureAdminSchema()` — just retry once. |
+| `POST /api/admin/auth/login 401` with correct-looking credentials | Stale/invalid bcrypt hash in the `admin_users` seed row | The seed now carries a verified hash of `admin123`. Re-run `admin-schema.sql` (it uses `ON CONFLICT DO UPDATE`, so it repairs the hash), then log in again. |
+| Signup/Login `500` on a previously working deploy | Deployed `users` table missing newer columns (`referral_code`, `verification_token`, …) | `ensureUserSchema()` in the auth routes auto-adds missing columns — retry the request. Or re-run `schema.sql`. |
+| `Invalid source map ... sourceMapURL could not be parsed` in dev logs | Harmless Turbopack dev-mode noise from Next 16 chunks | Ignore in development; it does not appear in production builds. |
+| Google login `audience mismatch` / `Not configured` | `GOOGLE_CLIENT_ID` / `NEXT_PUBLIC_GOOGLE_CLIENT_ID` empty or origins not whitelisted | Set both vars to the same Client ID and add the domain under Authorized JavaScript Origins. |
+| Bachs checkout `400` | Sandbox key or missing `expires_in_minutes` / `price_type:fixed` | Use a `sk_live_` key over public `https` (localhost is rejected for live keys). |
 
 ---
 

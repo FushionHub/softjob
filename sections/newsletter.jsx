@@ -27,7 +27,7 @@ export default function Newsletter() {
                         </p>
                         
                         <div className="flex flex-wrap justify-center gap-4 pt-4">
-                            <a href="#plans" className="btn-primary gap-2">
+                            <a href="/register" className="btn-primary gap-2">
                                 <span>Sign Up</span>
                                 <ArrowRight className="size-4" />
                             </a>

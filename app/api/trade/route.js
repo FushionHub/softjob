@@ -27,20 +27,9 @@ export async function POST(req) {
 
         const userId = session.userId;
 
-        // Check user balance with row lock (atomic)
-        const db = getDb();
-        await db('BEGIN');
-        let user;
-        try {
-            const rows = await db('SELECT id, balance, email, name FROM users WHERE id=$1 FOR UPDATE', [userId]);
-            if (!rows.length) { await db('ROLLBACK'); return NextResponse.json({ error: 'User not found' }, { status: 404 }); }
-            user = rows[0];
-            if (Number(amount) > Number(user.balance)) { await db('ROLLBACK'); return NextResponse.json({ error: 'Insufficient balance' }, { status: 400 }); }
-            await db('UPDATE users SET balance = balance - $1 WHERE id=$2', [amount, userId]);
-            await db('COMMIT');
-        } catch (e) { try { await db('ROLLBACK'); } catch {} throw e; }
-
-        // Fetch real-time price from Binance API
+        // Fetch real-time price BEFORE touching money: the balance lock below
+        // must be held for the shortest possible time, and a crash between a
+        // committed deduct and the trade INSERT would lose user funds.
         let entryPrice;
         try {
             const symbol = asset.replace('USD', 'USDT');
@@ -56,19 +45,30 @@ export async function POST(req) {
             console.error('Failed to fetch price:', error);
             entryPrice = asset === 'BTCUSD' ? 45000 : asset === 'ETHUSD' ? 3000 : 100;
         }
-        
+
         const idemKeyTrade = idempotencyKey || `tr_${userId}_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
+
+        // Atomic balance deduction: only succeeds if balance >= amount
+        const deductRes = await query(
+            'UPDATE users SET balance = balance - $1 WHERE id = $2 AND balance >= $1 RETURNING id, balance, email, name',
+            [amount, userId]
+        );
+        if (!deductRes.length) {
+            return NextResponse.json({ error: 'Insufficient balance' }, { status: 400 });
+        }
+        const user = deductRes[0];
+
         try {
             await query(
                 'INSERT INTO trades (user_id, asset, type, amount, entry_price, status, duration, idempotency_key) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
                 [userId, asset, type, amount, entryPrice, 'open', duration, idemKeyTrade]
             );
         } catch (e) {
+            // If trade insert fails, refund user balance immediately
+            await query('UPDATE users SET balance = balance + $1 WHERE id = $2', [amount, userId]);
             if (String(e.message).includes('duplicate') || String(e.message).includes('unique')) {
                 return NextResponse.json({ error: 'Duplicate trade (idempotency)' }, { status: 409 });
             }
-            // refund on failed insert
-            await query('UPDATE users SET balance = balance + $1 WHERE id=$2', [amount, userId]).catch(()=>{});
             throw e;
         }
         try { await query('INSERT INTO notifications (user_id,title,message,type) VALUES ($1,$2,$3,$4)', [userId, 'Trade Opened', `${type.toUpperCase()} ${asset} $${Number(amount).toFixed(2)} @ $${Number(entryPrice).toFixed(2)} • ${duration}`, 'info']); } catch {}

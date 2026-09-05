@@ -39,12 +39,13 @@ export async function GET(request) {
         const total = parseInt(countResult[0]?.total) || 0;
 
         const submissions = await query(
-            `SELECT k.id, k.user_id, k.full_name, k.date_of_birth, k.country, k.country as nationality, k.city, k.address,
-                    k.id_type, k.id_number, k.id_front_url, k.id_front_url as front_image_url,
+            `SELECT k.id, k.user_id, k.full_name, k.date_of_birth, k.gender, k.country, k.country as nationality, k.city, k.address, k.postal_code,
+                    k.id_type, k.id_number, k.occupation, k.source_of_funds,
+                    k.id_front_url, k.id_front_url as front_image_url,
                     k.id_back_url, k.id_back_url as back_image_url,
                     k.selfie_url, k.proof_of_address_url, k.status, k.rejection_reason,
                     k.submitted_at, k.reviewed_at, k.reviewed_by, k.created_at, k.updated_at,
-                    u.name as user_name, u.email as user_email, u.username
+                    u.name as user_name, u.email as user_email, u.username, u.phone as user_phone
              FROM kyc_submissions k
              JOIN users u ON u.id = k.user_id
              WHERE ${where}

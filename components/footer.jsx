@@ -18,17 +18,17 @@ export default function Footer() {
             title: 'Support',
             links: [
                 { title: 'Contact Support', href: '/support' },
-                { title: 'Affiliate Program', href: '/#affiliate' },
-                { title: 'Security & Insurance', href: '/#security' },
+                { title: 'Affiliate Program', href: '/referrals' },
+                { title: 'Security & Insurance', href: '/about' },
                 { title: 'How It Works', href: '/#how-it-works' },
             ],
         },
         {
             title: 'Legal',
             links: [
-                { title: 'Terms & Conditions', href: '/#terms' },
-                { title: 'Privacy Policy', href: '/#privacy' },
-                { title: 'Risk Disclosure', href: '/#risk' },
+                { title: 'Terms & Conditions', href: '/terms' },
+                { title: 'Privacy Policy', href: '/privacy' },
+                { title: 'Risk Disclosure', href: '/terms#risk' },
             ],
         },
     ];
@@ -83,14 +83,9 @@ export default function Footer() {
                                 Join the 450K+ people that use Emporium Capitals. Get weekly market analysis, AI trade summaries, and platform updates delivered straight to your inbox.
                             </p>
                             <div className="flex max-w-md items-center mt-3">
-                                <input 
-                                    type="email" 
-                                    placeholder="Enter your email address" 
-                                    className="w-full rounded-l-full border border-border-subtle bg-bg-card px-4 py-2 text-text-main placeholder-text-muted outline-none focus:border-brand-primary transition-colors duration-200" 
-                                />
-                                <button className="btn-primary rounded-l-none text-xs px-6 py-2 shrink-0">
-                                    Subscribe
-                                </button>
+                                <Link href="/register" className="btn-primary rounded-full text-xs px-6 py-2 shrink-0">
+                                    Create free account
+                                </Link>
                             </div>
                         </div>
 
@@ -107,8 +102,8 @@ export default function Footer() {
                 <div className="mt-12 border-t border-border-subtle pt-6 flex flex-col md:flex-row items-center justify-between text-xs text-text-muted gap-4">
                     <p>© 2026 Emporium Capitals. All rights reserved.</p>
                     <div className="flex gap-6">
-                        <Link href="/#privacy" className="hover:text-brand-primary">Privacy Policy</Link>
-                        <Link href="/#terms" className="hover:text-brand-primary">Terms of Service</Link>
+                        <Link href="/privacy" className="hover:text-brand-primary">Privacy Policy</Link>
+                        <Link href="/terms" className="hover:text-brand-primary">Terms of Service</Link>
                         <Link href="/support" className="hover:text-brand-primary">Contact Support</Link>
                     </div>
                 </div>

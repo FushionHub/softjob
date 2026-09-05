@@ -1,0 +1,89 @@
+# ==============================================================================
+# Emporium Capitals — cPanel Shared Hosting Master Apache Configuration
+# ==============================================================================
+# NO PROJECT APPLICATION CODE MODIFIED.
+# Compatible with:
+# 1. CloudLinux Passenger ("Setup Node.js App" in cPanel)
+# 2. Apache / LiteSpeed reverse proxy & PHP auto-starter fallback (index.php)
+# ==============================================================================
+
+Options -Indexes
+DirectoryIndex index.php index.html
+
+# ------------------------------------------------------------------------------
+# 1. Security Denials: Secrets, Source Code & Hidden Files
+# ------------------------------------------------------------------------------
+# Block dotfiles (.env, .git, .nvmrc, etc.)
+<FilesMatch "^\.">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Block sensitive project files and configs
+<FilesMatch "^(\.env.*|package(-lock)?\.json|bun\.lock|.*\.sql|.*\.log|server\.js|proxy\.js|next\.config\.mjs)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Block source code and internal directories from being directly browsed
+RedirectMatch 404 ^/(node_modules|\.git|\.next|app|lib|components|sections|scripts)(/|$)
+
+# ------------------------------------------------------------------------------
+# 2. Direct Static Asset Delivery & Caching (Offload from Node.js)
+# ------------------------------------------------------------------------------
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresDefault "access plus 1 month"
+    ExpiresByType text/css "access plus 1 year"
+    ExpiresByType application/javascript "access plus 1 year"
+    ExpiresByType application/x-javascript "access plus 1 year"
+    ExpiresByType image/png "access plus 1 year"
+    ExpiresByType image/jpeg "access plus 1 year"
+    ExpiresByType image/webp "access plus 1 year"
+    ExpiresByType image/svg+xml "access plus 1 year"
+    ExpiresByType font/woff "access plus 1 year"
+    ExpiresByType font/woff2 "access plus 1 year"
+</IfModule>
+
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/plain text/html text/xml text/css application/xml application/xhtml+xml application/rss+xml application/javascript application/x-javascript font/woff2
+</IfModule>
+
+# ------------------------------------------------------------------------------
+# 3. Routing & Gateway Configuration
+# ------------------------------------------------------------------------------
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Ensure HTTPS
+    # RewriteCond %{HTTPS} off
+    # RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+    # Allow direct access to cpanel utility scripts
+    RewriteCond %{REQUEST_URI} ^/cpanel/ [NC]
+    RewriteRule ^ - [L]
+
+    # Serve static assets from public/ if they exist
+    RewriteCond %{DOCUMENT_ROOT}/public/$1 -f
+    RewriteRule ^(.*)$ public/$1 [L]
+
+    # Route all other web traffic to the PHP reverse-proxy ONLY on pure-Apache
+    # hosts (no Passenger / no "Setup Node.js App"). Gated on a marker file
+    # so Passenger setups — where Passenger owns routing — are never affected.
+    # Enable on pure-Apache hosts with:  touch .use_php_proxy  (in app root)
+    RewriteCond %{DOCUMENT_ROOT}/.use_php_proxy -f
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.*)$ index.php [L,QSA]
+</IfModule>
+
+# ------------------------------------------------------------------------------
+# 4. Optional CloudLinux Passenger Directives
+# (cPanel "Setup Node.js App" automatically manages these if active)
+# ------------------------------------------------------------------------------
+# <IfModule mod_passenger.c>
+#     PassengerEnabled on
+#     PassengerAppType node
+#     PassengerStartupFile server.js
+#     PassengerAppRoot /home/USERNAME/public_html
+# </IfModule>

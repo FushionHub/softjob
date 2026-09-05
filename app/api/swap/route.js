@@ -87,15 +87,22 @@ export async function GET() {
   }
 }
 
-export async function POST(req) {
-  const db = getDb();
-  // Auto-migrate missing idempotency column (live, no demo)
+let _swapSchemaReady = false;
+async function ensureSwapSchema() {
+  if (_swapSchemaReady) return;
   for (const c of [
     `ALTER TABLE swaps ADD COLUMN IF NOT EXISTS idempotency_key VARCHAR(100) UNIQUE DEFAULT NULL`,
     `CREATE INDEX IF NOT EXISTS idx_swaps_idempotency ON swaps(idempotency_key)`,
     `ALTER TABLE users ADD COLUMN IF NOT EXISTS google_id VARCHAR(255) UNIQUE DEFAULT NULL`,
     `ALTER TABLE users ADD COLUMN IF NOT EXISTS onboarding_completed BOOLEAN DEFAULT FALSE`,
-  ]) try { await query(c); } catch {}
+  ]) {
+    try { await query(c); } catch {}
+  }
+  _swapSchemaReady = true;
+}
+
+export async function POST(req) {
+  await ensureSwapSchema();
   try {
     const session = await getSessionUser();
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -137,79 +144,80 @@ export async function POST(req) {
 
     const usdValue = await getUsdValue(fromAsset, amt, liveCache);
     // Real balance check — if insufficient, block
-    // Use transaction with row lock
-    await db('BEGIN');
-    try {
-      const uRows = await db('SELECT id, balance, email, name, username FROM users WHERE id=$1 FOR UPDATE', [session.userId]);
-      if (!uRows.length) { await db('ROLLBACK'); return NextResponse.json({ error: 'User not found' }, { status: 404 }); }
-      const user = uRows[0];
-      const balance = Number(user.balance||0);
-      if (balance < usdValue) {
-        await db('ROLLBACK');
-        return NextResponse.json({ error: `Insufficient balance. Need $${usdValue.toFixed(2)} ( ${amt} ${fromAsset} ≈ $${usdValue.toFixed(2)} ), but balance is $${balance.toFixed(2)}.` }, { status: 400 });
-      }
-
-      // Get real live rate at execution time
-      let rate = 1;
-      if (fromAsset === 'USDT' || fromAsset === 'USDC') {
-        const toPrice = liveCache[`${toAsset}USDT`] ?? await fetchLivePrice(`${toAsset}USDT`);
-        rate = toPrice ? 1 / toPrice : (STATIC_RATES[`USDT_${toAsset}`] ?? 1);
-      } else if (toAsset === 'USDT' || toAsset === 'USDC') {
-        const fromPrice = liveCache[`${fromAsset}USDT`] ?? await fetchLivePrice(`${fromAsset}USDT`);
-        rate = fromPrice ?? STATIC_RATES[`${fromAsset}_USDT`] ?? 1;
-      } else {
-        rate = await getLiveRate(fromAsset, toAsset, liveCache);
-      }
-
-      const fee = amt * 0.005; // 0.5% in fromAsset
-      const feeUsd = await getUsdValue(fromAsset, fee, liveCache);
-      const toAmount = (amt - fee) * rate;
-
-      // Deduct fee from balance (swap is value-preserving minus fee)
-      if (feeUsd > 0) {
-        await db('UPDATE users SET balance = balance - $1 WHERE id=$2', [feeUsd, session.userId]);
-      }
-
-      // Insert swap with idempotency key
-      const keyToStore = idempotencyKey || `swap_${session.userId}_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
-      let inserted;
-      try {
-        inserted = await db(
-          'INSERT INTO swaps (user_id, from_asset, to_asset, from_amount, to_amount, rate, fee, status, idempotency_key) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *',
-          [session.userId, fromAsset, toAsset, amt, toAmount, rate, fee, 'completed', keyToStore]
-        );
-      } catch (insErr) {
-        // unique violation on idempotency_key -> treat as duplicate
-        if (String(insErr.message).includes('duplicate') || String(insErr.message).includes('unique')) {
-          await db('ROLLBACK');
-          const dupe = await query('SELECT * FROM swaps WHERE idempotency_key=$1 LIMIT 1', [keyToStore]);
-          if (dupe.length) return NextResponse.json({ success:true, duplicate:true, swap: dupe[0], message: 'Duplicate prevented (idempotency)' });
-          return NextResponse.json({ error: 'Duplicate transaction' }, { status: 409 });
-        }
-        throw insErr;
-      }
-
-      // Notifications
-      await db('INSERT INTO notifications (user_id,title,message,type) VALUES ($1,$2,$3,$4)', [session.userId, 'Swap Completed ✓', `Swapped ${amt} ${fromAsset} → ${toAmount.toFixed(6)} ${toAsset} @ ${rate.toFixed(6)} (fee ${fee.toFixed(6)} ${fromAsset} ≈ $${feeUsd.toFixed(2)})`, 'success']);
-
-      await db('COMMIT');
-
-      // Email — fire and forget
-      safeSend(sendSwapEmail({
-        to: user.email,
-        name: user.name || user.username,
-        fromAsset, toAsset,
-        fromAmount: amt,
-        toAmount,
-        rate, fee,
-        status: 'completed'
-      }));
-
-      return NextResponse.json({ success:true, rate, fee, feeUsd, usdValue, toAmount, message: `Swapped ${amt} ${fromAsset} → ${toAmount.toFixed(6)} ${toAsset} (live rate)`, swap: inserted[0], balanceAfter: balance - feeUsd });
-    } catch (innerErr) {
-      try { await db('ROLLBACK'); } catch {}
-      throw innerErr;
+    const uRows = await query('SELECT id, balance, email, name, username FROM users WHERE id=$1', [session.userId]);
+    if (!uRows.length) return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    const user = uRows[0];
+    const balance = Number(user.balance||0);
+    if (balance < usdValue) {
+      return NextResponse.json({ error: `Insufficient balance. Need $${usdValue.toFixed(2)} (${amt} ${fromAsset} ≈ $${usdValue.toFixed(2)}), but available balance is $${balance.toFixed(2)}.` }, { status: 400 });
     }
+
+    // Get real live rate at execution time
+    let rate = 1;
+    if (fromAsset === 'USDT' || fromAsset === 'USDC') {
+      const toPrice = liveCache[`${toAsset}USDT`] ?? await fetchLivePrice(`${toAsset}USDT`);
+      rate = toPrice ? 1 / toPrice : (STATIC_RATES[`USDT_${toAsset}`] ?? 1);
+    } else if (toAsset === 'USDT' || toAsset === 'USDC') {
+      const fromPrice = liveCache[`${fromAsset}USDT`] ?? await fetchLivePrice(`${fromAsset}USDT`);
+      rate = fromPrice ?? STATIC_RATES[`${fromAsset}_USDT`] ?? 1;
+    } else {
+      rate = await getLiveRate(fromAsset, toAsset, liveCache);
+    }
+
+    const fee = amt * 0.005; // 0.5% in fromAsset
+    const feeUsd = await getUsdValue(fromAsset, fee, liveCache);
+    const toAmount = (amt - fee) * rate;
+
+    // Deduct fee from balance atomically
+    let currentBalance = balance;
+    if (feeUsd > 0) {
+      const deduct = await query(
+        'UPDATE users SET balance = balance - $1 WHERE id = $2 AND balance >= $1 RETURNING balance',
+        [feeUsd, session.userId]
+      );
+      if (!deduct.length) {
+        return NextResponse.json({ error: `Insufficient balance to cover swap fee of $${feeUsd.toFixed(2)}.` }, { status: 400 });
+      }
+      currentBalance = Number(deduct[0].balance);
+    }
+
+    // Insert swap with idempotency key
+    const keyToStore = idempotencyKey || `swap_${session.userId}_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
+    let inserted;
+    try {
+      inserted = await query(
+        'INSERT INTO swaps (user_id, from_asset, to_asset, from_amount, to_amount, rate, fee, status, idempotency_key) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *',
+        [session.userId, fromAsset, toAsset, amt, toAmount, rate, fee, 'completed', keyToStore]
+      );
+    } catch (insErr) {
+      if (feeUsd > 0) {
+        await query('UPDATE users SET balance = balance + $1 WHERE id = $2', [feeUsd, session.userId]);
+      }
+      if (String(insErr.message).includes('duplicate') || String(insErr.message).includes('unique')) {
+        const dupe = await query('SELECT * FROM swaps WHERE idempotency_key=$1 LIMIT 1', [keyToStore]);
+        if (dupe.length) return NextResponse.json({ success:true, duplicate:true, swap: dupe[0], message: 'Duplicate prevented (idempotency)' });
+        return NextResponse.json({ error: 'Duplicate transaction' }, { status: 409 });
+      }
+      throw insErr;
+    }
+
+    // Notifications
+    try {
+      await query('INSERT INTO notifications (user_id,title,message,type) VALUES ($1,$2,$3,$4)', [session.userId, 'Swap Completed ✓', `Swapped ${amt} ${fromAsset} → ${toAmount.toFixed(6)} ${toAsset} @ ${rate.toFixed(6)} (fee ${fee.toFixed(6)} ${fromAsset} ≈ $${feeUsd.toFixed(2)})`, 'success']);
+    } catch {}
+
+    // Email — fire and forget
+    safeSend(sendSwapEmail({
+      to: user.email,
+      name: user.name || user.username,
+      fromAsset, toAsset,
+      fromAmount: amt,
+      toAmount,
+      rate, fee,
+      status: 'completed'
+    }));
+
+    return NextResponse.json({ success:true, rate, fee, feeUsd, usdValue, toAmount, message: `Swapped ${amt} ${fromAsset} → ${toAmount.toFixed(6)} ${toAsset} (live rate)`, swap: inserted[0], balanceAfter: currentBalance });
   } catch (e) {
     console.error('swap POST', e);
     // mark failed swap if idempotency key provided? not needed
