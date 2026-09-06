@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Eye, EyeOff, AlertCircle, Check, ShieldCheck } from 'lucide-react';
 import GoogleLoginButton from '@/components/google-login-button';
@@ -18,30 +18,21 @@ export default function LoginClient() {
     const [twoFactorRequired, setTwoFactorRequired] = useState(false);
     const [twoFactorCode, setTwoFactorCode] = useState('');
     const [pageError, setPageError] = useState('');
-    const [pageSuccess, setPageSuccess] = useState('');
 
-    useEffect(() => {
-        const verified = searchParams.get('verified');
-        const error = searchParams.get('error');
-
-        if (verified === 'true') {
-            setPageSuccess('Email verified successfully! You can now sign in.');
-        }
-
-        if (error) {
-            if (error === 'invalid_token') {
-                setPageError('The email verification link is invalid or has expired.');
-            } else if (error === 'oauth_failed') {
-                setPageError('Google login failed. Please try again.');
-            } else if (error === 'invalid_credentials') {
-                setPageError('Invalid email/username or password');
-            } else if (error === 'missing_fields') {
-                setPageError('Email and password are required');
-            } else {
-                setPageError('An error occurred during authentication.');
-            }
-        }
-    }, [searchParams]);
+    // URL-driven banners are derived during render (not synced in an effect)
+    // so they stay correct even if search params change without a remount.
+    // Interactive errors (Google, 2FA, submit) still use pageError state.
+    const urlErrorMessage = (code) => {
+        if (code === 'invalid_token') return 'The email verification link is invalid or has expired.';
+        if (code === 'oauth_failed') return 'Google login failed. Please try again.';
+        if (code === 'invalid_credentials') return 'Invalid email/username or password';
+        if (code === 'missing_fields') return 'Email and password are required';
+        return code ? 'An error occurred during authentication.' : '';
+    };
+    const shownError = pageError || urlErrorMessage(searchParams.get('error'));
+    const shownSuccess = searchParams.get('verified') === 'true'
+        ? 'Email verified successfully! You can now sign in.'
+        : '';
 
     const handleGoogleError = (msg) => setPageError(msg);
 
@@ -126,7 +117,7 @@ export default function LoginClient() {
                                 'Please enter the 6-digit verification code from your authenticator app.'
                             ) : (
                                 <>
-                                    Don't have an account?{' '}
+                                    Don&apos;t have an account?{' '}
                                     <Link href="/register" className="text-[#ef4d45] font-bold hover:underline transition-all">
                                         Sign Up
                                     </Link>
@@ -135,16 +126,16 @@ export default function LoginClient() {
                         </p>
                     </div>
 
-                    {pageError && (
+                    {shownError && (
                         <div className="flex items-center gap-2.5 p-3.5 rounded-xl border border-red-500/20 bg-red-500/10 text-red-200 text-xs animate-shake">
                             <AlertCircle className="size-4 shrink-0" />
-                            <span>{pageError}</span>
+                            <span>{shownError}</span>
                         </div>
                     )}
-                    {pageSuccess && (
+                    {shownSuccess && (
                         <div className="flex items-center gap-2.5 p-3.5 rounded-xl border border-emerald-500/20 bg-emerald-500/10 text-emerald-200 text-xs">
                             <Check className="size-4 shrink-0" />
-                            <span>{pageSuccess}</span>
+                            <span>{shownSuccess}</span>
                         </div>
                     )}
 

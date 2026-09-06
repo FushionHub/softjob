@@ -26,7 +26,7 @@ export default function HowItWorks() {
                         How It Works
                     </span>
                     <h2 className="text-3xl font-bold tracking-tight text-text-main sm:text-4xl">
-                        It's easy to <span className="text-brand-primary">start</span> your journey with us
+                        It&apos;s easy to <span className="text-brand-primary">start</span> your journey with us
                     </h2>
                     <p className="text-sm md:text-base text-text-muted leading-relaxed">
                         Welcome to an intelligent investment platform designed to grow your wealth effortlessly.

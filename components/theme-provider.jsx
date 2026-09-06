@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState, useSyncExternalStore } from 'react';
 
 const ThemeContext = createContext({
     theme: 'dark',
@@ -8,23 +8,28 @@ const ThemeContext = createContext({
 });
 
 export function ThemeProvider({ children }) {
-    const [theme, setTheme] = useState('dark');
-    const [mounted, setMounted] = useState(false);
+    // Read once during render (SSR-safe default 'dark'); the mounted gate
+    // below uses useSyncExternalStore so no effect ever sets state.
+    const [theme, setTheme] = useState(() => {
+        if (typeof window === 'undefined') return 'dark';
+        return localStorage.getItem('theme') || 'dark';
+    });
+    const mounted = useSyncExternalStore(
+        () => () => {},
+        () => true,
+        () => false
+    );
 
     useEffect(() => {
-        // Read theme from localStorage or default to dark
-        const savedTheme = localStorage.getItem('theme') || 'dark';
-        setTheme(savedTheme);
-        
-        if (savedTheme === 'light') {
+        // Sync <html> classes only — no setState here.
+        if (theme === 'light') {
             document.documentElement.classList.add('light');
             document.documentElement.classList.remove('dark');
         } else {
             document.documentElement.classList.add('dark');
             document.documentElement.classList.remove('light');
         }
-        setMounted(true);
-    }, []);
+    }, [theme]);
 
     const toggleTheme = () => {
         const nextTheme = theme === 'dark' ? 'light' : 'dark';

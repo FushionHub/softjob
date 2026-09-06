@@ -6,11 +6,16 @@ export default function NotificationsPage(){
   const [user,setUser]=useState(null);
   const [notes,setNotes]=useState([]);
   const [loading,setLoading]=useState(true);
-  const fetchAll = async()=>{
-    const [uR,nR]=await Promise.all([fetch('/api/user/me'), fetch('/api/notifications')]);
-    if(uR.ok) setUser(await uR.json());
-    if(nR.ok) setNotes((await nR.json()).notifications||[]);
-    setLoading(false);
+  const fetchAll = ()=>{
+    // Promise-chain form (not async/await): state updates live only inside
+    // subscription callbacks, keeping the polling effect cascade-free.
+    Promise.all([fetch('/api/user/me'), fetch('/api/notifications')])
+      .then(([uR,nR])=>Promise.all([
+        uR.ok?uR.json().then(d=>setUser(d)):null,
+        nR.ok?nR.json().then(d=>setNotes(d.notifications||[])):null,
+      ]))
+      .catch(()=>{})
+      .finally(()=>setLoading(false));
   };
   useEffect(()=>{ fetchAll(); const id=setInterval(fetchAll,10000); return()=>clearInterval(id); },[]);
   const markAll = async()=>{ await fetch('/api/notifications',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'markAllRead'})}); fetchAll(); };

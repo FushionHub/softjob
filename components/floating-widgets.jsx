@@ -148,7 +148,7 @@ export default function FloatingWidgets() {
                             className="w-full bg-[#ef4d45] hover:bg-[#d03d35] text-white rounded-full py-2.5 px-4 font-bold text-xs shadow-lg transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer active:scale-95"
                         >
                             <MessageCircle className="size-4" />
-                            <span>Let's chat</span>
+                            <span>Let&apos;s chat</span>
                         </button>
                     </div>
                 )}

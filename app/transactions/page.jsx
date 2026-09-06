@@ -6,11 +6,16 @@ export default function TransactionsPage(){
   const [txs,setTxs]=useState([]);
   const [filter,setFilter]=useState('all');
   const [loading,setLoading]=useState(true);
-  const fetchData = async (f=filter)=>{
-    const [uR,tR]=await Promise.all([fetch('/api/user/me'), fetch(`/api/transactions?type=${f}`)]);
-    if(uR.ok) setUser(await uR.json());
-    if(tR.ok) setTxs((await tR.json()).transactions||[]);
-    setLoading(false);
+  const fetchData = (f=filter)=>{
+    // Promise-chain form (not async/await): state updates live only inside
+    // subscription callbacks, keeping the filter effect cascade-free.
+    Promise.all([fetch('/api/user/me'), fetch(`/api/transactions?type=${f}`)])
+      .then(([uR,tR])=>Promise.all([
+        uR.ok?uR.json().then(d=>setUser(d)):null,
+        tR.ok?tR.json().then(d=>setTxs(d.transactions||[])):null,
+      ]))
+      .catch(()=>{})
+      .finally(()=>setLoading(false));
   };
   useEffect(()=>{ fetchData(filter); },[filter]);
   if(loading) return <div className="min-h-screen bg-[#010214] flex items-center justify-center"><div className="size-10 border-4 border-[#ef4d45] border-t-transparent rounded-full animate-spin"/></div>;

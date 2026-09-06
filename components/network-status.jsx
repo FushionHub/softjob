@@ -71,9 +71,10 @@ export default function NetworkStatus() {
     };
 
     useEffect(() => {
-        // Initial check on mount
+        // Initial check on mount, deferred to a microtask so the effect body
+        // itself never synchronously sets state (avoids cascading renders).
         if (typeof window !== 'undefined') {
-            updateConnectionStatus();
+            queueMicrotask(updateConnectionStatus);
 
             const handleOnline = () => {
                 triggerNotification('online');

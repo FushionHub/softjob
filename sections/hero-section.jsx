@@ -6,7 +6,12 @@ import { useTheme } from '@/components/theme-provider';
 
 export default function HeroSection() {
     const { theme } = useTheme();
-    const [marqueeLoaded, setMarqueeLoaded] = useState(false);
+    // Initial value reflects whether the widget script is already present
+    // (e.g. client-side navigation), so the effect below never sets state
+    // for that case — it only loads the script when missing.
+    const [marqueeLoaded, setMarqueeLoaded] = useState(
+        () => typeof window !== 'undefined' && !!document.getElementById('coingecko-marquee-script')
+    );
 
     useEffect(() => {
         // Load CoinGecko widget script
@@ -18,8 +23,6 @@ export default function HeroSection() {
             script.async = true;
             script.onload = () => setMarqueeLoaded(true);
             document.body.appendChild(script);
-        } else {
-            setMarqueeLoaded(true);
         }
     }, []);
 

@@ -32,8 +32,8 @@ export default function GoogleTranslate() {
 
     useEffect(() => {
         if (typeof window !== 'undefined') {
-            // Always default to English, ignore any browser detection or cookies
-            setCurrentLang('en|en');
+            // currentLang already initializes to 'en|en'; effect only touches
+            // external systems (storage + cookie), never state.
             localStorage.setItem('user-language', 'en|en');
             
             // Clear any existing Google Translate cookie to prevent auto-translation
