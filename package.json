@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --webpack",
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint"
@@ -14,6 +14,7 @@
     "jose": "^6.0.11",
     "lenis": "^1.3.11",
     "lucide-react": "^0.545.0",
+    "mysql2": "^3.24.3",
     "next": "16.0.10",
     "nodemailer": "^9.0.3",
     "qrcode": "^1.5.4",

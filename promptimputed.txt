@@ -8,3 +8,20 @@ Add the 10-minute cron job:
 bash
 
 php /home/USERNAME/public_html/cpanel/cron-worker.php
+
+full port (every page, api route, and admin panel rebuilt in laravel), but dont tamper the frontend, just keep it straight, but
+convert to laravel
+
+If Laravel serves pages too, which frontend approach?
+Blade + Livewire (Recommended)
+
+Which database should the Laravel app use?
+
+Switch to MySQL (Recommended)
+
+How should I deliver this large build?
+Step-by-step slices then build Step-by-step slices make sure not to tamper the nextjs ui i built already, just convert to
+laravel to help in easy compatibility with cpanel shared hosting. just keep everything/feature functional and intact
+
+Proposing a Laravel subdirectory port with Blade and Livewire while keeping the existing Nextjs UI untouched for shared hosting
+compatibility.

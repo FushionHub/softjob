@@ -7,7 +7,6 @@ const protectedRoutes = [
   '/packages',
   '/trading',
   '/wallet-connect',
-  '/wallet',
   '/profile',
   '/settings',
   '/withdraw',
