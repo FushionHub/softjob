@@ -12,7 +12,7 @@ export async function GET(req) {
 
     const deposits = await query("SELECT id, amount, payment as method, reference, status, date as created_at, 'deposit' as type FROM deposits WHERE user_id=$1", [userId]);
     const withdrawals = await query("SELECT id, amount, wallet_address as method, status, created_at, 'withdrawal' as type FROM withdrawals WHERE user_id=$1", [userId]);
-    const swaps = await query("SELECT id, from_amount as amount, from_asset||'→'||to_asset as method, status, created_at, 'swap' as type, to_amount FROM swaps WHERE user_id=$1", [userId]).catch(()=>[]);
+    const swaps = await query("SELECT id, from_amount as amount, CONCAT(from_asset, '→', to_asset) as method, status, created_at, 'swap' as type, to_amount FROM swaps WHERE user_id=$1", [userId]).catch(()=>[]);
     const trades = await query("SELECT id, amount, asset as method, status, datetime as created_at, 'trade' as type, profit FROM trades WHERE user_id=$1", [userId]);
 
     let all = [...deposits, ...withdrawals, ...swaps, ...trades].sort((a,b)=> new Date(b.created_at)-new Date(a.created_at));

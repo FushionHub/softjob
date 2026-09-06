@@ -23,7 +23,7 @@ export async function POST(req) {
             const existing = await query('SELECT * FROM trades WHERE idempotency_key=$1 AND user_id=$2 LIMIT 1', [idempotencyKey, session.userId]);
             if (existing.length) return NextResponse.json({ success: true, duplicate: true, message: 'Duplicate prevented — trade already opened', trade: existing[0] });
         }
-        const recentDup = await query(`SELECT id FROM trades WHERE user_id=$1 AND asset=$2 AND type=$3 AND amount=$4 AND datetime > NOW() - INTERVAL '10 seconds' AND status != 'failed' LIMIT 1`, [session.userId, asset, type, amount]);
+        const recentDup = await query(`SELECT id FROM trades WHERE user_id=$1 AND asset=$2 AND type=$3 AND amount=$4 AND datetime > $5 AND status != 'failed' LIMIT 1`, [session.userId, asset, type, amount, new Date(Date.now() - 10000)]);
         if (recentDup.length) return NextResponse.json({ error: 'Duplicate trade detected. Please wait 10 seconds.' }, { status: 409 });
 
         const userId = session.userId;

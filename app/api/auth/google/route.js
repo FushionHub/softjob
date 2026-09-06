@@ -119,7 +119,7 @@ export async function POST(req) {
 
     const needsOnboarding = !user.onboarding_completed && !user.onboarding_skipped && (!user.username || !user.phone || user.username.startsWith('google') || isNewUser);
     // For Google users, if phone is null, they need onboarding
-    const onboardingRequired = isNewUser || !user.phone || !user.username || user.onboarding_completed === false;
+    const onboardingRequired = isNewUser || !user.phone || !user.username || !user.onboarding_completed;
 
     const authToken = await signToken({ userId: user.id });
     const response = NextResponse.json({

@@ -128,8 +128,8 @@ export async function POST(req) {
 
     // Prevent dual submission: check duplicate within 10 seconds with same params and not failed
     const recent = await query(
-      `SELECT id FROM swaps WHERE user_id=$1 AND from_asset=$2 AND to_asset=$3 AND from_amount=$4 AND created_at > NOW() - INTERVAL '10 seconds' AND status != 'failed' LIMIT 1`,
-      [session.userId, fromAsset, toAsset, amt]
+      `SELECT id FROM swaps WHERE user_id=$1 AND from_asset=$2 AND to_asset=$3 AND from_amount=$4 AND created_at > $5 AND status != 'failed' LIMIT 1`,
+      [session.userId, fromAsset, toAsset, amt, new Date(Date.now() - 10000)]
     );
     if (recent.length) {
       return NextResponse.json({ error: 'Duplicate transaction detected. Please wait 10 seconds before retrying same swap.' }, { status: 409 });

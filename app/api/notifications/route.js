@@ -19,12 +19,12 @@ export async function GET(req) {
     const unreadOnly = searchParams.get('unread') === 'true';
     try {
       if (unreadOnly) {
-        const res = await query('SELECT COUNT(*)::int as count FROM notifications WHERE user_id=$1 AND is_read=false', [session.userId]);
-        return NextResponse.json({ count: res[0]?.count || 0 });
+        const res = await query('SELECT COUNT(*) as count FROM notifications WHERE user_id=$1 AND is_read=false', [session.userId]);
+        return NextResponse.json({ count: Number(res[0]?.count || 0) });
       }
       const notes = await query('SELECT * FROM notifications WHERE user_id=$1 ORDER BY created_at DESC LIMIT 50', [session.userId]);
-      const unread = await query('SELECT COUNT(*)::int as count FROM notifications WHERE user_id=$1 AND is_read=false', [session.userId]);
-      return NextResponse.json({ notifications: notes, unreadCount: unread[0]?.count || 0 });
+      const unread = await query('SELECT COUNT(*) as count FROM notifications WHERE user_id=$1 AND is_read=false', [session.userId]);
+      return NextResponse.json({ notifications: notes, unreadCount: Number(unread[0]?.count || 0) });
     } catch (e) {
       if (String(e.message).includes('does not exist') || e.code === '42P01' || e.code === '42703') {
         await ensureNotificationsTable();

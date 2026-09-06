@@ -22,13 +22,18 @@ export async function GET() {
       WHERE r.referrer_id=$1 ORDER BY r.created_at DESC
     `, [userId]);
 
-    const stats = await query(`
-      SELECT 
-        COUNT(*)::int as total,
+    const rawStats = await query(`
+      SELECT
+        COUNT(*) as total,
         COALESCE(SUM(bonus_amount),0) as total_bonus,
-        COUNT(CASE WHEN status='active' THEN 1 END)::int as active_count
+        COUNT(CASE WHEN status='active' THEN 1 END) as active_count
       FROM referrals WHERE referrer_id=$1
     `, [userId]);
+    const stats = [{
+      total: Number(rawStats[0]?.total || 0),
+      total_bonus: Number(rawStats[0]?.total_bonus || 0),
+      active_count: Number(rawStats[0]?.active_count || 0),
+    }];
 
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
     const link = `${baseUrl}/register?ref=${referralCode}`;

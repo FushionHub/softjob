@@ -48,7 +48,7 @@ export async function GET(req) {
     const autoDelaySec = parseInt(process.env.KYC_AUTO_APPROVE_DELAY || '15', 10);
     if (autoApprove) {
       try {
-        const pending = await query(`SELECT k.user_id, k.submitted_at, u.email, u.name FROM kyc_submissions k JOIN users u ON u.id=k.user_id WHERE k.status='pending' AND k.submitted_at < NOW() - INTERVAL '${autoDelaySec} seconds' LIMIT 10`);
+        const pending = await query(`SELECT k.user_id, k.submitted_at, u.email, u.name FROM kyc_submissions k JOIN users u ON u.id=k.user_id WHERE k.status='pending' AND k.submitted_at < $1 LIMIT 10`, [new Date(Date.now() - autoDelaySec * 1000)]);
         for (const p of pending) {
           await query("UPDATE kyc_submissions SET status='approved', reviewed_at=CURRENT_TIMESTAMP, reviewed_by='auto-verifier', updated_at=CURRENT_TIMESTAMP WHERE user_id=$1 AND status='pending'", [p.user_id]);
           await query("UPDATE users SET kyc_verified=true, kyc_status='approved', updated_at=CURRENT_TIMESTAMP WHERE id=$1", [p.user_id]);

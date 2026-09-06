@@ -68,10 +68,10 @@ export async function GET(request) {
     const statsResult = await query(`
       SELECT
         COUNT(*) as total,
-        COUNT(*) FILTER (WHERE status = 'pending') as pending,
-        COUNT(*) FILTER (WHERE status = 'confirmed' OR status = 'approved') as confirmed,
-        COUNT(*) FILTER (WHERE status = 'rejected' OR status = 'failed') as rejected,
-        COALESCE(SUM(amount) FILTER (WHERE status = 'confirmed' OR status = 'approved'), 0) as total_confirmed_amount
+        SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending,
+        SUM(CASE WHEN status = 'confirmed' OR status = 'approved' THEN 1 ELSE 0 END) as confirmed,
+        SUM(CASE WHEN status = 'rejected' OR status = 'failed' THEN 1 ELSE 0 END) as rejected,
+        COALESCE(SUM(CASE WHEN status = 'confirmed' OR status = 'approved' THEN amount ELSE 0 END), 0) as total_confirmed_amount
       FROM deposits
     `);
 
