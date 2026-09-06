@@ -49,3 +49,6 @@ next-env.d.ts
 
 # cpanel runtime artifacts
 .cpanel_node.pid
+
+# never commit large archives (e.g. softjob.zip stays local-only)
+*.zip
