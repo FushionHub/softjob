@@ -103,11 +103,12 @@ async function ensureSwapSchema() {
 
 export async function POST(req) {
   await ensureSwapSchema();
+  let body = {};
   try {
     const session = await getSessionUser();
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const body = await req.json();
+    body = await req.json().catch(() => ({}));
     const { fromAsset, toAsset, fromAmount, idempotencyKey } = body;
 
     if (!fromAsset || !toAsset || fromAmount == null) return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
@@ -223,8 +224,8 @@ export async function POST(req) {
     // mark failed swap if idempotency key provided? not needed
     try {
       const session = await getSessionUser().catch(()=>null);
-      if (session) {
-        const { fromAsset, toAsset, fromAmount } = await req.json().catch(()=>({}));
+      if (session && body) {
+        const { fromAsset, toAsset, fromAmount } = body;
         if (fromAsset && toAsset && fromAmount) {
           await query('INSERT INTO swaps (user_id, from_asset, to_asset, from_amount, to_amount, rate, fee, status) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)', [session.userId, fromAsset, toAsset, Number(fromAmount), 0, 0, 0, 'failed']).catch(()=>{});
         }

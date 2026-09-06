@@ -8,10 +8,19 @@
  *
  *   php /home/USERNAME/emporiumcapitals/cpanel/keepalive.php
  *
- * Configuration: edit APP_BASE_URL below (no trailing slash).
+ * Configuration: APP_BASE_URL is read from NEXT_PUBLIC_APP_URL in the root
+ * .env automatically (override by editing the fallback below, no trailing slash).
  */
-define('APP_BASE_URL', 'https://yourdomain.com');
+define('APP_BASE_URL_FALLBACK', 'https://yourdomain.com');
 define('CRON_TOKEN', 'change-me-to-a-random-string');
+
+$__appBase = APP_BASE_URL_FALLBACK;
+$__envPath = dirname(__DIR__) . '/.env';
+if (is_file($__envPath)
+    && preg_match('/^NEXT_PUBLIC_APP_URL\s*=\s*["\']?([^"\'\r\n]+)/m', file_get_contents($__envPath), $__m)) {
+    $__appBase = rtrim(trim($__m[1]), '/');
+}
+define('APP_BASE_URL', $__appBase);
 
 $isCli = (php_sapi_name() === 'cli');
 if (!$isCli) {

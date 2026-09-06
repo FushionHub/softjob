@@ -63,7 +63,7 @@ export async function GET(request) {
         UNION ALL
         SELECT id, 'trade' as type, user_id, amount, status, created_at FROM trades
         UNION ALL
-        SELECT id, 'swap' as type, user_id, amount, status, created_at FROM swaps
+        SELECT id, 'swap' as type, user_id, from_amount as amount, status, created_at FROM swaps
         UNION ALL
         SELECT id, 'investment' as type, user_id, amount, status, created_at FROM user_investments
       ) t

@@ -13,16 +13,14 @@ DirectoryIndex index.php index.html
 # ------------------------------------------------------------------------------
 # 1. Security Denials: Secrets, Source Code & Hidden Files
 # ------------------------------------------------------------------------------
-# Block dotfiles (.env, .git, .nvmrc, etc.)
+# Block dotfiles (.env, .git, .nvmrc, etc.) — Apache 2.4 syntax
 <FilesMatch "^\.">
-    Order allow,deny
-    Deny from all
+    Require all denied
 </FilesMatch>
 
-# Block sensitive project files and configs
+# Block sensitive project files and configs — Apache 2.4 syntax
 <FilesMatch "^(\.env.*|package(-lock)?\.json|bun\.lock|.*\.sql|.*\.log|server\.js|proxy\.js|next\.config\.mjs)$">
-    Order allow,deny
-    Deny from all
+    Require all denied
 </FilesMatch>
 
 # Block source code and internal directories from being directly browsed

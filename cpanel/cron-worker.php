@@ -105,8 +105,9 @@ if (!isPortActive($appPort)) {
 
 // Targets to ping: real Node routes (/_cpanel_ping does not exist).
 $targets = array(
-    'home'   => $baseUrl . '/',
-    'prices' => $baseUrl . '/api/prices',
+    'home'         => $baseUrl . '/',
+    'prices'       => $baseUrl . '/api/prices',
+    'cron_process' => $baseUrl . '/api/cron/process?token=' . urlencode($cronToken),
 );
 
 $results = array();

@@ -40,7 +40,7 @@ export async function POST(request) {
 
     const result = await query(
       `INSERT INTO investment_plans (name, percentage, duration, min_investment, max_investment, description, color, featured, created_at) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())`,
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW()) RETURNING id`,
       [name, percentage, duration, min_investment, max_investment || null, description || null, color || '#3B82F6', featured || false]
     );
 

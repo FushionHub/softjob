@@ -63,6 +63,7 @@ CREATE TABLE IF NOT EXISTS deposits (
     status VARCHAR(255) DEFAULT 'pending',
     proof_url TEXT DEFAULT NULL,
     idempotency_key VARCHAR(100) UNIQUE DEFAULT NULL,
+    plan_id INTEGER DEFAULT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 CREATE INDEX IF NOT EXISTS idx_deposits_user ON deposits(user_id);

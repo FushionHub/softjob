@@ -17,7 +17,7 @@ export async function POST(request) {
     // Verify token
     const decoded = await verifyToken(token);
 
-    if (!decoded || !decoded.email) {
+    if (!decoded || !decoded.email || decoded.type !== 'password_reset') {
       return NextResponse.json(
         { error: 'Invalid or expired reset token' },
         { status: 400 }
@@ -27,16 +27,16 @@ export async function POST(request) {
     // Hash new password
     const hashedPassword = await bcrypt.hash(newPassword, 12);
 
-    // Update user password
+    // Update user password only if stored verification_token matches (atomic single-use)
     const result = await query(
-      'UPDATE users SET password = $1, verification_token = NULL WHERE email = $2 RETURNING id',
-      [hashedPassword, decoded.email]
+      'UPDATE users SET password = $1, verification_token = NULL WHERE email = $2 AND verification_token = $3 RETURNING id',
+      [hashedPassword, decoded.email, token]
     );
 
     if (result.length === 0) {
       return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404 }
+        { error: 'Invalid or expired reset token' },
+        { status: 400 }
       );
     }
 

@@ -107,7 +107,7 @@ ALTER TABLE support_tickets ADD COLUMN IF NOT EXISTS last_reply_at TIMESTAMP NUL
 INSERT INTO admin_users (email, password, name, role) VALUES
 ('admin@emporiumcapitals.com', '$2b$12$pwdK6w0JpJ8oi.UrlQFgvuxtvjTTGkqKqjIcfynocGWJ5HCI5m1vW', 'Super Admin', 'super_admin'),
 ('jmauricennadi@gmail.com', '$2b$12$pwdK6w0JpJ8oi.UrlQFgvuxtvjTTGkqKqjIcfynocGWJ5HCI5m1vW', 'Super Admin', 'super_admin')
-ON CONFLICT (email) DO UPDATE SET password = EXCLUDED.password;
+ON CONFLICT (email) DO NOTHING;
 
 -- =============================================
 -- SEED: Default site settings

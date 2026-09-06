@@ -117,8 +117,10 @@ read from `NEXT_PUBLIC_APP_URL` in `.env` automatically.
 `https://yourdomain.com/cpanel/manager.php?token=YOUR_TOKEN` — live process
 status, start/stop/restart, log viewer, build + DB checks, and links to the
 health check, DB installer, and mail tester. Set `CPANEL_MANAGER_TOKEN` in the
-Node.js app env first. Test mail delivery with `mail-test.php?token=...`
-(same token pattern; delete both test scripts when finished).
+Node.js app env or root `.env` first (see `env.example`). Test mail delivery
+with `mail-test.php?token=...` (same token pattern; delete both test scripts
+when finished). `keepalive.php` reads its target URL from `NEXT_PUBLIC_APP_URL`
+in root `.env` automatically — no editing needed.
 
 ## 8. Verify
 
@@ -133,7 +135,7 @@ Node.js app env first. Test mail delivery with `mail-test.php?token=...`
 | File | Role |
 |---|---|
 | `server.js` | Passenger startup wrapper (`next({dev:false}).prepare()` + `listen(PORT)`) |
-| `index.php` | Pure-Apache fallback: auto-starts Node, reverse-proxies all routes, branded cold-start screen |
+| `index.php` | Pure-Apache fallback: auto-starts Node, reverse-proxies all routes, branded cold-start screen, 403-guards dotfiles/secrets even if `.htaccess` is inactive |
 | `.use_php_proxy` | Marker file (create with `touch`) that activates the `.htaccess` rewrite into `index.php`. Only for hosts **without** Passenger |
 | `.nvmrc` | Pins Node 20 for the app selector |
 | `.htaccess` (root) | Secret blocking + static caching + gated rewrite to `index.php` (Passenger-safe) |
@@ -149,7 +151,8 @@ Node.js app env first. Test mail delivery with `mail-test.php?token=...`
 ## Troubleshooting
 
 | Symptom | Cause / Fix |
-|---|---|
+|---|---|---|
+| `/.env` downloads, or rewrites don't work | Host has `AllowOverride None` — `.htaccess` is ignored. Ask the host to enable `AllowOverride FileInfo AuthConfig` for the docroot. (`index.php` still 403-guards secrets on proxied paths regardless.) |
 | `server.js` logs "Production build not found" | Step 4 not done. Build, then Restart. |
 | 503 / app won't start | Check app logs in the Node.js screen; usually a missing env var (`JWT_SECRET`, `DATABASE_URL`) or a failed `npm install`. |
 | Build runs out of memory | Shared plans are RAM-limited. Build **locally** (`npm run build`), upload the resulting `.next/` folder, then restart. Never upload local `node_modules/`. |

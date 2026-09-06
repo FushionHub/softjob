@@ -56,30 +56,87 @@ export async function POST(req) {
       const prefix = `BACHS-${String(checkoutId).slice(0, 12).toUpperCase()}`;
       deposits = await query("SELECT * FROM deposits WHERE reference=$1 AND status='pending' ORDER BY date DESC LIMIT 5", [prefix]);
       if (!deposits.length) {
-        // fallback: find most recent pending deposit for the user derived from metadata if present
+        // Check deposit_id in metadata if present
+        const depId = data.metadata?.deposit_id || event.metadata?.deposit_id;
+        if (depId) {
+          deposits = await query("SELECT * FROM deposits WHERE id=$1 AND status='pending' LIMIT 1", [depId]);
+        }
+      }
+      if (!deposits.length) {
+        // fallback: find pending deposit for the user ONLY if amount matches strictly
         const userId = data.metadata?.user_id || event.metadata?.user_id;
-        if (userId) {
-          deposits = await query("SELECT * FROM deposits WHERE user_id=$1 AND status='pending' ORDER BY date DESC LIMIT 1", [userId]);
+        if (userId && amount !== null && !isNaN(amount)) {
+          deposits = await query("SELECT * FROM deposits WHERE user_id=$1 AND status='pending' AND ABS(amount - $2) < 0.01 ORDER BY date DESC LIMIT 1", [userId, amount]);
         }
       }
     }
 
     let fulfilled = 0;
     for (const dep of deposits) {
+      // Validate received amount against expected deposit amount to prevent underpayment exploits
+      if (amount !== null && !isNaN(amount)) {
+        const expectedAmt = parseFloat(dep.amount);
+        if (amount < (expectedAmt - 0.01)) {
+          console.warn(`Bachs webhook amount mismatch: received $${amount}, expected $${expectedAmt} for deposit ${dep.id}`);
+          continue;
+        }
+      }
+
       // Atomic fulfilment: only updates if deposit status is currently 'pending'.
       // If a concurrent request or retry already processed it, 0 rows are returned.
-      const updatedDeposits = await query(
-        "UPDATE deposits SET status = 'approved', updated_at = NOW() WHERE id = $1 AND status = 'pending' RETURNING id, user_id, amount, payment, reference",
-        [dep.id]
-      );
+      let updatedDeposits;
+      try {
+        updatedDeposits = await query(
+          "UPDATE deposits SET status = 'approved', updated_at = NOW() WHERE id = $1 AND status = 'pending' RETURNING id, user_id, amount, payment, reference, plan_id",
+          [dep.id]
+        );
+      } catch {
+        updatedDeposits = await query(
+          "UPDATE deposits SET status = 'approved', updated_at = NOW() WHERE id = $1 AND status = 'pending' RETURNING id, user_id, amount, payment, reference",
+          [dep.id]
+        );
+      }
       if (!updatedDeposits.length) {
         continue;
       }
       const credited = updatedDeposits[0];
-      await query(
-        'UPDATE users SET balance = balance + $1, total_deposit = COALESCE(total_deposit, 0) + $1 WHERE id = $2',
-        [credited.amount, credited.user_id]
-      );
+      const depAmt = parseFloat(credited.amount);
+
+      if (credited.plan_id) {
+        const plans = await query('SELECT * FROM investment_plans WHERE id = $1', [credited.plan_id]);
+        if (plans.length > 0) {
+          const planData = plans[0];
+          const startDate = new Date();
+          const endDate = new Date(startDate);
+          if (planData.duration.includes('hours')) {
+            const hours = parseInt(planData.duration, 10);
+            endDate.setHours(endDate.getHours() + hours);
+          } else if (planData.duration.includes('days')) {
+            const days = parseInt(planData.duration, 10);
+            endDate.setDate(endDate.getDate() + days);
+          }
+
+          await query(
+            'UPDATE users SET total_deposit = COALESCE(total_deposit, 0) + $1 WHERE id = $2',
+            [depAmt, credited.user_id]
+          );
+
+          await query(
+            'INSERT INTO user_investments (user_id, plan_id, amount, start_date, end_date, status) VALUES ($1, $2, $3, $4, $5, $6)',
+            [credited.user_id, credited.plan_id, depAmt, startDate.toISOString(), endDate.toISOString(), 'active']
+          );
+        } else {
+          await query(
+            'UPDATE users SET balance = balance + $1, total_deposit = COALESCE(total_deposit, 0) + $1 WHERE id = $2',
+            [depAmt, credited.user_id]
+          );
+        }
+      } else {
+        await query(
+          'UPDATE users SET balance = balance + $1, total_deposit = COALESCE(total_deposit, 0) + $1 WHERE id = $2',
+          [depAmt, credited.user_id]
+        );
+      }
       fulfilled++;
 
       // Side effects below run only after money moved — safe to retry.

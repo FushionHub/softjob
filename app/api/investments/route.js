@@ -1,11 +1,16 @@
 import { NextResponse } from 'next/server';
 import { query } from '@/lib/db';
 import { getSessionUser } from '@/lib/auth';
+import { processMatureInvestments } from '@/lib/lifecycle';
 
 export async function GET() {
   try {
     const session = await getSessionUser();
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    // Process any mature investments for this user
+    await processMatureInvestments(session.userId).catch(e => console.error('Mature investments error:', e));
+
     const investments = await query(`
       SELECT ui.*, ip.name as plan_name, ip.percentage, ip.duration, ip.color
       FROM user_investments ui

@@ -22,6 +22,18 @@ $appRoot = __DIR__;
 $pidFile = $appRoot . '/.cpanel_node.pid';
 $logFile = $appRoot . '/cpanel/server.log';
 
+// Defense in depth: never proxy (or reveal) dotfiles and secrets, even if the
+// .htaccess deny rules are inactive on the host (e.g. AllowOverride None).
+$guardPath = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
+if (preg_match('#(^|/)\.[^/]*$#', $guardPath)
+    || preg_match('#\.(env(\..*)?|sql|log|pem)$#i', $guardPath)
+    || preg_match('#^/(node_modules|\.git|\.next|server\.js|proxy\.js|next\.config\.mjs|package(-lock)?\.json|bun\.lock)#', $guardPath)) {
+    http_response_code(403);
+    header('Content-Type: text/plain; charset=utf-8');
+    echo "Forbidden.\n";
+    exit;
+}
+
 // Determine target port
 $nodePort = DEFAULT_NODE_PORT;
 if (file_exists($appRoot . '/.env')) {

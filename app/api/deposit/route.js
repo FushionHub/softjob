@@ -39,37 +39,26 @@ export async function POST(req) {
         }
 
         const idemKey = idempotencyKey || `dep_${userId}_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
-        // Create deposit record with idempotency
-        try {
-            await query(
-                'INSERT INTO deposits (user_id, amount, type, payment, reference, status, idempotency_key) VALUES ($1, $2, $3, $4, $5, $6, $7)',
-                [userId, amt, 'deposit', paymentMethod, reference, 'pending', idemKey]
-            );
-        } catch (e) {
-            if (String(e.message).includes('duplicate') || String(e.message).includes('unique')) {
-                const dupe = await query('SELECT * FROM deposits WHERE idempotency_key=$1 LIMIT 1', [idemKey]);
-                if (dupe.length) return NextResponse.json({ success: true, duplicate: true, reference: dupe[0].reference, message: 'Duplicate prevented (idempotency)' });
-                return NextResponse.json({ error: 'Duplicate transaction' }, { status: 409 });
-            }
-            throw e;
-        }
 
-        // Create notification for realtime feedback
-        try { await query('INSERT INTO notifications (user_id,title,message,type) VALUES ($1,$2,$3,$4)', [userId, 'Deposit Initiated', `Your deposit of $${amt.toFixed(2)} via ${paymentMethod} is pending confirmation. Ref: ${reference}`, 'info']); } catch {}
-
-        // Email for deposit initiated (both user + admin) — non-blocking
+        // Ensure plan_id column exists
         try {
-            const u = await query('SELECT email, name FROM users WHERE id=$1', [userId]);
-            if (u.length) {
-                safeSend(sendDepositEmail({ to: u[0].email, name: u[0].name, amount: amt, method: paymentMethod, reference, status: 'pending' }));
-                // also notify admin via existing admin flow? sendDepositEmail to admin as well
-                const admin = process.env.ADMIN_EMAIL;
-                if (admin) safeSend(sendDepositEmail({ to: admin, name: 'Admin', amount: amt, method: `${paymentMethod} (user ${u[0].email})`, reference, status: 'pending' }));
-            }
+            await query('ALTER TABLE deposits ADD COLUMN IF NOT EXISTS plan_id INTEGER DEFAULT NULL');
         } catch {}
 
         // Handle reinvest from balance (real-time deduction) with atomic SQL check
         if (paymentMethod === 'balance') {
+            let planData = null;
+            if (planId) {
+                const plan = await query('SELECT * FROM investment_plans WHERE id = $1', [planId]);
+                if (!plan || plan.length === 0) {
+                    return NextResponse.json({ error: 'Investment plan not found' }, { status: 404 });
+                }
+                planData = plan[0];
+                if (amt < Number(planData.min_investment) || amt > Number(planData.max_investment)) {
+                    return NextResponse.json({ error: `Amount must be $${planData.min_investment} - $${planData.max_investment} for ${planData.name}` }, { status: 400 });
+                }
+            }
+
             const deductRes = await query(
                 'UPDATE users SET balance = balance - $1 WHERE id = $2 AND balance >= $1 RETURNING balance, email, name',
                 [amt, userId]
@@ -78,22 +67,25 @@ export async function POST(req) {
                 return NextResponse.json({ error: 'Insufficient balance for reinvestment' }, { status: 400 });
             }
             const uUser = deductRes[0];
+
+            try {
+                await query(
+                    'INSERT INTO deposits (user_id, amount, type, payment, reference, status, idempotency_key, plan_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
+                    [userId, amt, 'deposit', 'balance', reference, 'completed', idemKey, planId || null]
+                );
+            } catch (e) {
+                // Refund if insert fails
+                await query('UPDATE users SET balance = balance + $1 WHERE id = $2', [amt, userId]);
+                throw e;
+            }
+
             try {
                 await query('INSERT INTO notifications (user_id,title,message,type) VALUES ($1,$2,$3,$4)', [userId, 'Reinvestment Started', `$${amt.toFixed(2)} reinvested from balance • Awaiting profit accrual`, 'success']);
             } catch {}
-            // email
-            safeSend(sendDepositEmail({ to: uUser.email, name: uUser.name, amount: amt, method: 'balance reinvest', reference, status: 'initiated' }));
-        }
+            safeSend(sendDepositEmail({ to: uUser.email, name: uUser.name, amount: amt, method: 'balance reinvest', reference, status: 'completed' }));
 
-        // If planId is provided, create investment
-        if (planId) {
-            const plan = await query('SELECT * FROM investment_plans WHERE id = $1', [planId]);
-            if (plan && plan.length > 0) {
-                const planData = plan[0];
-                // Validate amount against plan limits
-                if (amt < Number(planData.min_investment) || amt > Number(planData.max_investment)) {
-                    return NextResponse.json({ error: `Amount must be $${planData.min_investment} - $${planData.max_investment} for ${planData.name}` }, { status: 400 });
-                }
+            // If planId was specified, activate investment
+            if (planData) {
                 const startDate = new Date();
                 const endDate = new Date(startDate);
                 if (planData.duration.includes('hours')) {
@@ -124,10 +116,9 @@ export async function POST(req) {
                 } catch (e) {
                     console.error('Referral bonus error:', e.message);
                 }
-                // Emails (non-blocking, after commit)
+
                 try {
-                    const u = await query('SELECT email, name FROM users WHERE id=$1', [userId]);
-                    if (u.length) safeSend(sendInvestmentEmail({ to: u[0].email, name: u[0].name, planName: planData.name, amount: amt, percentage: planData.percentage, duration: planData.duration }));
+                    safeSend(sendInvestmentEmail({ to: uUser.email, name: uUser.name, planName: planData.name, amount: amt, percentage: planData.percentage, duration: planData.duration }));
                 } catch {}
                 if (referrerId) {
                     try {
@@ -136,12 +127,58 @@ export async function POST(req) {
                     } catch {}
                 }
             }
+
+            return NextResponse.json({
+                success: true,
+                reference,
+                message: 'Reinvestment activated successfully'
+            });
         }
+
+        // Handle external pending deposit (crypto, gateway, etc.)
+        if (planId) {
+            const plan = await query('SELECT * FROM investment_plans WHERE id = $1', [planId]);
+            if (!plan || plan.length === 0) {
+                return NextResponse.json({ error: 'Investment plan not found' }, { status: 404 });
+            }
+            const planData = plan[0];
+            if (amt < Number(planData.min_investment) || amt > Number(planData.max_investment)) {
+                return NextResponse.json({ error: `Amount must be $${planData.min_investment} - $${planData.max_investment} for ${planData.name}` }, { status: 400 });
+            }
+        }
+
+        // Create pending deposit record with plan_id saved for activation upon confirmation
+        try {
+            await query(
+                'INSERT INTO deposits (user_id, amount, type, payment, reference, status, idempotency_key, plan_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
+                [userId, amt, 'deposit', paymentMethod, reference, 'pending', idemKey, planId || null]
+            );
+        } catch (e) {
+            if (String(e.message).includes('duplicate') || String(e.message).includes('unique')) {
+                const dupe = await query('SELECT * FROM deposits WHERE idempotency_key=$1 LIMIT 1', [idemKey]);
+                if (dupe.length) return NextResponse.json({ success: true, duplicate: true, reference: dupe[0].reference, message: 'Duplicate prevented (idempotency)' });
+                return NextResponse.json({ error: 'Duplicate transaction' }, { status: 409 });
+            }
+            throw e;
+        }
+
+        // Create notification for realtime feedback
+        try { await query('INSERT INTO notifications (user_id,title,message,type) VALUES ($1,$2,$3,$4)', [userId, 'Deposit Initiated', `Your deposit of $${amt.toFixed(2)} via ${paymentMethod} is pending confirmation. Ref: ${reference}`, 'info']); } catch {}
+
+        // Email for deposit initiated (both user + admin) — non-blocking
+        try {
+            const u = await query('SELECT email, name FROM users WHERE id=$1', [userId]);
+            if (u.length) {
+                safeSend(sendDepositEmail({ to: u[0].email, name: u[0].name, amount: amt, method: paymentMethod, reference, status: 'pending' }));
+                const admin = process.env.ADMIN_EMAIL;
+                if (admin) safeSend(sendDepositEmail({ to: admin, name: 'Admin', amount: amt, method: `${paymentMethod} (user ${u[0].email})`, reference, status: 'pending' }));
+            }
+        } catch {}
 
         return NextResponse.json({ 
             success: true, 
             reference,
-            message: 'Deposit created successfully' 
+            message: 'Deposit created successfully. Awaiting payment confirmation.' 
         });
 
     } catch (error) {

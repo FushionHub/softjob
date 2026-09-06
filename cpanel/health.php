@@ -18,6 +18,14 @@ function fileOk($path) {
     return is_file($path) && is_readable($path);
 }
 
+function envPresent($key, $root) {
+    if (getenv($key)) return true;
+    $envFile = $root . '/.env';
+    if (!is_file($envFile)) return false;
+    // [ \t] only (NOT \s): \s would span the newline and match the next line.
+    return (bool) preg_match('/^' . preg_quote($key, '/') . '[ \t]*=[ \t]*\S/m', file_get_contents($envFile));
+}
+
 function checkLocalPort($port = 3000) {
     $fp = @fsockopen('127.0.0.1', $port, $errno, $errstr, 0.2);
     if ($fp) {
@@ -73,12 +81,16 @@ echo json_encode(array(
         'node_modules'     => is_dir($root . '/node_modules'),
     ),
     'env_present' => array(
-        // Booleans only — secret values are never printed
-        'DATABASE_URL'     => (bool) getenv('DATABASE_URL'),
-        'JWT_SECRET'       => (bool) getenv('JWT_SECRET'),
-        'SMTP_HOST'        => (bool) getenv('SMTP_HOST'),
-        'SMTP_USER'        => (bool) getenv('SMTP_USER'),
-        'ADMIN_EMAIL'      => (bool) getenv('ADMIN_EMAIL'),
-        'NEXT_PUBLIC_APP'  => (bool) getenv('NEXT_PUBLIC_APP_URL'),
+        // Booleans only — secret values are never printed.
+        // getenv() misses vars set for other SAPIs, so the root .env file
+        // is checked too (presence only, values never read out).
+        'DATABASE_URL'     => envPresent('DATABASE_URL', $root),
+        'JWT_SECRET'       => envPresent('JWT_SECRET', $root),
+        'SMTP_HOST'        => envPresent('SMTP_HOST', $root),
+        'SMTP_USER'        => envPresent('SMTP_USER', $root),
+        'ADMIN_EMAIL'      => envPresent('ADMIN_EMAIL', $root),
+        'NEXT_PUBLIC_APP'  => envPresent('NEXT_PUBLIC_APP_URL', $root),
+        'BACHS_API_KEY'    => envPresent('BACHS_API_KEY', $root),
+        'GOOGLE_CLIENT_ID' => envPresent('GOOGLE_CLIENT_ID', $root),
     ),
 ), JSON_PRETTY_PRINT);

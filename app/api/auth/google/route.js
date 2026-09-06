@@ -11,14 +11,14 @@ async function verifyGoogleToken(idToken) {
     throw new Error(`Google token verification failed: ${res.status} ${err}`);
   }
   const payload = await res.json();
-  // Validate audience matches our client ID (if set)
+  // Validate audience matches our client ID (fail-closed)
   const clientId = process.env.GOOGLE_CLIENT_ID || process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
-  if (clientId && payload.aud && payload.aud !== clientId) {
-    // Allow multiple client IDs comma-separated
-    const allowed = String(clientId).split(',').map(s=>s.trim());
-    if (!allowed.includes(payload.aud)) {
-      throw new Error('Google token audience mismatch');
-    }
+  if (!clientId) {
+    throw new Error('Google authentication is not configured on the server (GOOGLE_CLIENT_ID missing)');
+  }
+  const allowed = String(clientId).split(',').map(s=>s.trim());
+  if (!payload.aud || !allowed.includes(payload.aud)) {
+    throw new Error('Google token audience mismatch');
   }
   if (payload.email_verified !== 'true' && payload.email_verified !== true) {
     throw new Error('Google email not verified');

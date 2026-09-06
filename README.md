@@ -42,10 +42,16 @@ seeded from `admin-schema.sql`).
 
 ## Deploy
 
-- **Node host / VPS**: build + `node server.js` (see `cpanel/DEPLOY.md`).
+- **cPanel shared hosting** (see `cpanel/DEPLOY.md` for the full guide):
+  1. Upload everything except `node_modules/` + `.next/`; docroot = app root.
+  2. Node.js app → startup file `server.js` (`npm install`, then `npm run build`).
+     Pure-Apache hosts: `touch .use_php_proxy` so `index.php` fronts all routes.
+  3. Set env vars (copy `env.example` → `.env`, incl. `CPANEL_*` tokens you invent).
+  4. Run `cpanel/db-install.php?token=…` (then **delete it**), set the Bachs
+     webhook to `https://yourdomain.com/api/bachs/webhook`, add the keepalive cron.
+  5. Requires `AllowOverride FileInfo AuthConfig` so `.htaccess` protections apply.
+- **VPS**: build + `node server.js`.
 - **Vercel**: import the repo, set env vars, deploy.
-- **Bachs webhook**: point it at `https://yourdomain.com/api/bachs/webhook`
-  (fail-closed signature verification; set `BACHS_WEBHOOK_SECRET`).
 
 ## Troubleshooting
 
@@ -55,3 +61,6 @@ seeded from `admin-schema.sql`).
 | Admin login 401 | re-run `admin-schema.sql` (`ON CONFLICT DO UPDATE` repairs the seed hash) |
 | MySQL mode 500s | `mysql2` installed? `mysql://` scheme? migrations run? remote access allowed? |
 | Mail not sending | `SMTP_*` in `.env.local` (Gmail needs an App Password) |
+| 403 on `/.env`, `/server.js`, `/package.json` | intended — secrets/source are blocked at both layers |
+| 503 cold-start page on cPanel | Node app asleep or crashed — check manager/logs, keepalive cron warms it |
+| Rewrites ignored / secrets downloadable | `AllowOverride None` on host — request `FileInfo AuthConfig` |

@@ -1,4 +1,5 @@
 import { getSessionUser } from '@/lib/auth';
+import { query } from '@/lib/db';
 import { sendWelcomeEmail, sendAdminNotification } from '@/lib/email';
 
 export async function POST(request) {
@@ -8,17 +9,14 @@ export async function POST(request) {
             return Response.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const { email, name, username } = await request.json();
-
-        if (!email || !name || !username) {
-            return Response.json(
-                { error: 'Missing required fields' },
-                { status: 400 }
-            );
+        const users = await query('SELECT email, name, username FROM users WHERE id = $1', [session.userId]);
+        if (!users || users.length === 0) {
+            return Response.json({ error: 'User not found' }, { status: 404 });
         }
 
-        await sendWelcomeEmail(email, name);
-        await sendAdminNotification(email, name, username);
+        const user = users[0];
+        await sendWelcomeEmail(user.email, user.name);
+        await sendAdminNotification(user.email, user.name, user.username);
 
         return Response.json(
             { message: 'Emails sent successfully' },

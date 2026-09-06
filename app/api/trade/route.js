@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { query, getDb } from '@/lib/db';
 import { getSessionUser } from '@/lib/auth';
 import { sendTradeEmail, safeSend } from '@/lib/email';
+import { settleExpiredTrades } from '@/lib/lifecycle';
 
 export async function POST(req) {
     try {
@@ -96,6 +97,9 @@ export async function GET() {
         }
 
         const userId = session.userId;
+        // Auto-settle any trades whose duration has elapsed
+        await settleExpiredTrades(userId).catch(e => console.error('Settle trades error:', e));
+
         const trades = await query('SELECT * FROM trades WHERE user_id = $1 ORDER BY datetime DESC LIMIT 20', [userId]);
 
         return NextResponse.json({ trades });

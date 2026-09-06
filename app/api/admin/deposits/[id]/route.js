@@ -19,10 +19,18 @@ export async function PUT(request, { params }) {
       );
     }
 
-    const depositResult = await query(
-      'SELECT id, user_id, amount, status as current_status FROM deposits WHERE id = $1',
-      [id]
-    );
+    let depositResult;
+    try {
+      depositResult = await query(
+        'SELECT id, user_id, amount, status as current_status, plan_id FROM deposits WHERE id = $1',
+        [id]
+      );
+    } catch {
+      depositResult = await query(
+        'SELECT id, user_id, amount, status as current_status FROM deposits WHERE id = $1',
+        [id]
+      );
+    }
 
     if (depositResult.length === 0) {
       return NextResponse.json({ error: 'Deposit not found' }, { status: 404 });
@@ -37,16 +45,81 @@ export async function PUT(request, { params }) {
     );
 
     if (status === 'confirmed' && previousStatus !== 'confirmed') {
-      await query(
-        'UPDATE users SET balance = balance + $1, total_deposit = total_deposit + $1 WHERE id = $2',
-        [deposit.amount, deposit.user_id]
-      );
-      try {
+      const depAmt = parseFloat(deposit.amount);
+
+      if (deposit.plan_id) {
+        // Confirmed deposit for an investment plan
+        const plans = await query('SELECT * FROM investment_plans WHERE id = $1', [deposit.plan_id]);
+        if (plans.length > 0) {
+          const planData = plans[0];
+          const startDate = new Date();
+          const endDate = new Date(startDate);
+          if (planData.duration.includes('hours')) {
+            const hours = parseInt(planData.duration, 10);
+            endDate.setHours(endDate.getHours() + hours);
+          } else if (planData.duration.includes('days')) {
+            const days = parseInt(planData.duration, 10);
+            endDate.setDate(endDate.getDate() + days);
+          }
+
+          // Total deposit increases, but balance is invested into user_investments
+          await query(
+            'UPDATE users SET total_deposit = COALESCE(total_deposit, 0) + $1 WHERE id = $2',
+            [depAmt, deposit.user_id]
+          );
+
+          await query(
+            'INSERT INTO user_investments (user_id, plan_id, amount, start_date, end_date, status) VALUES ($1, $2, $3, $4, $5, $6)',
+            [deposit.user_id, deposit.plan_id, depAmt, startDate.toISOString(), endDate.toISOString(), 'active']
+          );
+
+          try {
+            await query(
+              'INSERT INTO notifications (user_id, title, message, type) VALUES ($1, $2, $3, $4)',
+              [deposit.user_id, 'Deposit & Investment Confirmed', `Your deposit of $${depAmt.toFixed(2)} was confirmed and your ${planData.name} investment is now active.`, 'success']
+            );
+          } catch {}
+        } else {
+          // Fallback if plan no longer exists: credit to balance
+          await query(
+            'UPDATE users SET balance = balance + $1, total_deposit = COALESCE(total_deposit, 0) + $1 WHERE id = $2',
+            [depAmt, deposit.user_id]
+          );
+          try {
+            await query(
+              'INSERT INTO notifications (user_id, title, message, type) VALUES ($1, $2, $3, $4)',
+              [deposit.user_id, 'Deposit Confirmed', `Your deposit of $${depAmt.toFixed(2)} has been approved and credited to your balance.`, 'success']
+            );
+          } catch {}
+        }
+      } else {
+        // Regular confirmed deposit: credit to balance and total_deposit
         await query(
-          'INSERT INTO notifications (user_id, title, message, type) VALUES ($1, $2, $3, $4)',
-          [deposit.user_id, 'Deposit Confirmed', `Your deposit of $${deposit.amount} has been approved and credited to your account.`, 'success']
+          'UPDATE users SET balance = balance + $1, total_deposit = COALESCE(total_deposit, 0) + $1 WHERE id = $2',
+          [depAmt, deposit.user_id]
         );
-      } catch {}
+        try {
+          await query(
+            'INSERT INTO notifications (user_id, title, message, type) VALUES ($1, $2, $3, $4)',
+            [deposit.user_id, 'Deposit Confirmed', `Your deposit of $${depAmt.toFixed(2)} has been approved and credited to your account.`, 'success']
+          );
+        } catch {}
+      }
+
+      // Award 5% referral bonus on confirmed deposit if user was referred
+      try {
+        const ref = await query('SELECT referrer_id FROM referrals WHERE referred_id = $1 LIMIT 1', [deposit.user_id]);
+        if (ref.length) {
+          const referrerId = ref[0].referrer_id;
+          const bonusAmt = depAmt * 0.05;
+          await query('UPDATE users SET total_bonus = COALESCE(total_bonus, 0) + $1, balance = balance + $1 WHERE id = $2', [bonusAmt, referrerId]);
+          await query('UPDATE referrals SET bonus_amount = COALESCE(bonus_amount, 0) + $1, status = $2 WHERE referred_id = $3', [bonusAmt, 'active', deposit.user_id]);
+          await query('INSERT INTO profit_history (user_id, amount, type, description) VALUES ($1, $2, $3, $4)', [referrerId, bonusAmt, 'referral', `5% referral bonus from deposit $${depAmt.toFixed(2)}`]);
+          await query('INSERT INTO notifications (user_id, title, message, type) VALUES ($1, $2, $3, $4)', [referrerId, 'Referral Bonus Earned!', `You earned $${bonusAmt.toFixed(2)} (5%) from your referral's confirmed deposit of $${depAmt.toFixed(2)}.`, 'success']);
+        }
+      } catch (refErr) {
+        console.error('Admin deposit confirmation referral bonus error:', refErr);
+      }
     }
 
     if (status === 'rejected') {

@@ -65,7 +65,7 @@ export async function GET(request) {
         UNION ALL
         SELECT id, 'trade' as type, user_id, amount, status, created_at FROM trades
         UNION ALL
-        SELECT id, 'swap' as type, user_id, amount, status, created_at FROM swaps
+        SELECT id, 'swap' as type, user_id, from_amount as amount, status, created_at FROM swaps
         UNION ALL
         SELECT id, 'investment' as type, user_id, amount, status, created_at FROM user_investments
       ) as all_transactions ${whereClause} ${typeFilter.replace('AND', 'WHERE')}`,
@@ -80,7 +80,7 @@ export async function GET(request) {
         UNION ALL
         SELECT id, 'trade' as type, user_id, amount, status, created_at FROM trades
         UNION ALL
-        SELECT id, 'swap' as type, user_id, amount, status, created_at FROM swaps
+        SELECT id, 'swap' as type, user_id, from_amount as amount, status, created_at FROM swaps
         UNION ALL
         SELECT id, 'investment' as type, user_id, amount, status, created_at FROM user_investments
       ) as all_transactions ${whereClause} ${typeFilter.replace('AND', 'WHERE')}
@@ -91,10 +91,10 @@ export async function GET(request) {
 
     const statsResult = await query(`
       SELECT
-        (SELECT COALESCE(SUM(amount), 0) FROM deposits WHERE status = 'confirmed') as total_deposits,
-        (SELECT COALESCE(SUM(amount), 0) FROM withdrawals WHERE status = 'confirmed') as total_withdrawals,
-        (SELECT COALESCE(SUM(amount), 0) FROM trades WHERE status = 'completed') as total_trades,
-        (SELECT COALESCE(SUM(amount), 0) FROM swaps WHERE status = 'completed') as total_swaps
+        (SELECT COALESCE(SUM(amount), 0) FROM deposits WHERE status = 'confirmed' OR status = 'approved') as total_deposits,
+        (SELECT COALESCE(SUM(amount), 0) FROM withdrawals WHERE status = 'confirmed' OR status = 'approved') as total_withdrawals,
+        (SELECT COALESCE(SUM(amount), 0) FROM trades WHERE status = 'completed' OR status = 'closed') as total_trades,
+        (SELECT COALESCE(SUM(from_amount), 0) FROM swaps WHERE status = 'completed') as total_swaps
     `);
 
     const total = parseInt(countResult[0].count);
