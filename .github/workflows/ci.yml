@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+# NOTE: env values below are obviously-fake CI dummies (ci-dummy-*), never
+# real secrets. Real credentials live only in deployment environments.
+env:
+  DATABASE_URL: postgresql://ci_dummy:ci_dummy@localhost:5432/ci_dummy
+  JWT_SECRET: ci-dummy-jwt-secret-not-real
+  ADMIN_JWT_SECRET: ci-dummy-admin-secret-not-real
+  ADMIN_EMAIL: admin@example.com
+  NEXT_PUBLIC_APP_URL: http://localhost:3000
+  SMTP_HOST: localhost
+  SMTP_PORT: '2525'
+  SMTP_USER: ci-dummy
+  SMTP_PASSWORD: ci-dummy
+  SMTP_FROM: ci-dummy@example.com
+  WALLET_ENCRYPTION_KEY: '0000000000000000000000000000000000000000000000000000000000000000'
+  BACHS_API_KEY: sk_test_ci_dummy
+  BACHS_API_BASE: https://sandbox-api.bachs.io
+  KYC_AUTO_APPROVE: 'false'
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test with coverage gate (vitest.config.mjs enforces >=50%)
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+      - name: Security audit (high+ only fails the run)
+        run: npm audit --audit-level=high
