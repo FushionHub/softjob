@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { query, getDb } from '@/lib/db';
 import { getSessionUser } from '@/lib/auth';
 import { sendWithdrawalEmail, safeSend } from '@/lib/email';
+import { parseWithdraw } from '@/lib/validation/withdraw';
+import { zodDetails } from '@/lib/errors';
+import { logger } from '@/lib/logger';
 
 export async function POST(req) {
     try {
@@ -11,15 +14,14 @@ export async function POST(req) {
         }
 
         const body = await req.json();
-        const { amount, walletAddress, network } = body;
-
-        if (!amount || !walletAddress) {
-            return NextResponse.json({ error: 'Amount and wallet address are required' }, { status: 400 });
+        const parsed = parseWithdraw(body);
+        if (!parsed.success) {
+            return NextResponse.json(
+                { error: 'Validation failed', details: zodDetails(parsed.error) },
+                { status: 400 }
+            );
         }
-
-        if (parseFloat(amount) <= 0) {
-            return NextResponse.json({ error: 'Amount must be greater than 0' }, { status: 400 });
-        }
+        const { amount, walletAddress, network } = parsed.data;
 
         const userId = session.userId;
 
@@ -29,7 +31,7 @@ export async function POST(req) {
             const existing = await query('SELECT * FROM withdrawals WHERE idempotency_key=$1 AND user_id=$2 LIMIT 1', [idempotencyKey, userId]);
             if (existing.length) return NextResponse.json({ success: true, duplicate: true, message: 'Duplicate prevented — withdrawal already requested', withdrawal: existing[0] });
         }
-        const recentDup = await query(`SELECT id FROM withdrawals WHERE user_id=$1 AND amount=$2 AND wallet_address=$3 AND created_at > NOW() - INTERVAL '20 seconds' AND status != 'failed' LIMIT 1`, [userId, parseFloat(amount), walletAddress]);
+        const recentDup = await query(`SELECT id FROM withdrawals WHERE user_id=$1 AND amount=$2 AND wallet_address=$3 AND created_at > $4 AND status != 'failed' LIMIT 1`, [userId, parseFloat(amount), walletAddress, new Date(Date.now() - 20000)]);
         if (recentDup.length) return NextResponse.json({ error: 'Duplicate withdrawal detected. Please wait 20 seconds.' }, { status: 409 });
 
         const users = await query('SELECT balance, email, name FROM users WHERE id = $1', [userId]);
@@ -81,7 +83,7 @@ export async function POST(req) {
         });
 
     } catch (error) {
-        console.error('Withdrawal Error:', error);
+        logger.error('withdrawal failed', { route: '/api/withdraw', code: error?.code });
         return NextResponse.json({ error: 'Withdrawal failed' }, { status: 500 });
     }
 }

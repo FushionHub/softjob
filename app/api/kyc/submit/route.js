@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { query } from '@/lib/db';
 import { getSessionUser } from '@/lib/auth';
 import { sendKycSubmittedToAdmin, sendKycSubmittedToUser, safeSend } from '@/lib/email';
+import { parseKyc } from '@/lib/validation/kyc';
+import { zodDetails } from '@/lib/errors';
+import { logger } from '@/lib/logger';
 
 export async function POST(req) {
   try {
@@ -12,15 +15,18 @@ export async function POST(req) {
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const body = await req.json();
+    const parsed = parseKyc(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Validation failed', details: zodDetails(parsed.error) },
+        { status: 400 }
+      );
+    }
     const {
       full_name, date_of_birth, gender, country, city, address, postal_code,
       id_type, id_number, id_front_url, id_back_url, selfie_url, proof_of_address_url,
       occupation, source_of_funds
-    } = body;
-
-    // Required
-    const required = { full_name, date_of_birth, gender, country, city, address, id_type, id_number, id_front_url, selfie_url };
-    for (const [k,v] of Object.entries(required)) if (!v) return NextResponse.json({ error: `Missing ${k}` }, { status: 400 });
+    } = parsed.data;
 
     const userRows = await query('SELECT id, name, email, username, kyc_verified, kyc_status FROM users WHERE id=$1', [session.userId]);
     if (!userRows.length) return NextResponse.json({ error: 'User not found' }, { status: 404 });

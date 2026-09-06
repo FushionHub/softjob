@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { query, getDb } from '@/lib/db';
 import { getSessionUser } from '@/lib/auth';
 import { sendDepositEmail, sendInvestmentEmail, safeSend } from '@/lib/email';
+import { parseDeposit } from '@/lib/validation/deposit';
+import { zodDetails } from '@/lib/errors';
+import { logger } from '@/lib/logger';
 import crypto from 'crypto';
 
 export async function POST(req) {
@@ -12,18 +15,20 @@ export async function POST(req) {
         }
 
         const body = await req.json();
-        const { amount, paymentMethod, planId, idempotencyKey } = body;
-
-        if (!amount || !paymentMethod) {
-            return NextResponse.json({ error: 'Amount and payment method are required' }, { status: 400 });
+        const parsed = parseDeposit(body);
+        if (!parsed.success) {
+            return NextResponse.json(
+                { error: 'Validation failed', details: zodDetails(parsed.error) },
+                { status: 400 }
+            );
         }
+        const { amount, paymentMethod, planId, idempotencyKey } = parsed.data;
 
         const reference = crypto.randomBytes(16).toString('hex').toUpperCase();
         const userId = session.userId;
 
-        // Validate amount
-        const amt = parseFloat(amount);
-        if (isNaN(amt) || amt <= 0) return NextResponse.json({ error: 'Invalid amount' }, { status: 400 });
+        // Validated positive number by schema
+        const amt = amount;
 
         // Idempotency: check key
         if (idempotencyKey) {
@@ -33,7 +38,7 @@ export async function POST(req) {
             }
         }
         // Prevent dual submission within 15s same amount+method
-        const recent = await query(`SELECT id FROM deposits WHERE user_id=$1 AND amount=$2 AND payment=$3 AND date > NOW() - INTERVAL '15 seconds' AND status != 'failed' LIMIT 1`, [userId, amt, paymentMethod]);
+        const recent = await query(`SELECT id FROM deposits WHERE user_id=$1 AND amount=$2 AND payment=$3 AND date > $4 AND status != 'failed' LIMIT 1`, [userId, amt, paymentMethod, new Date(Date.now() - 15000)]);
         if (recent.length) {
             return NextResponse.json({ error: 'Duplicate deposit detected. Please wait 15 seconds before retrying.' }, { status: 409 });
         }
