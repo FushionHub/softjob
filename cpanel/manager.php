@@ -1,29 +1,32 @@
 <?php
 /**
- * Emporium Capitals — cPanel Process & Server Manager
+ * Emporium Capitals — Advanced cPanel Process, Server & Cron Manager
  *
- * NEW FILE. No existing project code is modified.
- *
- * Provides a web control panel on shared hosting for:
- * - Real-time Node.js process monitoring (PID, Port, Uptime, Memory)
- * - One-click Start, Stop, and Restart
- * - Real-time log inspection (server.log, keepalive.log)
- * - Database health ping (Neon PostgreSQL)
- * - Build status inspection (.next/BUILD_ID)
+ * Provides a secure web control suite for cPanel shared hosting:
+ * - Real-time Node.js process monitoring (PID, Port, Socket, Uptime, Memory)
+ * - Safe Process Controls: Start, Stop, Restart, and Clear Logs
+ * - Dynamic cPanel Cron Job Command Generator (exact paths tailored to server)
+ * - Node.js Binary & Environment Discovery across cPanel paths
+ * - Database Connectivity Diagnostics (MySQL / MariaDB & PostgreSQL)
+ * - Live Log Viewer for server.log, keepalive.log, and error_log
+ * - Build status verification (.next/BUILD_ID)
  */
 
 session_start();
 
 define('DEFAULT_MANAGER_TOKEN', 'change-me-to-a-secure-token');
-// You can override this in .env as CPANEL_MANAGER_TOKEN=your_secret
 $appRoot = dirname(__DIR__);
 
 // Load token from .env if available
 $configuredToken = DEFAULT_MANAGER_TOKEN;
+$databaseUrl = '';
 if (file_exists($appRoot . '/.env')) {
     $envContent = file_get_contents($appRoot . '/.env');
     if (preg_match('/^CPANEL_MANAGER_TOKEN\s*=\s*["\']?([^"\'\r\n]+)/m', $envContent, $matches)) {
         $configuredToken = trim($matches[1]);
+    }
+    if (preg_match('/^DATABASE_URL\s*=\s*["\']?([^"\'\r\n]+)/m', $envContent, $matches)) {
+        $databaseUrl = trim($matches[1]);
     }
 }
 
@@ -38,8 +41,38 @@ if ($isAuthenticated) {
 $pidFile = $appRoot . '/.cpanel_node.pid';
 $logFile = __DIR__ . '/server.log';
 $keepaliveLog = __DIR__ . '/keepalive.log';
+$errorLog = __DIR__ . '/error_log';
 
-// Helper: check if a PID is running (Linux)
+/**
+ * Locate best available Node binary on the host
+ */
+function resolveNodeBinary($appRoot) {
+    $candidates = array(
+        'node',
+        '/usr/local/bin/node',
+        '/usr/bin/node',
+        '/opt/cpanel/ea-nodejs20/bin/node',
+        '/opt/cpanel/ea-nodejs18/bin/node',
+        '/opt/cpanel/ea-nodejs22/bin/node',
+        '/opt/cpanel/ea-nodejs16/bin/node',
+        getenv('HOME') . '/nodevenv/' . basename($appRoot) . '/20/bin/node',
+        getenv('HOME') . '/nodevenv/' . basename($appRoot) . '/18/bin/node',
+        getenv('HOME') . '/nodevenv/' . basename($appRoot) . '/22/bin/node',
+    );
+
+    $nvmNodes = glob(getenv('HOME') . '/.nvm/versions/node/v*/bin/node');
+    if ($nvmNodes && is_array($nvmNodes)) {
+        $candidates = array_merge($candidates, $nvmNodes);
+    }
+
+    foreach ($candidates as $bin) {
+        if (@is_executable($bin)) {
+            return $bin;
+        }
+    }
+    return 'node';
+}
+
 function isPidRunning($pid) {
     if (empty($pid) || !is_numeric($pid)) return false;
     if (function_exists('posix_kill')) {
@@ -48,7 +81,6 @@ function isPidRunning($pid) {
     return file_exists("/proc/$pid");
 }
 
-// Helper: check port listening
 function checkPortListening($port = 3000) {
     $fp = @fsockopen('127.0.0.1', $port, $errno, $errstr, 0.3);
     if ($fp) {
@@ -58,19 +90,21 @@ function checkPortListening($port = 3000) {
     return false;
 }
 
-// Process details
+// Process state
 $pidData = file_exists($pidFile) ? @json_decode(file_get_contents($pidFile), true) : null;
 $activePid = $pidData['pid'] ?? null;
 $activePort = $pidData['port'] ?? 3000;
-$isRunning = false;
+$activeSocket = $pidData['path'] ?? null;
+$nodeBinary = resolveNodeBinary($appRoot);
 
+$isRunning = false;
 if ($activePid && isPidRunning($activePid)) {
     $isRunning = true;
 } elseif (checkPortListening($activePort)) {
     $isRunning = true;
 }
 
-// Action handling
+// Handle actions
 $actionMessage = null;
 $actionError = null;
 
@@ -81,19 +115,8 @@ if ($isAuthenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['a
         if ($isRunning) {
             $actionMessage = "Application is already running (PID: {$activePid}).";
         } else {
-            $nodeBin = 'node';
-            $possibleNodes = array(
-                'node',
-                '/usr/local/bin/node',
-                '/usr/bin/node',
-                getenv('HOME') . '/nodevenv/' . basename($appRoot) . '/20/bin/node',
-                getenv('HOME') . '/nodevenv/' . basename($appRoot) . '/18/bin/node',
-            );
-            foreach ($possibleNodes as $bin) {
-                if (@is_executable($bin)) { $nodeBin = $bin; break; }
-            }
-
-            $cmd = "cd " . escapeshellarg($appRoot) . " && PORT={$activePort} NODE_ENV=production nohup {$nodeBin} server.js >> " . escapeshellarg($logFile) . " 2>&1 & echo $!";
+            $nodeCmd = resolveNodeBinary($appRoot);
+            $cmd = "cd " . escapeshellarg($appRoot) . " && PORT={$activePort} NODE_ENV=production nohup {$nodeCmd} server.js >> " . escapeshellarg($logFile) . " 2>&1 & echo $!";
             $newPid = null;
             if (function_exists('exec')) {
                 $out = array();
@@ -104,13 +127,15 @@ if ($isAuthenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['a
             }
 
             sleep(1);
-            // Persist pid+port so pid monitoring and cron-worker port detection engage
             if ($newPid) {
-                @file_put_contents($pidFile, json_encode(array('pid' => $newPid, 'port' => $activePort, 'started' => time())));
+                @file_put_contents($pidFile, json_encode(array(
+                    'pid' => $newPid,
+                    'port' => $activePort,
+                    'startedAt' => date('c')
+                )));
                 $activePid = $newPid;
             }
-            $actionMessage = "Start signal dispatched. Process PID: " . ($newPid ?: 'initiated');
-            // Refresh state
+            $actionMessage = "Start signal dispatched with binary '{$nodeCmd}'.";
             $isRunning = checkPortListening($activePort) || ($newPid && isPidRunning($newPid));
         }
     } elseif ($action === 'stop') {
@@ -136,38 +161,101 @@ if ($isAuthenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['a
         @unlink($pidFile);
         sleep(2);
 
-        $nodeBin = 'node';
-        $cmd = "cd " . escapeshellarg($appRoot) . " && PORT={$activePort} NODE_ENV=production nohup {$nodeBin} server.js >> " . escapeshellarg($logFile) . " 2>&1 &";
+        $nodeCmd = resolveNodeBinary($appRoot);
+        $cmd = "cd " . escapeshellarg($appRoot) . " && PORT={$activePort} NODE_ENV=production nohup {$nodeCmd} server.js >> " . escapeshellarg($logFile) . " 2>&1 & echo $!";
+        $newPid = null;
         if (function_exists('exec')) {
-            @exec($cmd);
+            $out = array();
+            @exec($cmd, $out);
+            $newPid = !empty($out[0]) ? (int)$out[0] : null;
         } elseif (function_exists('shell_exec')) {
-            @shell_exec($cmd);
+            $newPid = (int)trim(@shell_exec($cmd));
         }
+
         sleep(1);
-        $actionMessage = "Restart sequence initiated.";
-        $isRunning = checkPortListening($activePort);
+        if ($newPid) {
+            @file_put_contents($pidFile, json_encode(array(
+                'pid' => $newPid,
+                'port' => $activePort,
+                'startedAt' => date('c')
+            )));
+            $activePid = $newPid;
+        }
+        $actionMessage = "Restart sequence completed with binary '{$nodeCmd}'.";
+        $isRunning = checkPortListening($activePort) || ($newPid && isPidRunning($newPid));
     } elseif ($action === 'clear_logs') {
         @file_put_contents($logFile, "[Logs cleared on " . gmdate('Y-m-d H:i:s') . " UTC]\n");
         $actionMessage = "Server log file cleared.";
     }
 }
 
-// Build Status
+// Build status
 $buildExists = file_exists($appRoot . '/.next/BUILD_ID');
 $buildTime = $buildExists ? date('Y-m-d H:i:s', filemtime($appRoot . '/.next/BUILD_ID')) : 'Missing';
 
-// Database URL check
-$dbConfigured = false;
-if (file_exists($appRoot . '/.env')) {
-    $dbConfigured = (bool)preg_match('/^DATABASE_URL\s*=/m', file_get_contents($appRoot . '/.env'));
+// Database ping test
+$dbStatus = 'Not configured';
+$dbIsOk = false;
+if (!empty($databaseUrl)) {
+    if (strpos($databaseUrl, 'mysql://') === 0 || strpos($databaseUrl, 'mysql2://') === 0) {
+        $p = parse_url($databaseUrl);
+        $mHost = $p['host'] ?? '127.0.0.1';
+        $mPort = $p['port'] ?? 3306;
+        $mDb   = ltrim($p['path'] ?? '', '/');
+        $mUser = isset($p['user']) ? rawurldecode($p['user']) : '';
+        $mPass = isset($p['pass']) ? rawurldecode($p['pass']) : '';
+        if (extension_loaded('pdo_mysql')) {
+            try {
+                $mPdo = new PDO("mysql:host={$mHost};port={$mPort};dbname={$mDb}", $mUser, $mPass, array(PDO::ATTR_TIMEOUT => 3));
+                $dbStatus = "Connected (MySQL: {$mDb})";
+                $dbIsOk = true;
+            } catch (Exception $e) {
+                $dbStatus = "Failed: " . $e->getMessage();
+            }
+        } else {
+            $dbStatus = "Configured (MySQL), pdo_mysql extension missing";
+        }
+    } elseif (strpos($databaseUrl, 'postgres://') === 0 || strpos($databaseUrl, 'postgresql://') === 0) {
+        $p = parse_url($databaseUrl);
+        $pHost = $p['host'] ?? '127.0.0.1';
+        $pPort = $p['port'] ?? 5432;
+        $pDb   = ltrim($p['path'] ?? '', '/');
+        $pUser = isset($p['user']) ? rawurldecode($p['user']) : '';
+        $pPass = isset($p['pass']) ? rawurldecode($p['pass']) : '';
+        if (extension_loaded('pdo_pgsql')) {
+            try {
+                $pPdo = new PDO("pgsql:host={$pHost};port={$pPort};dbname={$pDb};sslmode=require", $pUser, $pPass, array(PDO::ATTR_TIMEOUT => 3));
+                $dbStatus = "Connected (PostgreSQL Neon)";
+                $dbIsOk = true;
+            } catch (Exception $e) {
+                $dbStatus = "Failed: " . $e->getMessage();
+            }
+        } else {
+            $dbStatus = "Configured (Postgres), pdo_pgsql extension missing";
+        }
+    }
 }
 
-// Read recent logs
-$logs = file_exists($logFile) ? shell_exec("tail -n 60 " . escapeshellarg($logFile)) : "No server.log found yet.";
-if (empty($logs) && file_exists($logFile)) {
-    $lines = @file($logFile);
-    $logs = $lines ? implode('', array_slice($lines, -60)) : "Log file is empty.";
+// Log selection
+$logType = $_GET['log'] ?? 'server';
+$currentLogFile = $logFile;
+if ($logType === 'keepalive') $currentLogFile = $keepaliveLog;
+if ($logType === 'error') $currentLogFile = $errorLog;
+
+$logContent = "Log file is empty or does not exist yet.";
+if (file_exists($currentLogFile)) {
+    $lines = @file($currentLogFile);
+    if ($lines) {
+        $logContent = implode('', array_slice($lines, -80));
+    }
 }
+
+// PHP binary for cron command
+$phpBin = PHP_BINDIR . '/php';
+if (!@is_executable($phpBin)) {
+    $phpBin = 'php';
+}
+$cronCommand = "*/10 * * * * {$phpBin} " . __DIR__ . "/cron-worker.php >/dev/null 2>&1";
 
 ?>
 <!DOCTYPE html>
@@ -175,17 +263,18 @@ if (empty($logs) && file_exists($logFile)) {
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Emporium Capitals — cPanel Manager</title>
+    <title>Emporium Capitals — cPanel Server Manager</title>
     <style>
         :root {
-            --bg: #070913;
-            --card-bg: #0d1024;
+            --bg: #060714;
+            --card-bg: #0e1026;
             --border: rgba(255, 255, 255, 0.08);
-            --text: #f0f2ff;
-            --text-dim: #8a92b2;
             --accent: #ef4d45;
+            --accent-glow: rgba(239, 77, 69, 0.2);
             --success: #10b981;
             --warning: #f59e0b;
+            --text: #f0f2ff;
+            --text-dim: #8a92b2;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -195,244 +284,221 @@ if (empty($logs) && file_exists($logFile)) {
             padding: 32px 16px;
             min-height: 100vh;
         }
-        .container { max-width: 960px; margin: 0 auto; }
+        .container { max-width: 980px; margin: 0 auto; }
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 28px;
+            margin-bottom: 24px;
             padding-bottom: 20px;
             border-bottom: 1px solid var(--border);
         }
         .title { font-size: 22px; font-weight: 700; }
         .title span { color: var(--accent); }
-        .token-warning {
-            background: rgba(245, 158, 11, 0.1);
-            border: 1px solid var(--warning);
-            border-radius: 10px;
-            padding: 16px;
-            margin-bottom: 24px;
-            color: #fde68a;
-            font-size: 14px;
-        }
         .grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
             gap: 16px;
-            margin-bottom: 28px;
+            margin-bottom: 24px;
         }
-        .stat-card {
+        .card {
             background: var(--card-bg);
             border: 1px solid var(--border);
             border-radius: 14px;
             padding: 20px;
+            margin-bottom: 20px;
         }
         .stat-label { font-size: 13px; color: var(--text-dim); margin-bottom: 8px; }
-        .stat-value { font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+        .stat-value { font-size: 17px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
         .badge {
             display: inline-block;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 700;
             padding: 4px 10px;
             border-radius: 9999px;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
         }
-        .badge.online { background: rgba(16, 185, 129, 0.15); color: var(--success); border: 1px solid var(--success); }
+        .badge.online  { background: rgba(16, 185, 129, 0.15); color: var(--success); border: 1px solid var(--success); }
         .badge.offline { background: rgba(239, 77, 69, 0.15); color: var(--accent); border: 1px solid var(--accent); }
-        .controls {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 24px;
-            margin-bottom: 28px;
-        }
-        .controls h3 { font-size: 16px; margin-bottom: 16px; }
-        .btn-group { display: flex; gap: 12px; flex-wrap: wrap; }
+        .badge.neutral { background: rgba(255, 255, 255, 0.1); color: var(--text-dim); border: 1px solid var(--border); }
+        .btn-group { display: flex; flex-wrap: wrap; gap: 10px; }
         .btn {
-            padding: 10px 20px;
+            padding: 10px 18px;
             border-radius: 8px;
-            font-size: 14px;
             font-weight: 600;
+            font-size: 13px;
             cursor: pointer;
             border: none;
             transition: all 0.2s;
-        }
-        .btn-primary { background: var(--accent); color: #fff; }
-        .btn-primary:hover { opacity: 0.9; }
-        .btn-secondary { background: rgba(255, 255, 255, 0.08); color: var(--text); }
-        .btn-secondary:hover { background: rgba(255, 255, 255, 0.12); }
-        .btn-danger { background: rgba(239, 77, 69, 0.2); color: var(--accent); border: 1px solid var(--accent); }
-        .btn-danger:hover { background: rgba(239, 77, 69, 0.3); }
-        .btn-link {
             text-decoration: none;
             display: inline-flex;
             align-items: center;
+            gap: 6px;
         }
-        .log-box {
-            background: #02030a;
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 20px;
-        }
-        .log-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-        }
-        .log-header h3 { font-size: 15px; }
-        pre {
-            font-family: "SFMono-Regular", Consolas, Menlo, monospace;
-            font-size: 12px;
-            line-height: 1.6;
-            color: #d1d5db;
-            white-space: pre-wrap;
-            word-break: break-all;
-            max-height: 380px;
-            overflow-y: auto;
-        }
+        .btn-start   { background: var(--success); color: #fff; }
+        .btn-stop    { background: var(--accent); color: #fff; }
+        .btn-restart { background: #3b82f6; color: #fff; }
+        .btn-clear   { background: rgba(255,255,255,0.08); color: var(--text); }
+        .btn-link    { background: rgba(255,255,255,0.05); color: var(--text); border: 1px solid var(--border); }
         .alert {
-            background: rgba(16, 185, 129, 0.15);
-            border: 1px solid var(--success);
-            color: #a7f3d0;
-            padding: 12px 16px;
-            border-radius: 8px;
+            padding: 14px 18px;
+            border-radius: 10px;
             margin-bottom: 20px;
             font-size: 14px;
         }
-        input[type="text"], input[type="password"] {
-            background: #050610;
+        .alert-info { background: rgba(59, 130, 246, 0.1); border: 1px solid #3b82f6; color: #93c5fd; }
+        .code-box {
+            background: #04050d;
             border: 1px solid var(--border);
-            padding: 10px 14px;
             border-radius: 8px;
+            padding: 14px;
+            font-family: monospace;
+            font-size: 13px;
+            color: #38bdf8;
+            word-break: break-all;
+            margin-top: 8px;
+            user-select: all;
+        }
+        pre.log-viewer {
+            background: #04050d;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 16px;
+            font-family: monospace;
+            font-size: 12px;
+            color: #a5b4fc;
+            max-height: 380px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+            line-height: 1.5;
+        }
+        .log-nav { display: flex; gap: 8px; margin-bottom: 12px; }
+        .log-nav a {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            text-decoration: none;
+            color: var(--text-dim);
+            background: rgba(255,255,255,0.04);
+            border: 1px solid var(--border);
+        }
+        .log-nav a.active {
             color: #fff;
-            font-size: 14px;
+            background: var(--accent);
+            border-color: var(--accent);
         }
     </style>
 </head>
 <body>
-<div class="container">
-    <div class="header">
-        <div class="title">Emporium<span>Capitals</span> &mdash; Server Manager</div>
-        <div>
-            <a href="/" target="_blank" class="btn btn-secondary btn-link" style="font-size: 13px;">View Live Site &rarr;</a>
-        </div>
-    </div>
-
-    <?php if (!$isAuthenticated): ?>
-        <div class="stat-card" style="max-width: 480px; margin: 40px auto; text-align: center;">
-            <h2 style="font-size: 18px; margin-bottom: 12px;">Authentication Required</h2>
-            <p style="color: var(--text-dim); font-size: 14px; margin-bottom: 20px;">
-                Enter your management token or pass <code>?token=YOUR_TOKEN</code> in the URL.
-            </p>
-            <form method="get" action="">
-                <input type="password" name="token" placeholder="Enter CPANEL_MANAGER_TOKEN" style="width: 100%; margin-bottom: 16px;" required>
-                <button type="submit" class="btn btn-primary" style="width: 100%;">Access Manager</button>
-            </form>
-            <p style="color: var(--text-dim); font-size: 12px; margin-top: 16px;">
-                Configure <code>CPANEL_MANAGER_TOKEN</code> in your <code>.env</code> file.
-            </p>
-        </div>
-    <?php else: ?>
-
-        <?php if ($configuredToken === DEFAULT_MANAGER_TOKEN): ?>
-            <div class="token-warning">
-                <strong>Security Alert:</strong> You are using the default token. Please define a unique <code>CPANEL_MANAGER_TOKEN</code> in your <code>.env</code> file.
+    <div class="container">
+        <div class="header">
+            <div class="title">Emporium<span>Capitals</span> &mdash; cPanel Manager</div>
+            <div style="display: flex; gap: 8px;">
+                <a href="setup-check.php?token=<?= htmlspecialchars($providedToken) ?>" class="btn btn-link">Pre-Flight Check</a>
+                <a href="db-install.php?token=<?= htmlspecialchars($providedToken) ?>" class="btn btn-link">DB Installer</a>
+                <a href="health.php" target="_blank" class="btn btn-link">Health JSON</a>
             </div>
+        </div>
+
+        <?php if (!$isAuthenticated): ?>
+            <div class="card" style="text-align: center; padding: 40px;">
+                <h3 style="margin-bottom: 12px; color: var(--accent);">Authentication Required</h3>
+                <p style="color: var(--text-dim); font-size: 14px; margin-bottom: 20px;">
+                    Set <code>CPANEL_MANAGER_TOKEN</code> in your <code>.env</code> file, then authenticate below:
+                </p>
+                <form method="GET" style="max-width: 400px; margin: 0 auto; display: flex; gap: 8px;">
+                    <input type="password" name="token" placeholder="Enter manager token" style="flex:1; padding:10px 14px; background:#060714; border:1px solid var(--border); border-radius:8px; color:#fff;" required>
+                    <button type="submit" class="btn btn-start">Unlock</button>
+                </form>
+            </div>
+            <?php exit; ?>
         <?php endif; ?>
 
         <?php if ($actionMessage): ?>
-            <div class="alert"><?php echo htmlspecialchars($actionMessage); ?></div>
+            <div class="alert alert-info"><?= htmlspecialchars($actionMessage) ?></div>
         <?php endif; ?>
 
+        <!-- Stat Cards -->
         <div class="grid">
-            <div class="stat-card">
-                <div class="stat-label">Node.js Server Status</div>
+            <div class="card">
+                <div class="stat-label">Node.js Process</div>
                 <div class="stat-value">
-                    <?php if ($isRunning): ?>
-                        <span class="badge online">Active</span>
-                        <span style="font-size: 13px; color: var(--text-dim);">Port <?php echo htmlspecialchars($activePort); ?></span>
-                    <?php else: ?>
-                        <span class="badge offline">Stopped</span>
+                    <span class="badge <?= $isRunning ? 'online' : 'offline' ?>">
+                        <?= $isRunning ? 'Online' : 'Stopped' ?>
+                    </span>
+                    <?php if ($activePid): ?>
+                        <span style="font-size: 13px; color: var(--text-dim);">PID: <?= $activePid ?></span>
                     <?php endif; ?>
                 </div>
             </div>
-            <div class="stat-card">
-                <div class="stat-label">Process PID</div>
+            <div class="card">
+                <div class="stat-label">Target Port / Mode</div>
                 <div class="stat-value">
-                    <?php echo $activePid ? htmlspecialchars($activePid) : '<span style="color:var(--text-dim);font-size:14px;">None</span>'; ?>
+                    <span><?= htmlspecialchars($activeSocket ?: "Port {$activePort}") ?></span>
                 </div>
             </div>
-            <div class="stat-card">
+            <div class="card">
                 <div class="stat-label">Next.js Production Build</div>
-                <div class="stat-value" style="font-size: 14px;">
-                    <?php if ($buildExists): ?>
-                        <span style="color: var(--success);">&#10003; Ready</span>
-                        <span style="color: var(--text-dim); font-size: 12px; margin-left: auto;"><?php echo $buildTime; ?></span>
-                    <?php else: ?>
-                        <span style="color: var(--accent);">&#10007; Missing (.next)</span>
-                    <?php endif; ?>
+                <div class="stat-value">
+                    <span class="badge <?= $buildExists ? 'online' : 'offline' ?>">
+                        <?= $buildExists ? 'Compiled' : 'Missing' ?>
+                    </span>
+                    <span style="font-size: 12px; color: var(--text-dim);"><?= $buildTime ?></span>
                 </div>
             </div>
-            <div class="stat-card">
-                <div class="stat-label">Database Configuration</div>
-                <div class="stat-value" style="font-size: 14px;">
-                    <?php if ($dbConfigured): ?>
-                        <span style="color: var(--success);">&#10003; Neon Configured</span>
-                    <?php else: ?>
-                        <span style="color: var(--warning);">&#9888; DATABASE_URL Unset</span>
-                    <?php endif; ?>
+            <div class="card">
+                <div class="stat-label">Database Connection</div>
+                <div class="stat-value">
+                    <span class="badge <?= $dbIsOk ? 'online' : 'neutral' ?>">
+                        <?= $dbIsOk ? 'Connected' : 'Check Env' ?>
+                    </span>
+                    <span style="font-size: 12px; color: var(--text-dim);"><?= htmlspecialchars($dbStatus) ?></span>
                 </div>
             </div>
         </div>
 
-        <div class="controls">
-            <h3>Process Actions</h3>
-            <div class="btn-group">
-                <form method="post" style="display:inline;">
-                    <input type="hidden" name="token" value="<?php echo htmlspecialchars($providedToken); ?>">
-                    <input type="hidden" name="action" value="start">
-                    <button type="submit" class="btn btn-primary" <?php if ($isRunning) echo 'disabled style="opacity:0.5;cursor:not-allowed;"'; ?>>
-                        &#9654; Start Server
-                    </button>
-                </form>
-
-                <form method="post" style="display:inline;">
-                    <input type="hidden" name="token" value="<?php echo htmlspecialchars($providedToken); ?>">
-                    <input type="hidden" name="action" value="restart">
-                    <button type="submit" class="btn btn-secondary">
-                        &#8635; Restart Server
-                    </button>
-                </form>
-
-                <form method="post" style="display:inline;">
-                    <input type="hidden" name="token" value="<?php echo htmlspecialchars($providedToken); ?>">
-                    <input type="hidden" name="action" value="stop">
-                    <button type="submit" class="btn btn-danger" <?php if (!$isRunning) echo 'disabled style="opacity:0.5;cursor:not-allowed;"'; ?>>
-                        &#9632; Stop Server
-                    </button>
-                </form>
-
-                <a href="health.php" target="_blank" class="btn btn-secondary btn-link">&#10004; Health Check</a>
-                <a href="db-install.php" target="_blank" class="btn btn-secondary btn-link">&#128450; DB Installer</a>
-                <a href="mail-test.php" target="_blank" class="btn btn-secondary btn-link">&#9993; Test Mail</a>
-            </div>
+        <!-- Action Controls -->
+        <div class="card">
+            <h3 style="font-size: 15px; margin-bottom: 14px;">Process Controls</h3>
+            <form method="POST" class="btn-group">
+                <input type="hidden" name="token" value="<?= htmlspecialchars($providedToken) ?>">
+                <?php if (!$isRunning): ?>
+                    <button type="submit" name="action" value="start" class="btn btn-start">Start Application</button>
+                <?php else: ?>
+                    <button type="submit" name="action" value="restart" class="btn btn-restart">Restart Application</button>
+                    <button type="submit" name="action" value="stop" class="btn btn-stop" onclick="return confirm('Stop internal Node.js process?')">Stop Application</button>
+                <?php endif; ?>
+                <button type="submit" name="action" value="clear_logs" class="btn btn-clear">Clear Server Log</button>
+            </form>
         </div>
 
-        <div class="log-box">
-            <div class="log-header">
-                <h3>Application Logs (server.log)</h3>
-                <form method="post" style="display:inline;">
-                    <input type="hidden" name="token" value="<?php echo htmlspecialchars($providedToken); ?>">
-                    <input type="hidden" name="action" value="clear_logs">
-                    <button type="submit" class="btn btn-secondary" style="font-size: 12px; padding: 6px 12px;">Clear Logs</button>
-                </form>
-            </div>
-            <pre><?php echo htmlspecialchars($logs); ?></pre>
+        <!-- Cron Configuration -->
+        <div class="card">
+            <h3 style="font-size: 15px; margin-bottom: 6px;">Recommended cPanel Cron Job</h3>
+            <p style="font-size: 13px; color: var(--text-dim);">
+                In <strong>cPanel &rarr; Cron Jobs</strong>, add the following cron command (every 10 minutes) to keep the app warm and process background trades:
+            </p>
+            <div class="code-box"><?= htmlspecialchars($cronCommand) ?></div>
         </div>
 
-    <?php endif; ?>
-</div>
+        <!-- Live Logs -->
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                <h3 style="font-size: 15px;">Application Logs (Last 80 lines)</h3>
+                <div class="log-nav">
+                    <a href="?token=<?= htmlspecialchars($providedToken) ?>&log=server" class="<?= $logType === 'server' ? 'active' : '' ?>">server.log</a>
+                    <a href="?token=<?= htmlspecialchars($providedToken) ?>&log=keepalive" class="<?= $logType === 'keepalive' ? 'active' : '' ?>">keepalive.log</a>
+                    <a href="?token=<?= htmlspecialchars($providedToken) ?>&log=error" class="<?= $logType === 'error' ? 'active' : '' ?>">error_log</a>
+                </div>
+            </div>
+            <pre class="log-viewer"><?= htmlspecialchars($logContent) ?></pre>
+        </div>
+
+        <div style="text-align: center; color: var(--text-dim); font-size: 12px; margin-top: 16px;">
+            Node Binary Detected: <code><?= htmlspecialchars($nodeBinary) ?></code> &bull; PHP Version: <?= PHP_VERSION ?>
+        </div>
+    </div>
 </body>
 </html>

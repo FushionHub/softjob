@@ -1,0 +1,34 @@
+---
+# ==============================================================================
+# Emporium Capitals — cPanel Git Version Control Automated Deployment
+# ==============================================================================
+# Usage:
+# 1. In cPanel -> Git Version Control -> Clone or create repository.
+# 2. Under "Manage", click "Deploy HEAD Commit".
+# 3. cPanel executes the tasks below automatically.
+# ==============================================================================
+deployment:
+  tasks:
+    - export DEPLOYPATH=${DEPLOYPATH:-/home/$USER/public_html}
+    - /bin/mkdir -p $DEPLOYPATH
+    - /bin/cp -R app $DEPLOYPATH/
+    - /bin/cp -R components $DEPLOYPATH/
+    - /bin/cp -R lib $DEPLOYPATH/
+    - /bin/cp -R sections $DEPLOYPATH/
+    - /bin/cp -R public $DEPLOYPATH/
+    - /bin/cp -R cpanel $DEPLOYPATH/
+    - /bin/cp -R scripts $DEPLOYPATH/
+    - /bin/cp server.js $DEPLOYPATH/
+    - /bin/cp index.php $DEPLOYPATH/
+    - /bin/cp package.json $DEPLOYPATH/
+    - /bin/cp package-lock.json $DEPLOYPATH/
+    - /bin/cp next.config.mjs $DEPLOYPATH/
+    - /bin/cp schema.sql $DEPLOYPATH/
+    - /bin/cp admin-schema.sql $DEPLOYPATH/
+    - /bin/cp schema-mysql.sql $DEPLOYPATH/
+    - /bin/cp .htaccess $DEPLOYPATH/
+    - /bin/cp .nvmrc $DEPLOYPATH/
+    - /bin/cp .user.ini $DEPLOYPATH/
+    - /bin/cp php.ini $DEPLOYPATH/
+    - /bin/chmod 755 $DEPLOYPATH/cpanel/*.php
+    - /bin/chmod 644 $DEPLOYPATH/.htaccess

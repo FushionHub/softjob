@@ -1,14 +1,10 @@
 /**
- * Emporium Capitals — production startup wrapper for cPanel shared hosting.
+ * Emporium Capitals — Production Startup Wrapper for cPanel Shared Hosting
  *
- * NEW FILE. No existing project code is modified.
- *
- * Purpose:
- *   cPanel's "Setup Node.js App" (CloudLinux/Passenger) needs a single
- *   JavaScript startup file. Point "Application startup file" to `server.js`.
- *   Passenger injects the port or socket via the PORT environment variable;
- *   this file prepares the built Next.js app (`.next/`) and serves it.
- *   It can also be started standalone or managed via PHP process manager.
+ * Compatible with:
+ * 1. CloudLinux Passenger ("Setup Node.js App" in cPanel)
+ * 2. Pure Apache / LiteSpeed reverse proxy & PHP process manager (index.php)
+ * 3. Standalone Node.js execution via Terminal or Cron
  */
 
 const { createServer } = require('http');
@@ -18,14 +14,15 @@ const path = require('path');
 const next = require('next');
 
 const dir = __dirname;
+const pidFilePath = path.join(dir, '.cpanel_node.pid');
 
-// Fail fast with a helpful message if the production build is missing.
+// Fail fast with a clear, actionable diagnostic message if the production build is missing.
 const buildIdPath = path.join(dir, '.next', 'BUILD_ID');
 if (!fs.existsSync(buildIdPath)) {
   console.error(
     '[server.js] Production build not found (.next/BUILD_ID missing).\n' +
-      'Run `npm run build` in the application root, ' +
-      'then restart the Node.js app. See cpanel/DEPLOY.md.'
+      'Please run `npm run build` in your cPanel Terminal or upload the local `.next` build folder.\n' +
+      'See cpanel/DEPLOY.md for step-by-step instructions.'
   );
   process.exit(1);
 }
@@ -40,19 +37,28 @@ if (!rawPort) {
 } else if (!isNaN(Number(rawPort))) {
   listenTarget = { port: parseInt(rawPort, 10), host };
 } else {
-  // Unix domain socket or named pipe from Passenger
+  // Unix domain socket or named pipe injected by CloudLinux Passenger
   listenTarget = { path: rawPort };
 }
 
 const app = next({ dev: false, dir });
 const handle = app.getRequestHandler();
 
+// Capture uncaught exceptions to ensure diagnostics are recorded in cpanel/server.log
+process.on('uncaughtException', (err) => {
+  console.error('[server.js] Uncaught Exception:', err);
+});
+process.on('unhandledRejection', (reason) => {
+  console.error('[server.js] Unhandled Rejection:', reason);
+});
+
 app
   .prepare()
   .then(() => {
     const server = createServer(async (req, res) => {
-      // Lightweight internal ping for PHP reverse-proxy / watchdog checks
+      // Lightweight internal diagnostic ping for PHP reverse-proxy & cron watchdog checks
       if (req.url === '/_cpanel_ping') {
+        const mem = process.memoryUsage();
         res.writeHead(200, {
           'Content-Type': 'application/json',
           'Cache-Control': 'no-cache, no-store, must-revalidate',
@@ -60,8 +66,17 @@ app
         res.end(
           JSON.stringify({
             status: 'ok',
-            uptime: process.uptime(),
+            uptime: Math.round(process.uptime()),
             pid: process.pid,
+            nodeVersion: process.version,
+            platform: process.platform,
+            port: listenTarget.port || null,
+            socket: listenTarget.path || null,
+            memory: {
+              rssMb: Math.round(mem.rss / 1024 / 1024),
+              heapTotalMb: Math.round(mem.heapTotal / 1024 / 1024),
+              heapUsedMb: Math.round(mem.heapUsed / 1024 / 1024),
+            },
             timestamp: Date.now(),
           })
         );
@@ -79,6 +94,19 @@ app
         }
         res.end('Internal Server Error');
       }
+    });
+
+    // Handle port collision gracefully with clear instruction for shared hosting users
+    server.on('error', (err) => {
+      if (err.code === 'EADDRINUSE') {
+        console.error(
+          `[server.js] Port ${listenTarget.port || listenTarget.path} is already in use by another process.\n` +
+            'On cPanel shared hosting, change PORT in your .env or cPanel Node.js App settings (e.g. PORT=3001).'
+        );
+      } else {
+        console.error('[server.js] Server error:', err);
+      }
+      process.exit(1);
     });
 
     if (listenTarget.path) {
@@ -106,19 +134,18 @@ function writePidFile() {
       path: listenTarget.path || null,
       host: listenTarget.host || null,
       startedAt: new Date().toISOString(),
+      nodeVersion: process.version,
     };
-    fs.writeFileSync(path.join(dir, '.cpanel_node.pid'), JSON.stringify(pidInfo, null, 2));
+    fs.writeFileSync(pidFilePath, JSON.stringify(pidInfo, null, 2));
   } catch (e) {
-    // Non-critical, ignore if read-only
+    // Non-critical if filesystem permissions are restricted
   }
 }
 
-// Clean exit on termination
 function cleanup() {
   try {
-    const pidFile = path.join(dir, '.cpanel_node.pid');
-    if (fs.existsSync(pidFile)) {
-      fs.unlinkSync(pidFile);
+    if (fs.existsSync(pidFilePath)) {
+      fs.unlinkSync(pidFilePath);
     }
   } catch (e) {}
   process.exit(0);
@@ -126,3 +153,4 @@ function cleanup() {
 
 process.on('SIGTERM', cleanup);
 process.on('SIGINT', cleanup);
+process.on('SIGHUP', cleanup);
