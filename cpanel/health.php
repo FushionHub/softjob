@@ -93,9 +93,9 @@ echo json_encode(array(
         'started_at'      => $pidInfo ? ($pidInfo['startedAt'] ?? null) : null,
     ),
     'files' => array(
-        'server.js'        => fileOk($root . '/server.js'),
-        'index.php'        => fileOk($root . '/index.php'),
-        'package.json'     => fileOk($root . '/package.json'),
+        'server.js'            => fileOk($root . '/server.js'),
+        'ecosystem.config.js'  => fileOk($root . '/ecosystem.config.js'),
+        'package.json'         => fileOk($root . '/package.json'),
         'next_build'       => is_file($root . '/.next/BUILD_ID'),
         'node_modules'     => is_dir($root . '/node_modules'),
         'schema_mysql'     => fileOk($root . '/schema-mysql.sql'),

@@ -69,6 +69,7 @@ $checks = array(
             array('name' => 'Node.js Binary Reachable', 'status' => (bool)$nodeBin, 'detail' => $nodeBin ? "Found: {$nodeBin}" : 'No Node binary located. Use cPanel Setup Node.js App.', 'required' => true),
             array('name' => 'Next.js Production Build (.next)', 'status' => $buildOk, 'detail' => $buildOk ? 'Compiled build present' : 'Missing! Run `npm run build` or upload .next/ directory.', 'required' => true),
             array('name' => 'Server Dependencies (node_modules)', 'status' => $modulesOk, 'detail' => $modulesOk ? 'Installed' : 'Missing! Run `npm install` on server.', 'required' => true),
+            array('name' => 'PM2 Configuration (ecosystem.config.js)', 'status' => checkFile($root . '/ecosystem.config.js'), 'detail' => 'Configured for PM2 process manager (rico-investimentos)', 'required' => true),
             array('name' => 'Apache Configuration (.htaccess)', 'status' => $htaccessOk, 'detail' => $htaccessOk ? 'Active' : 'Missing .htaccess file', 'required' => true),
         )
     ),

@@ -1,8 +1,8 @@
 # ==============================================================================
-# Emporium Capitals — cPanel Shared Hosting Configuration (PM2 / Node.js)
+# Emporium Capitals — cPanel Apache Reverse Proxy for PM2 / Node.js
 # ==============================================================================
-# Designed for PM2 execution on cPanel terminal:
-# `pm2 start ecosystem.config.js`
+# Application runs via PM2 on port 3000:
+# pm2 start ecosystem.config.js
 # ==============================================================================
 
 Options -Indexes
@@ -10,7 +10,7 @@ Options -Indexes
 # ------------------------------------------------------------------------------
 # 1. Security Denials: Secrets, Source Code & Hidden Files
 # ------------------------------------------------------------------------------
-# Block dotfiles (.env, .git, .nvmrc, .user.ini, etc.)
+# Block dotfiles (.env, .git, etc.)
 <FilesMatch "^\.">
     Require all denied
 </FilesMatch>
@@ -64,7 +64,7 @@ RedirectMatch 404 ^/\.next/(server|cache|types|BUILD_ID|export-marker\.json)(/|$
 </IfModule>
 
 # ------------------------------------------------------------------------------
-# 5. Routing & Reverse Proxy to PM2 Node.js (Port 3000)
+# 5. Direct Reverse Proxy to PM2 Node.js (Port 3000)
 # ------------------------------------------------------------------------------
 <IfModule mod_rewrite.c>
     RewriteEngine On
@@ -73,7 +73,7 @@ RedirectMatch 404 ^/\.next/(server|cache|types|BUILD_ID|export-marker\.json)(/|$
     # RewriteCond %{HTTPS} off
     # RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
-    # Direct access to cPanel management and diagnostic scripts
+    # Direct access to cPanel management and diagnostic scripts in cpanel/
     RewriteCond %{REQUEST_URI} ^/cpanel/ [NC]
     RewriteRule ^ - [L]
 
@@ -85,20 +85,13 @@ RedirectMatch 404 ^/\.next/(server|cache|types|BUILD_ID|export-marker\.json)(/|$
     RewriteCond %{DOCUMENT_ROOT}/public/$1 -f
     RewriteRule ^(.*)$ public/$1 [L]
 
-    # Primary: Apache mod_proxy reverse-proxy directly to PM2 running on port 3000
-    <IfModule mod_proxy.c>
-        RewriteRule ^$ http://127.0.0.1:3000/ [P,L]
-        RewriteCond %{REQUEST_FILENAME} !-f
-        RewriteCond %{REQUEST_FILENAME} !-d
-        RewriteRule ^(.*)$ http://127.0.0.1:3000/$1 [P,L]
-        ProxyPassReverse / http://127.0.0.1:3000/
-    </IfModule>
+    # Direct Reverse Proxy to PM2 Node.js application running on port 3000
+    RewriteRule ^$ http://127.0.0.1:3000/ [P,L]
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.*)$ http://127.0.0.1:3000/$1 [P,L]
+</IfModule>
 
-    # Fallback: If Apache mod_proxy is not enabled, proxy via index.php
-    <IfModule !mod_proxy.c>
-        RewriteRule ^$ index.php [L,QSA]
-        RewriteCond %{REQUEST_FILENAME} !-f
-        RewriteCond %{REQUEST_FILENAME} !-d
-        RewriteRule ^(.*)$ index.php [L,QSA]
-    </IfModule>
+<IfModule mod_proxy.c>
+    ProxyPassReverse / http://127.0.0.1:3000/
 </IfModule>

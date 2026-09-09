@@ -19,7 +19,7 @@ deployment:
     - /bin/cp -R cpanel $DEPLOYPATH/
     - /bin/cp -R scripts $DEPLOYPATH/
     - /bin/cp server.js $DEPLOYPATH/
-    - /bin/cp index.php $DEPLOYPATH/
+    - /bin/cp ecosystem.config.js $DEPLOYPATH/
     - /bin/cp package.json $DEPLOYPATH/
     - /bin/cp package-lock.json $DEPLOYPATH/
     - /bin/cp next.config.mjs $DEPLOYPATH/

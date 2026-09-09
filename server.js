@@ -2,8 +2,8 @@
  * Emporium Capitals — Production Startup Wrapper for cPanel Shared Hosting
  *
  * Compatible with:
- * 1. CloudLinux Passenger ("Setup Node.js App" in cPanel)
- * 2. Pure Apache / LiteSpeed reverse proxy & PHP process manager (index.php)
+ * 1. PM2 Process Manager (ecosystem.config.js)
+ * 2. CloudLinux Passenger ("Setup Node.js App" in cPanel)
  * 3. Standalone Node.js execution via Terminal or Cron
  */
 
