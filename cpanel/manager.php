@@ -115,6 +115,11 @@ if ($isAuthenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['a
         if ($isRunning) {
             $actionMessage = "Application is already running (PID: {$activePid}).";
         } else {
+            if (file_exists($appRoot . '/ecosystem.config.js')) {
+                $pm2Cmd = "cd " . escapeshellarg($appRoot) . " && (pm2 start ecosystem.config.js || pm2 restart ecosystem.config.js) >> " . escapeshellarg($logFile) . " 2>&1";
+                if (function_exists('exec')) { @exec($pm2Cmd); }
+                elseif (function_exists('shell_exec')) { @shell_exec($pm2Cmd); }
+            }
             $nodeCmd = resolveNodeBinary($appRoot);
             $cmd = "cd " . escapeshellarg($appRoot) . " && PORT={$activePort} NODE_ENV=production nohup {$nodeCmd} server.js >> " . escapeshellarg($logFile) . " 2>&1 & echo $!";
             $newPid = null;
@@ -135,10 +140,15 @@ if ($isAuthenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['a
                 )));
                 $activePid = $newPid;
             }
-            $actionMessage = "Start signal dispatched with binary '{$nodeCmd}'.";
+            $actionMessage = "Start signal dispatched (PM2 / {$nodeCmd}).";
             $isRunning = checkPortListening($activePort) || ($newPid && isPidRunning($newPid));
         }
     } elseif ($action === 'stop') {
+        if (file_exists($appRoot . '/ecosystem.config.js')) {
+            $pm2Stop = "cd " . escapeshellarg($appRoot) . " && pm2 stop ecosystem.config.js >> " . escapeshellarg($logFile) . " 2>&1";
+            if (function_exists('exec')) { @exec($pm2Stop); }
+            elseif (function_exists('shell_exec')) { @shell_exec($pm2Stop); }
+        }
         if ($activePid) {
             if (function_exists('posix_kill')) {
                 @posix_kill($activePid, SIGTERM);
@@ -151,6 +161,11 @@ if ($isAuthenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['a
         $actionMessage = "Stop command issued to process.";
         $isRunning = false;
     } elseif ($action === 'restart') {
+        if (file_exists($appRoot . '/ecosystem.config.js')) {
+            $pm2Restart = "cd " . escapeshellarg($appRoot) . " && pm2 restart ecosystem.config.js >> " . escapeshellarg($logFile) . " 2>&1";
+            if (function_exists('exec')) { @exec($pm2Restart); }
+            elseif (function_exists('shell_exec')) { @shell_exec($pm2Restart); }
+        }
         if ($activePid) {
             if (function_exists('posix_kill')) {
                 @posix_kill($activePid, SIGTERM);
@@ -181,7 +196,7 @@ if ($isAuthenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['a
             )));
             $activePid = $newPid;
         }
-        $actionMessage = "Restart sequence completed with binary '{$nodeCmd}'.";
+        $actionMessage = "Restart sequence completed (PM2 / {$nodeCmd}).";
         $isRunning = checkPortListening($activePort) || ($newPid && isPidRunning($newPid));
     } elseif ($action === 'clear_logs') {
         @file_put_contents($logFile, "[Logs cleared on " . gmdate('Y-m-d H:i:s') . " UTC]\n");

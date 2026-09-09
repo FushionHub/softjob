@@ -92,6 +92,18 @@ function resolveNodeBinary($appRoot) {
  * Revive Node server if down
  */
 function reviveNodeServer($appRoot, $serverLog, $port = 3000) {
+    // If ecosystem.config.js is present, attempt PM2 revival first
+    if (file_exists($appRoot . '/ecosystem.config.js')) {
+        $pm2Cmd = "cd " . escapeshellarg($appRoot) . " && (pm2 restart ecosystem.config.js || pm2 start ecosystem.config.js) >> " . escapeshellarg($serverLog) . " 2>&1 &";
+        if (function_exists('exec')) {
+            @exec($pm2Cmd);
+            return;
+        } elseif (function_exists('shell_exec')) {
+            @shell_exec($pm2Cmd);
+            return;
+        }
+    }
+
     $nodeCmd = resolveNodeBinary($appRoot);
     $cmd = "cd " . escapeshellarg($appRoot) . " && PORT={$port} NODE_ENV=production nohup {$nodeCmd} server.js >> " . escapeshellarg($serverLog) . " 2>&1 &";
     if (function_exists('exec')) {
