@@ -1,14 +1,11 @@
 # ==============================================================================
-# Emporium Capitals — cPanel Shared Hosting Master Apache Configuration
+# Emporium Capitals — cPanel Shared Hosting Configuration (PM2 / Node.js)
 # ==============================================================================
-# Compatible with:
-# 1. CloudLinux Passenger ("Setup Node.js App" in cPanel)
-# 2. LiteSpeed Web Server / OpenLiteSpeed
-# 3. Pure Apache reverse proxy & PHP auto-starter fallback (index.php)
+# Designed for PM2 execution on cPanel terminal:
+# `pm2 start ecosystem.config.js`
 # ==============================================================================
 
 Options -Indexes
-DirectoryIndex index.php index.html
 
 # ------------------------------------------------------------------------------
 # 1. Security Denials: Secrets, Source Code & Hidden Files
@@ -19,7 +16,7 @@ DirectoryIndex index.php index.html
 </FilesMatch>
 
 # Block sensitive project files, database dumps, and server configs
-<FilesMatch "^(\.env.*|\.user\.ini|php\.ini|package(-lock)?\.json|bun\.lock|.*\.sql|.*\.log|server\.js|proxy\.js|next\.config\.mjs)$">
+<FilesMatch "^(\.env.*|\.user\.ini|php\.ini|package(-lock)?\.json|bun\.lock|.*\.sql|.*\.log|server\.js|proxy\.js|next\.config\.mjs|ecosystem\.config\.js)$">
     Require all denied
 </FilesMatch>
 
@@ -67,12 +64,12 @@ RedirectMatch 404 ^/\.next/(server|cache|types|BUILD_ID|export-marker\.json)(/|$
 </IfModule>
 
 # ------------------------------------------------------------------------------
-# 5. Routing & Gateway Engine
+# 5. Routing & Reverse Proxy to PM2 Node.js (Port 3000)
 # ------------------------------------------------------------------------------
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    # Optional HTTPS Enforcement (Uncomment if SSL is active and not handled by Cloudflare)
+    # Optional HTTPS Enforcement (Uncomment if SSL is active)
     # RewriteCond %{HTTPS} off
     # RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
@@ -81,7 +78,6 @@ RedirectMatch 404 ^/\.next/(server|cache|types|BUILD_ID|export-marker\.json)(/|$
     RewriteRule ^ - [L]
 
     # Directly serve Next.js static build chunks (_next/static/* -> .next/static/*)
-    # This offloads ~80% of asset requests from Node.js, drastically saving RAM on shared hosting.
     RewriteCond %{DOCUMENT_ROOT}/.next/static/$1 -f
     RewriteRule ^_next/static/(.*)$ .next/static/$1 [L]
 
@@ -89,14 +85,20 @@ RedirectMatch 404 ^/\.next/(server|cache|types|BUILD_ID|export-marker\.json)(/|$
     RewriteCond %{DOCUMENT_ROOT}/public/$1 -f
     RewriteRule ^(.*)$ public/$1 [L]
 
-    # On pure Apache / LiteSpeed hosts (where CloudLinux Passenger is not active),
-    # route application traffic into index.php (auto-starts and proxies to Node.js).
-    RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteRule ^(.*)$ index.php [L,QSA]
-</IfModule>
+    # Primary: Apache mod_proxy reverse-proxy directly to PM2 running on port 3000
+    <IfModule mod_proxy.c>
+        RewriteRule ^$ http://127.0.0.1:3000/ [P,L]
+        RewriteCond %{REQUEST_FILENAME} !-f
+        RewriteCond %{REQUEST_FILENAME} !-d
+        RewriteRule ^(.*)$ http://127.0.0.1:3000/$1 [P,L]
+        ProxyPassReverse / http://127.0.0.1:3000/
+    </IfModule>
 
-# ------------------------------------------------------------------------------
-# 6. Optional CloudLinux Passenger Directives
-# (cPanel "Setup Node.js App" automatically injects its block here if enabled)
-# ------------------------------------------------------------------------------
+    # Fallback: If Apache mod_proxy is not enabled, proxy via index.php
+    <IfModule !mod_proxy.c>
+        RewriteRule ^$ index.php [L,QSA]
+        RewriteCond %{REQUEST_FILENAME} !-f
+        RewriteCond %{REQUEST_FILENAME} !-d
+        RewriteRule ^(.*)$ index.php [L,QSA]
+    </IfModule>
+</IfModule>
