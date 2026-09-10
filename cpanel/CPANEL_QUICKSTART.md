@@ -8,6 +8,15 @@ Quick reference card for deploying Emporium Capitals on cPanel using **PM2**.
 └────────────────────────────────────────────────────────┘
 ```
 
+### 0. If Node.js & npm are not installed yet:
+In cPanel Terminal, install Node 20 and PM2 with these copy-paste commands:
+```bash
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
+source ~/.bashrc && nvm install 20 && nvm use 20 && nvm alias default 20
+npm install -g pm2
+node -v && npm -v && pm2 -v
+```
+
 ### 1. Upload & Extract
 - Zip repository &rarr; Upload to `public_html` via cPanel File Manager &rarr; Extract.
 - Do not upload local `node_modules` or local `.env`.

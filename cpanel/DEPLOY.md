@@ -61,10 +61,79 @@ module.exports = {
 
 ---
 
-## 3. Step-by-Step Deployment
+## 3. Terminal Setup: Installing Node.js, npm & PM2 on cPanel
+
+If you are a developer setting up on cPanel for the first time, you might not know what needs to be installed or how to install Node.js without `root` / `sudo` access. Follow these exact steps:
+
+### What Needs to Be Installed
+1. **Node.js 20.x (LTS)** — Required runtime for Next.js 16.
+2. **npm 10.x+** — Package manager (installed automatically with Node.js).
+3. **PM2** — Production process manager to keep the application running 24/7.
+
+---
+
+### Step A: Check if Node.js is already installed
+Open **cPanel &rarr; Terminal** (under the "Advanced" or "Software" category) and type:
+```bash
+node -v
+npm -v
+```
+- If it returns `v20.x.x` (or 18+), you already have Node.js! Skip to **Step C**.
+- If it returns `command not found: node` or an old version, proceed to **Step B**.
+
+---
+
+### Step B: How to Install Node.js 20 & npm via NVM (No Root Needed)
+On shared hosting, you cannot run `sudo apt` or `yum`. Instead, you install **NVM (Node Version Manager)** inside your user account. It takes 30 seconds:
+
+Copy and paste this block into your cPanel Terminal:
+
+```bash
+# 1. Download and install NVM
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
+
+# 2. Load NVM into your current shell
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+source ~/.bashrc
+
+# 3. Install Node.js 20 (npm is installed automatically)
+nvm install 20
+
+# 4. Set Node 20 as your permanent default
+nvm use 20
+nvm alias default 20
+
+# 5. Confirm installation
+node -v   # Output: v20.x.x
+npm -v    # Output: 10.x.x
+```
+
+> **Alternative: If your host has cPanel EasyApache Node.js installed**
+> ```bash
+> echo 'export PATH=/opt/cpanel/ea-nodejs20/bin:$PATH' >> ~/.bashrc
+> source ~/.bashrc
+> ```
+
+---
+
+### Step C: Install PM2 Globally
+Once npm is working, install PM2:
+```bash
+npm install -g pm2
+
+# Verify PM2 is ready
+pm2 -v
+```
+
+---
+
+## 4. Step-by-Step Project Deployment Procedure
 
 ### Step 1: Upload Files
 Upload all files to your cPanel document root (e.g. `/home/USERNAME/public_html`), **excluding** `node_modules/` and `.git/`.
+- Tip: Zip your files locally, upload via cPanel File Manager, and click "Extract".
 
 ### Step 2: Database Setup (1 Minute)
 1. Create a MySQL database and user in **cPanel &rarr; MySQL Databases**.
@@ -79,19 +148,19 @@ Upload all files to your cPanel document root (e.g. `/home/USERNAME/public_html`
 Open cPanel **Terminal** and run:
 
 ```bash
-# Navigate to project directory
+# 1. Navigate to your project folder
 cd ~/public_html
 
-# Install dependencies
+# 2. Install dependencies
 npm install
 
-# Build the Next.js production bundle
+# 3. Build the Next.js production bundle
 npm run build
 
-# Start the application using PM2
+# 4. Start the application using PM2 and ecosystem.config.js
 pm2 start ecosystem.config.js
 
-# Save the process to restart automatically on server reboot
+# 5. Save the process so PM2 restarts automatically if the server reboots
 pm2 save
 ```
 

@@ -81,42 +81,124 @@ The application natively supports **two database engines** via `lib/db.js` with 
 
 ---
 
-## cPanel Deployment with PM2
+## cPanel Terminal Setup: Installing Node.js, npm & PM2
 
-The application is configured for production execution via **PM2** on cPanel Terminal with direct Apache reverse proxying on port 3000.
+If you are a developer setting up a fresh cPanel account and don't know what to install or how to install Node.js and npm on the terminal, follow this exact guide.
 
-### 1. Upload Project Files
-Upload all files to your cPanel document root (e.g., `/home/USERNAME/public_html`), excluding `node_modules/` and `.git/`.
+### Prerequisites to Install
+To run this application on cPanel, your terminal needs:
+1. **Node.js**: Version **20.x** (LTS recommended)
+2. **npm**: Version **10.x+** (installed automatically with Node.js)
+3. **PM2**: Process manager to keep the app running 24/7 (`npm install -g pm2`)
 
-### 2. Configure Database
-In cPanel &rarr; **MySQL Databases**, create your database and user. Then open:
-```
-https://yourdomain.com/cpanel/db-install.php?token=change-me-to-a-long-random-string
-```
-Enter your database credentials and click **Run Installation & Migrations**.
+---
 
-### 3. Launch with PM2 in cPanel Terminal
-Open cPanel **Terminal** and execute:
+### Step 1: Open cPanel Terminal & Check Status
+1. Log in to your **cPanel**.
+2. Scroll to the **Advanced** or **Software** section and click **Terminal**.
+3. Type the following commands to check if Node.js and npm are already installed:
+   ```bash
+   node -v
+   npm -v
+   ```
+   - If it outputs `v20.x.x` and `10.x.x`, skip to **Step 3** below.
+   - If it outputs `command not found: node` or an old version (like Node 12 or 14), proceed to **Step 2**.
+
+---
+
+### Step 2: How to Install Node.js 20 & npm (No Root / Sudo Required)
+
+On shared hosting, you do not have `sudo` or `root` permissions. The industry standard and easiest way to install Node.js and npm in your user account is using **NVM (Node Version Manager)**.
+
+Copy and paste these exact commands into your cPanel Terminal:
 
 ```bash
-# Navigate to document root
+# 1. Download and install NVM
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
+
+# 2. Activate NVM in your current terminal session
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+source ~/.bashrc
+
+# 3. Install Node.js 20 (npm is installed automatically!)
+nvm install 20
+
+# 4. Set Node 20 as your permanent default
+nvm use 20
+nvm alias default 20
+
+# 5. Verify installation
+node -v   # Expected output: v20.x.x
+npm -v    # Expected output: 10.x.x
+```
+
+> **Alternative (cPanel EasyApache):**
+> If your host already has cPanel EasyApache Node.js installed, you can activate it by running:
+> ```bash
+> echo 'export PATH=/opt/cpanel/ea-nodejs20/bin:$PATH' >> ~/.bashrc
+> source ~/.bashrc
+> ```
+
+---
+
+### Step 3: Install PM2 (Process Manager)
+PM2 keeps your Node.js application running in the background and restarts it automatically if the server reboots:
+
+```bash
+npm install -g pm2
+
+# Verify PM2 installation
+pm2 -v
+```
+
+---
+
+## Step-by-Step Project Deployment Procedure
+
+Once Node.js, npm, and PM2 are installed on your terminal, follow these steps to deploy the application:
+
+### 1. Upload Project Files
+Upload all repository files to your cPanel document root (usually `/home/USERNAME/public_html` for your primary domain, or `~/subdomain.yourdomain.com` for subdomains):
+- You can zip the project locally and extract it via **cPanel File Manager**.
+- **Do NOT upload** `node_modules/` or local `.env` (these will be created on the server).
+
+### 2. Configure Your Database
+1. Go to **cPanel &rarr; MySQL Databases** &rarr; Create a database, create a user, and assign the user to the database with **All Privileges**.
+2. Open the web installer in your browser:
+   ```
+   https://yourdomain.com/cpanel/db-install.php?token=change-me-to-a-long-random-string
+   ```
+   *(Or edit `CPANEL_SETUP_TOKEN` in `.env` to your custom token)*.
+3. Enter your database credentials and click **Run Installation & Migrations**. All 19 tables and seed data will be created automatically, and your `.env` will be updated!
+
+### 3. Build & Start with PM2 in cPanel Terminal
+In your cPanel Terminal, run:
+
+```bash
+# 1. Navigate to your website folder
 cd ~/public_html
 
-# Install dependencies
+# 2. Install dependencies
 npm install
 
-# Compile the Next.js production build
+# 3. Compile the Next.js production build
 npm run build
 
-# Start the application with PM2 using ecosystem.config.js
+# 4. Start the application with PM2 using ecosystem.config.js
 npm run pm2:start
 # (or: pm2 start ecosystem.config.js)
 
-# Save the PM2 list to auto-restart on server reboots
+# 5. Save the running process list so it survives server reboots
 pm2 save
 ```
 
-### 4. Setup Automated Watchdog / Cron (Every 10 Minutes)
+### 4. Verify Your Live Website
+- Visit `https://yourdomain.com/` &rarr; Your website loads immediately!
+- Test admin access: `https://yourdomain.com/admin/login` (Default: `admin@emporiumcapitals.com` / `admin123`).
+
+### 5. Setup Automated Watchdog / Cron (Every 10 Minutes)
 In **cPanel &rarr; Cron Jobs**, add a cron job running every 10 minutes (`*/10 * * * *`):
 
 ```bash
