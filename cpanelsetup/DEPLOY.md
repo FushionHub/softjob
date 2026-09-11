@@ -139,8 +139,9 @@ Upload all files to your cPanel document root (e.g. `/home/USERNAME/public_html`
 1. Create a MySQL database and user in **cPanel &rarr; MySQL Databases**.
 2. Open in your browser:
    ```
-   https://yourdomain.com/cpanel/db-install.php?token=change-me-to-a-long-random-string
+   https://yourdomain.com/cpanelsetup/db-install.php?token=b71adc0d01861ae65db1c0a70d6acd2fbb6731e65dbb835386e1ba548552acc5
    ```
+   *(Or access the setup hub at `https://yourdomain.com/cpanelsetup/?token=b71adc0d01861ae65db1c0a70d6acd2fbb6731e65dbb835386e1ba548552acc5`)*.
 3. Enter your database details and click **Run Installation & Migrations**.
 4. Default admin: `admin@emporiumcapitals.com` / `admin123`.
 
@@ -171,12 +172,12 @@ pm2 save
 
 ---
 
-## 4. Setup Automated Watchdog / Trade Processor (Cron)
+## 5. Setup Automated Watchdog / Trade Processor (Cron)
 
 In **cPanel &rarr; Cron Jobs**, add a cron job every 10 minutes (`*/10 * * * *`):
 
 ```bash
-php /home/USERNAME/public_html/cpanel/cron-worker.php >/dev/null 2>&1
+php /home/USERNAME/public_html/cpanelsetup/cron-worker.php >/dev/null 2>&1
 ```
 
 This processes scheduled crypto trade settlements and mature investment returns in the background.

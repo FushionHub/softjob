@@ -16,7 +16,7 @@ deployment:
     - /bin/cp -R lib $DEPLOYPATH/
     - /bin/cp -R sections $DEPLOYPATH/
     - /bin/cp -R public $DEPLOYPATH/
-    - /bin/cp -R cpanel $DEPLOYPATH/
+    - /bin/cp -R cpanelsetup $DEPLOYPATH/
     - /bin/cp -R scripts $DEPLOYPATH/
     - /bin/cp server.js $DEPLOYPATH/
     - /bin/cp ecosystem.config.js $DEPLOYPATH/
@@ -30,5 +30,5 @@ deployment:
     - /bin/cp .nvmrc $DEPLOYPATH/
     - /bin/cp .user.ini $DEPLOYPATH/
     - /bin/cp php.ini $DEPLOYPATH/
-    - /bin/chmod 755 $DEPLOYPATH/cpanel/*.php
+    - /bin/chmod 755 $DEPLOYPATH/cpanelsetup/*.php
     - /bin/chmod 644 $DEPLOYPATH/.htaccess

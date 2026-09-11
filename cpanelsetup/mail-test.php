@@ -12,14 +12,25 @@
 // Token gate: this page pre-fills SMTP/admin addresses from .env and can
 // send mail + probe ports, so it must never be public. Set the token, pass
 // ?token=... in the URL (carried into the form below), delete when done.
-define('MAILTEST_TOKEN', 'change-me-to-a-long-random-string');
-$__mailToken = isset($_GET['token']) ? $_GET['token'] : (isset($_POST['token']) ? $_POST['token'] : '');
-if (!hash_equals(MAILTEST_TOKEN, $__mailToken) || MAILTEST_TOKEN === 'change-me-to-a-long-random-string') {
-    http_response_code(403);
-    exit('Forbidden. Set MAILTEST_TOKEN in cpanel/mail-test.php and pass ?token=...');
+session_start();
+define('MAILTEST_TOKEN', 'b71adc0d01861ae65db1c0a70d6acd2fbb6731e65dbb835386e1ba548552acc5');
+$appRoot = dirname(__DIR__);
+
+$configuredMailToken = MAILTEST_TOKEN;
+if (file_exists($appRoot . '/.env')) {
+    $envContent = file_get_contents($appRoot . '/.env');
+    if (preg_match('/^CPANEL_SETUP_TOKEN\s*=\s*["\']?([^"\'\r\n]+)/m', $envContent, $m)) {
+        $configuredMailToken = trim($m[1]);
+    } elseif (preg_match('/^CPANEL_MANAGER_TOKEN\s*=\s*["\']?([^"\'\r\n]+)/m', $envContent, $m)) {
+        $configuredMailToken = trim($m[1]);
+    }
 }
 
-$appRoot = dirname(__DIR__);
+$__mailToken = $_GET['token'] ?? $_POST['token'] ?? $_SESSION['cpanelsetup_token'] ?? '';
+if (empty($__mailToken) || !hash_equals($configuredMailToken, $__mailToken)) {
+    http_response_code(403);
+    exit('Forbidden. Set CPANEL_SETUP_TOKEN in .env or pass valid ?token=...');
+}
 $env = array();
 if (file_exists($appRoot . '/.env')) {
     $lines = file($appRoot . '/.env', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);

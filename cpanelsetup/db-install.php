@@ -8,7 +8,7 @@
  *
  * Usage:
  *   1. Set CPANEL_SETUP_TOKEN (or CPANEL_MANAGER_TOKEN) in your .env file or use default.
- *   2. Visit https://yourdomain.com/cpanel/db-install.php?token=YOUR_TOKEN
+ *   2. Visit https://yourdomain.com/cpanelsetup/db-install.php?token=YOUR_TOKEN
  *   3. Choose your database type (MySQL or PostgreSQL), enter credentials, and click Install.
  *   4. Delete this script or lock it after deployment.
  */
@@ -16,9 +16,9 @@
 session_start();
 $appRoot = dirname(__DIR__);
 
-define('DEFAULT_SETUP_TOKEN', 'change-me-to-a-long-random-string');
+define('DEFAULT_SETUP_TOKEN', 'b71adc0d01861ae65db1c0a70d6acd2fbb6731e65dbb835386e1ba548552acc5');
 $setupToken = DEFAULT_SETUP_TOKEN;
-$envDbUrl = '';
+$envDbUrl = 'postgresql://neondb_owner:npg_STow8V2WksGl@ep-orange-star-zatn5jjs-pooler.c-2.eu-west-2.aws.neon.tech/softsjob?sslmode=require';
 
 // Load token and existing DATABASE_URL from .env if present
 if (file_exists($appRoot . '/.env')) {
@@ -34,8 +34,8 @@ if (file_exists($appRoot . '/.env')) {
 }
 
 // Check authentication
-$token = $_GET['token'] ?? $_POST['token'] ?? $_SESSION['db_install_token'] ?? '';
-$isAuth = ($token !== '' && $setupToken !== DEFAULT_SETUP_TOKEN && hash_equals($setupToken, $token));
+$token = $_GET['token'] ?? $_POST['token'] ?? $_SESSION['db_install_token'] ?? $_SESSION['cpanelsetup_token'] ?? '';
+$isAuth = ($token !== '' && hash_equals($setupToken, $token));
 
 if ($isAuth) {
     $_SESSION['db_install_token'] = $token;
@@ -515,7 +515,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
 
         <div style="text-align: center; color: var(--text-dim); font-size: 12px;">
-            Security Notice: Please delete or disable <code>cpanel/db-install.php</code> after initial database configuration.
+            Security Notice: Please delete or disable <code>cpanelsetup/db-install.php</code> after initial database configuration.
         </div>
     </div>
 </body>

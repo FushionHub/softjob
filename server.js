@@ -22,7 +22,7 @@ if (!fs.existsSync(buildIdPath)) {
   console.error(
     '[server.js] Production build not found (.next/BUILD_ID missing).\n' +
       'Please run `npm run build` in your cPanel Terminal or upload the local `.next` build folder.\n' +
-      'See cpanel/DEPLOY.md for step-by-step instructions.'
+      'See cpanelsetup/DEPLOY.md for step-by-step instructions.'
   );
   process.exit(1);
 }
@@ -44,7 +44,7 @@ if (!rawPort) {
 const app = next({ dev: false, dir });
 const handle = app.getRequestHandler();
 
-// Capture uncaught exceptions to ensure diagnostics are recorded in cpanel/server.log
+// Capture uncaught exceptions to ensure diagnostics are recorded in cpanelsetup/server.log
 process.on('uncaughtException', (err) => {
   console.error('[server.js] Uncaught Exception:', err);
 });

@@ -6,12 +6,12 @@
  * 1. Warms up the Next.js application to prevent CloudLinux Passenger cold starts.
  * 2. Revives the Node.js server automatically if stopped on pure Apache hosts.
  * 3. Triggers automated crypto trade settlements and investment maturity processing.
- * 4. Rotates logs in cpanel/keepalive.log to prevent quota saturation.
+ * 4. Rotates logs in cpanelsetup/keepalive.log to prevent quota saturation.
  *
  * cPanel Cron Job Configuration (Every 10 minutes):
- *   php /home/USERNAME/public_html/cpanel/cron-worker.php
+ *   php /home/USERNAME/public_html/cpanelsetup/cron-worker.php
  * Or via web (token protected):
- *   https://yourdomain.com/cpanel/cron-worker.php?token=YOUR_TOKEN
+ *   https://yourdomain.com/cpanelsetup/cron-worker.php?token=YOUR_TOKEN
  */
 
 $appRoot = dirname(__DIR__);
@@ -20,7 +20,7 @@ $serverLog = __DIR__ . '/server.log';
 
 // Default configuration
 $baseUrl = 'http://127.0.0.1:3000';
-$cronToken = 'change-me-to-a-secure-token';
+$cronToken = 'b71adc0d01861ae65db1c0a70d6acd2fbb6731e65dbb835386e1ba548552acc5';
 
 // Load values from .env if available
 if (file_exists($appRoot . '/.env')) {
@@ -29,6 +29,8 @@ if (file_exists($appRoot . '/.env')) {
         $baseUrl = rtrim(trim($matches[1]), '/');
     }
     if (preg_match('/^CPANEL_CRON_TOKEN\s*=\s*["\']?([^"\'\r\n]+)/m', $envContent, $matches)) {
+        $cronToken = trim($matches[1]);
+    } elseif (preg_match('/^CPANEL_SETUP_TOKEN\s*=\s*["\']?([^"\'\r\n]+)/m', $envContent, $matches)) {
         $cronToken = trim($matches[1]);
     } elseif (preg_match('/^CPANEL_MANAGER_TOKEN\s*=\s*["\']?([^"\'\r\n]+)/m', $envContent, $matches)) {
         $cronToken = trim($matches[1]);
@@ -39,7 +41,7 @@ if (file_exists($appRoot . '/.env')) {
 $isCli = (php_sapi_name() === 'cli');
 if (!$isCli) {
     $providedToken = $_GET['token'] ?? '';
-    if (empty($providedToken) || $cronToken === 'change-me-to-a-secure-token' || !hash_equals($cronToken, $providedToken)) {
+    if (empty($providedToken) || !hash_equals($cronToken, $providedToken)) {
         http_response_code(403);
         header('Content-Type: application/json; charset=utf-8');
         exit(json_encode(array('status' => 'error', 'message' => 'Forbidden: Invalid or unconfigured cron token.')));

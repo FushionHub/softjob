@@ -14,7 +14,7 @@
 
 session_start();
 
-define('DEFAULT_MANAGER_TOKEN', 'change-me-to-a-secure-token');
+define('DEFAULT_MANAGER_TOKEN', 'b71adc0d01861ae65db1c0a70d6acd2fbb6731e65dbb835386e1ba548552acc5');
 $appRoot = dirname(__DIR__);
 
 // Load token from .env if available
@@ -24,15 +24,17 @@ if (file_exists($appRoot . '/.env')) {
     $envContent = file_get_contents($appRoot . '/.env');
     if (preg_match('/^CPANEL_MANAGER_TOKEN\s*=\s*["\']?([^"\'\r\n]+)/m', $envContent, $matches)) {
         $configuredToken = trim($matches[1]);
+    } elseif (preg_match('/^CPANEL_SETUP_TOKEN\s*=\s*["\']?([^"\'\r\n]+)/m', $envContent, $matches)) {
+        $configuredToken = trim($matches[1]);
     }
     if (preg_match('/^DATABASE_URL\s*=\s*["\']?([^"\'\r\n]+)/m', $envContent, $matches)) {
         $databaseUrl = trim($matches[1]);
     }
 }
 
-// Authentication check
-$providedToken = $_GET['token'] ?? $_POST['token'] ?? $_SESSION['cpanel_mgr_token'] ?? '';
-$isAuthenticated = ($providedToken !== '' && $configuredToken !== DEFAULT_MANAGER_TOKEN && hash_equals($configuredToken, $providedToken));
+// Authentication check - also inherits session from setup hub
+$providedToken = $_GET['token'] ?? $_POST['token'] ?? $_SESSION['cpanel_mgr_token'] ?? $_SESSION['cpanelsetup_token'] ?? '';
+$isAuthenticated = ($providedToken !== '' && hash_equals($configuredToken, $providedToken));
 
 if ($isAuthenticated) {
     $_SESSION['cpanel_mgr_token'] = $providedToken;

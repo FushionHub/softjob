@@ -16,7 +16,8 @@ Premium Crypto Investment & Trading Platform — Next.js 16 fullstack applicatio
 ├── lib/                  # Core services (db.js, auth.js, email.js, lifecycle.js, etc.)
 │   └── db.js             # Dual-driver DB adapter (MySQL & PostgreSQL Neon)
 ├── public/               # Static public assets (images, icons, fonts)
-├── cpanel/               # cPanel management & monitoring suite
+├── cpanelsetup/          # cPanel setup suite & monitoring tools
+│   ├── index.php         # Central startup hub & setup suite launchpad
 │   ├── db-install.php    # Web-based database installer (MySQL & PostgreSQL)
 │   ├── manager.php       # Web server and PM2 process manager
 │   ├── cron-worker.php   # Cron watchdog, trade settler & investment processor
@@ -70,13 +71,13 @@ The application natively supports **two database engines** via `lib/db.js` with 
 ### Option A: Native cPanel MySQL / MariaDB (Recommended for Shared Hosting)
 - **Engine:** MySQL 5.7+ / 8.0+ or MariaDB 10.3+
 - **Schema File:** [`schema-mysql.sql`](file:///c:/Users/USER/Desktop/softjob/schema-mysql.sql)
-- **Installation:** Import via **cPanel phpMyAdmin** or use the web installer at `https://yourdomain.com/cpanel/db-install.php`.
+- **Installation:** Import via **cPanel phpMyAdmin** or use the web installer at `https://yourdomain.com/cpanelsetup/db-install.php`.
 - **Environment:** Set `DATABASE_URL=mysql://user:password@127.0.0.1:3306/dbname` in `.env`.
 
 ### Option B: Cloud PostgreSQL (Neon)
 - **Engine:** PostgreSQL 15+ / Serverless Neon
 - **Schema Files:** [`schema.sql`](file:///c:/Users/USER/Desktop/softjob/schema.sql) and [`admin-schema.sql`](file:///c:/Users/USER/Desktop/softjob/admin-schema.sql)
-- **Installation:** Run in Neon SQL console or use `/cpanel/db-install.php`.
+- **Installation:** Run in Neon SQL console or use `/cpanelsetup/db-install.php`.
 - **Environment:** Set `DATABASE_URL=postgresql://user:pass@ep-xxx.neon.tech/neondb?sslmode=require` in `.env`.
 
 ---
@@ -168,9 +169,9 @@ Upload all repository files to your cPanel document root (usually `/home/USERNAM
 1. Go to **cPanel &rarr; MySQL Databases** &rarr; Create a database, create a user, and assign the user to the database with **All Privileges**.
 2. Open the web installer in your browser:
    ```
-   https://yourdomain.com/cpanel/db-install.php?token=change-me-to-a-long-random-string
+   https://yourdomain.com/cpanelsetup/db-install.php?token=b71adc0d01861ae65db1c0a70d6acd2fbb6731e65dbb835386e1ba548552acc5
    ```
-   *(Or edit `CPANEL_SETUP_TOKEN` in `.env` to your custom token)*.
+   *(Or access the setup hub at `https://yourdomain.com/cpanelsetup/?token=b71adc0d01861ae65db1c0a70d6acd2fbb6731e65dbb835386e1ba548552acc5`)*.
 3. Enter your database credentials and click **Run Installation & Migrations**. All 19 tables and seed data will be created automatically, and your `.env` will be updated!
 
 ### 3. Build & Start with PM2 in cPanel Terminal
@@ -202,7 +203,7 @@ pm2 save
 In **cPanel &rarr; Cron Jobs**, add a cron job running every 10 minutes (`*/10 * * * *`):
 
 ```bash
-php /home/USERNAME/public_html/cpanel/cron-worker.php >/dev/null 2>&1
+php /home/USERNAME/public_html/cpanelsetup/cron-worker.php >/dev/null 2>&1
 ```
 *This keeps the app warm, verifies PM2 process health, and executes background crypto trade settlements and investment payouts.*
 
@@ -224,11 +225,12 @@ php /home/USERNAME/public_html/cpanel/cron-worker.php >/dev/null 2>&1
 
 | Tool | Path | Role |
 |---|---|---|
-| **Pre-Flight Checklist** | `/cpanel/setup-check.php?token=...` | Verifies PHP, Node, PM2, and build readiness |
-| **Server Manager** | `/cpanel/manager.php?token=...` | Web control center for process, DB ping, and logs |
-| **DB Installer** | `/cpanel/db-install.php?token=...` | 1-click database installer for MySQL & PostgreSQL |
-| **Cron Worker** | `/cpanel/cron-worker.php` | Background trade settlement & investment processor |
-| **Health Check** | `/cpanel/health.php` | JSON status endpoint for external uptime monitors |
+| **Setup Suite Hub** | `/cpanelsetup/?token=...` | Central launchpad for all cPanel administration tools |
+| **Pre-Flight Checklist** | `/cpanelsetup/setup-check.php?token=...` | Verifies PHP, Node, PM2, and build readiness |
+| **Server Manager** | `/cpanelsetup/manager.php?token=...` | Web control center for process, DB ping, and logs |
+| **DB Installer** | `/cpanelsetup/db-install.php?token=...` | 1-click database installer for MySQL & PostgreSQL |
+| **Cron Worker** | `/cpanelsetup/cron-worker.php` | Background trade settlement & investment processor |
+| **Health Check** | `/cpanelsetup/health.php` | JSON status endpoint for external uptime monitors |
 
 ---
 
@@ -239,5 +241,5 @@ php /home/USERNAME/public_html/cpanel/cron-worker.php >/dev/null 2>&1
 | `502 Bad Gateway` | Node.js process is stopped | Open cPanel Terminal, run `pm2 status` and `pm2 restart ecosystem.config.js`. Check logs with `pm2 logs rico-investimentos`. |
 | `Production build not found` | Missing `.next/BUILD_ID` | Run `npm run build` in Terminal, or build locally and upload `.next/` folder. |
 | `EADDRINUSE: 3000` | Port 3000 occupied by previous PID | Run `pm2 delete all` and `pm2 start ecosystem.config.js`. |
-| MySQL connection error | Bad credentials in `.env` | Run `/cpanel/db-install.php` and click "Test Connection" to verify user and password. |
+| MySQL connection error | Bad credentials in `.env` | Run `/cpanelsetup/db-install.php` and click "Test Connection" to verify user and password. |
 | Emails not delivering | Incorrect SMTP details | Verify `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, and `SMTP_PASSWORD` in `.env` (Gmail requires App Password). |

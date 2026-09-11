@@ -6,8 +6,8 @@
  * and environment verification. Never exposes secrets or passwords.
  *
  * Usage:
- *   Visit https://yourdomain.com/cpanel/health.php
- *   Or via CLI: php cpanel/health.php
+ *   Visit https://yourdomain.com/cpanelsetup/health.php
+ *   Or via CLI: php cpanelsetup/health.php
  */
 
 header('Content-Type: application/json; charset=utf-8');

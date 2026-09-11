@@ -80,6 +80,7 @@ $checks = array(
             array('name' => 'DATABASE_URL Configured', 'status' => checkEnvVar('DATABASE_URL', $root), 'detail' => 'MySQL or PostgreSQL connection string', 'required' => true),
             array('name' => 'JWT_SECRET Configured', 'status' => checkEnvVar('JWT_SECRET', $root), 'detail' => 'Authentication encryption key', 'required' => true),
             array('name' => 'NEXT_PUBLIC_APP_URL Configured', 'status' => checkEnvVar('NEXT_PUBLIC_APP_URL', $root), 'detail' => 'Your domain URL', 'required' => true),
+            array('name' => 'CPANEL_SETUP_TOKEN Configured', 'status' => checkEnvVar('CPANEL_SETUP_TOKEN', $root), 'detail' => 'cPanel setup suite access security token', 'required' => true),
         )
     )
 );

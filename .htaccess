@@ -73,8 +73,8 @@ RedirectMatch 404 ^/\.next/(server|cache|types|BUILD_ID|export-marker\.json)(/|$
     # RewriteCond %{HTTPS} off
     # RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
-    # Direct access to cPanel management and diagnostic scripts in cpanel/
-    RewriteCond %{REQUEST_URI} ^/cpanel/ [NC]
+    # Direct access to cPanel management and setup suite in cpanelsetup/
+    RewriteCond %{REQUEST_URI} ^/(cpanelsetup|cpanel)(/|$) [NC]
     RewriteRule ^ - [L]
 
     # Directly serve Next.js static build chunks (_next/static/* -> .next/static/*)

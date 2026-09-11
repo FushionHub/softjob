@@ -10,6 +10,7 @@ Quick reference card for deploying Emporium Capitals on cPanel using **PM2**.
 
 ### 0. If Node.js & npm are not installed yet:
 In cPanel Terminal, install Node 20 and PM2 with these copy-paste commands:
+
 ```bash
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
 source ~/.bashrc && nvm install 20 && nvm use 20 && nvm alias default 20
@@ -23,7 +24,8 @@ node -v && npm -v && pm2 -v
 
 ### 2. Configure Database
 - cPanel &rarr; **MySQL Databases** &rarr; Create database & user.
-- Open `https://yourdomain.com/cpanel/db-install.php?token=change-me-to-a-long-random-string`
+- Open `https://yourdomain.com/cpanelsetup/db-install.php?token=b71adc0d01861ae65db1c0a70d6acd2fbb6731e65dbb835386e1ba548552acc5`
+  *(Or access the setup hub at `https://yourdomain.com/cpanelsetup/?token=b71adc0d01861ae65db1c0a70d6acd2fbb6731e65dbb835386e1ba548552acc5`)*
 - Enter credentials &rarr; Click **Run Installation & Migrations**.
 
 ### 3. Build & Run with PM2 in cPanel Terminal
@@ -51,7 +53,9 @@ pm2 save
 
 ### 5. Automated Watchdog / Cron (Every 10 min)
 - cPanel &rarr; **Cron Jobs** &rarr; Every 10 min:
+
   ```bash
-  php /home/USERNAME/public_html/cpanel/cron-worker.php >/dev/null 2>&1
+  php /home/USERNAME/public_html/cpanelsetup/cron-worker.php >/dev/null 2>&1
   ```
+
   *(Processes crypto trades and investment payouts)*.
