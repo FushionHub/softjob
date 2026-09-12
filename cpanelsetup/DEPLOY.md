@@ -66,6 +66,7 @@ module.exports = {
 If you are a developer setting up on cPanel for the first time, you might not know what needs to be installed or how to install Node.js without `root` / `sudo` access. Follow these exact steps:
 
 ### What Needs to Be Installed
+
 1. **Node.js 20.x (LTS)** — Required runtime for Next.js 16.
 2. **npm 10.x+** — Package manager (installed automatically with Node.js).
 3. **PM2** — Production process manager to keep the application running 24/7.
@@ -73,17 +74,21 @@ If you are a developer setting up on cPanel for the first time, you might not kn
 ---
 
 ### Step A: Check if Node.js is already installed
+
 Open **cPanel &rarr; Terminal** (under the "Advanced" or "Software" category) and type:
+
 ```bash
 node -v
 npm -v
 ```
+
 - If it returns `v20.x.x` (or 18+), you already have Node.js! Skip to **Step C**.
 - If it returns `command not found: node` or an old version, proceed to **Step B**.
 
 ---
 
 ### Step B: How to Install Node.js 20 & npm via NVM (No Root Needed)
+
 On shared hosting, you cannot run `sudo apt` or `yum`. Instead, you install **NVM (Node Version Manager)** inside your user account. It takes 30 seconds:
 
 Copy and paste this block into your cPanel Terminal:
@@ -99,7 +104,9 @@ export NVM_DIR="$HOME/.nvm"
 source ~/.bashrc
 
 # 3. Install Node.js 20 (npm is installed automatically)
-nvm install 20
+nvm install 22
+nvm use 22
+npm install
 
 # 4. Set Node 20 as your permanent default
 nvm use 20
@@ -108,9 +115,11 @@ nvm alias default 20
 # 5. Confirm installation
 node -v   # Output: v20.x.x
 npm -v    # Output: 10.x.x
+npm install -D vitest@^3.0.0
 ```
 
 > **Alternative: If your host has cPanel EasyApache Node.js installed**
+>
 > ```bash
 > echo 'export PATH=/opt/cpanel/ea-nodejs20/bin:$PATH' >> ~/.bashrc
 > source ~/.bashrc
@@ -119,7 +128,9 @@ npm -v    # Output: 10.x.x
 ---
 
 ### Step C: Install PM2 Globally
+
 Once npm is working, install PM2:
+
 ```bash
 npm install -g pm2
 
@@ -127,25 +138,34 @@ npm install -g pm2
 pm2 -v
 ```
 
+rm -rf node_modules package-lock.json
+  npm cache clean --force
+  npm install
 ---
 
 ## 4. Step-by-Step Project Deployment Procedure
 
 ### Step 1: Upload Files
+
 Upload all files to your cPanel document root (e.g. `/home/USERNAME/public_html`), **excluding** `node_modules/` and `.git/`.
+
 - Tip: Zip your files locally, upload via cPanel File Manager, and click "Extract".
 
 ### Step 2: Database Setup (1 Minute)
+
 1. Create a MySQL database and user in **cPanel &rarr; MySQL Databases**.
 2. Open in your browser:
+
    ```
    https://yourdomain.com/cpanelsetup/db-install.php?token=b71adc0d01861ae65db1c0a70d6acd2fbb6731e65dbb835386e1ba548552acc5
    ```
+
    *(Or access the setup hub at `https://yourdomain.com/cpanelsetup/?token=b71adc0d01861ae65db1c0a70d6acd2fbb6731e65dbb835386e1ba548552acc5`)*.
 3. Enter your database details and click **Run Installation & Migrations**.
 4. Default admin: `admin@emporiumcapitals.com` / `admin123`.
 
 ### Step 3: Run with PM2 in cPanel Terminal
+
 Open cPanel **Terminal** and run:
 
 ```bash
@@ -166,6 +186,7 @@ pm2 save
 ```
 
 ### Step 4: Verify
+
 - Visit `https://yourdomain.com/` &rarr; Homepage loads immediately with 0 cold start screen!
 - Check PM2 status: `pm2 status`
 - View live application logs: `pm2 logs rico-investimentos`
@@ -187,7 +208,7 @@ This processes scheduled crypto trade settlements and mature investment returns 
 ## 5. Troubleshooting
 
 | Issue | Cause | Solution |
-|---|---|---|
+| --- | --- | --- |
 | `502 Bad Gateway` | PM2 is stopped or crashed | Run `pm2 status` and `pm2 logs rico-investimentos` in cPanel terminal. Run `pm2 restart ecosystem.config.js`. |
 | `EADDRINUSE: 3000` | Port 3000 occupied by old process | Run `pm2 delete all` and `pm2 start ecosystem.config.js`. |
 | Memory limit restart | Process exceeded 500M | PM2 will automatically restart it cleanly due to `max_memory_restart: "500M"`. |
