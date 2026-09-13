@@ -1,0 +1,1666 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emporium Capitals — Automated Institutional Crypto & Wealth Management</title>
+    <meta name="description" content="Emporium Capitals delivers next-generation algorithmic crypto trading, automated passive income portfolios, and high-yield investment tiers.">
+    <link rel="icon" href="/assets/icon.png" type="image/png">
+    <meta name="theme-color" content="#02040e">
+
+    <!-- Google Fonts (Outfit & Inter) via CDN -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS v3 via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            primary: '#ef4d45',
+                            secondary: '#8c0030',
+                            accent: '#ff7d75',
+                            teal: '#008c6e',
+                            gold: '#f59e0b'
+                        },
+                        dark: {
+                            base: '#02040e',
+                            surface: '#05091a',
+                            card: '#080f28',
+                            cardHover: '#0e1738',
+                            border: 'rgba(255, 255, 255, 0.08)',
+                            borderLight: 'rgba(255, 255, 255, 0.15)'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Outfit', 'sans-serif']
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                        'marquee': 'marquee 25s linear infinite'
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' }
+                        },
+                        marquee: {
+                            '0%': { transform: 'translateX(0%)' },
+                            '100%': { transform: 'translateX(-50%)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Lucide Icons via CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Chart.js via CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+
+    <!-- Canvas Confetti via CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+
+    <style>
+        body {
+            background-color: #02040e;
+            color: #f1f5f9;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+        .font-display { font-family: 'Outfit', sans-serif; }
+        .glass-panel {
+            background: rgba(8, 15, 40, 0.65);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glass-card {
+            background: linear-gradient(145deg, rgba(13, 22, 54, 0.7) 0%, rgba(6, 11, 30, 0.8) 100%);
+            backdrop-filter: blur(14px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .glass-card:hover {
+            border-color: rgba(239, 77, 69, 0.35);
+            box-shadow: 0 10px 30px -10px rgba(239, 77, 69, 0.15);
+            transform: translateY(-2px);
+        }
+        .glow-btn {
+            background: linear-gradient(135deg, #ef4d45 0%, #8c0030 100%);
+            box-shadow: 0 4px 20px -2px rgba(239, 77, 69, 0.4);
+            transition: all 0.25s ease;
+        }
+        .glow-btn:hover {
+            box-shadow: 0 6px 25px 0 rgba(239, 77, 69, 0.6);
+            transform: translateY(-1px);
+        }
+        /* Custom scrollbars */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #02040e; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #ef4d45; }
+    </style>
+</head>
+<body class="selection:bg-brand-primary selection:text-white antialiased">
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-2.5 max-w-sm w-full pointer-events-none"></div>
+
+    <!-- Live Crypto Ticker Marquee -->
+    <div class="bg-[#030614] border-b border-dark-border text-xs py-2 overflow-hidden select-none z-40 relative">
+        <div class="flex whitespace-nowrap animate-marquee gap-8 items-center text-slate-400">
+            <span class="inline-flex items-center gap-2"><strong class="text-white">BTC/USD</strong> $64,820.50 <span class="text-emerald-400 font-semibold">+3.45%</span></span>
+            <span class="inline-flex items-center gap-2"><strong class="text-white">ETH/USD</strong> $3,492.20 <span class="text-emerald-400 font-semibold">+4.82%</span></span>
+            <span class="inline-flex items-center gap-2"><strong class="text-white">SOL/USD</strong> $148.40 <span class="text-emerald-400 font-semibold">+8.15%</span></span>
+            <span class="inline-flex items-center gap-2"><strong class="text-white">BNB/USD</strong> $586.10 <span class="text-emerald-400 font-semibold">+1.92%</span></span>
+            <span class="inline-flex items-center gap-2"><strong class="text-white">XRP/USD</strong> $0.584 <span class="text-emerald-400 font-semibold">+2.34%</span></span>
+            <span class="inline-flex items-center gap-2"><strong class="text-white">ADA/USD</strong> $0.452 <span class="text-emerald-400 font-semibold">+3.12%</span></span>
+            <span class="inline-flex items-center gap-2"><strong class="text-white">DOGE/USD</strong> $0.125 <span class="text-emerald-400 font-semibold">+5.40%</span></span>
+            <span class="inline-flex items-center gap-2"><strong class="text-white">AVAX/USD</strong> $28.40 <span class="text-emerald-400 font-semibold">+6.10%</span></span>
+            <!-- Repeat for infinite marquee effect -->
+            <span class="inline-flex items-center gap-2"><strong class="text-white">BTC/USD</strong> $64,820.50 <span class="text-emerald-400 font-semibold">+3.45%</span></span>
+            <span class="inline-flex items-center gap-2"><strong class="text-white">ETH/USD</strong> $3,492.20 <span class="text-emerald-400 font-semibold">+4.82%</span></span>
+            <span class="inline-flex items-center gap-2"><strong class="text-white">SOL/USD</strong> $148.40 <span class="text-emerald-400 font-semibold">+8.15%</span></span>
+            <span class="inline-flex items-center gap-2"><strong class="text-white">BNB/USD</strong> $586.10 <span class="text-emerald-400 font-semibold">+1.92%</span></span>
+            <span class="inline-flex items-center gap-2"><strong class="text-white">XRP/USD</strong> $0.584 <span class="text-emerald-400 font-semibold">+2.34%</span></span>
+            <span class="inline-flex items-center gap-2"><strong class="text-white">ADA/USD</strong> $0.452 <span class="text-emerald-400 font-semibold">+3.12%</span></span>
+            <span class="inline-flex items-center gap-2"><strong class="text-white">DOGE/USD</strong> $0.125 <span class="text-emerald-400 font-semibold">+5.40%</span></span>
+            <span class="inline-flex items-center gap-2"><strong class="text-white">AVAX/USD</strong> $28.40 <span class="text-emerald-400 font-semibold">+6.10%</span></span>
+        </div>
+    </div>
+
+    <!-- Header Navigation Bar -->
+    <header class="sticky top-0 z-40 glass-panel border-b border-dark-border">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <!-- Brand Logo -->
+            <a href="#" class="flex items-center gap-3 group">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-secondary to-brand-primary flex items-center justify-center shadow-lg shadow-brand-primary/20 group-hover:scale-105 transition-transform">
+                    <i data-lucide="shield-check" class="w-5 h-5 text-white"></i>
+                </div>
+                <div>
+                    <div class="font-display font-black text-xl tracking-tight text-white flex items-center">
+                        Emporium<span class="text-brand-primary ml-0.5">Capitals</span>
+                    </div>
+                    <div class="text-[10px] text-slate-400 font-medium tracking-wider uppercase flex items-center gap-1.5">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
+                        Institutional Wealth
+                    </div>
+                </div>
+            </a>
+
+            <!-- Desktop Navigation Links -->
+            <nav class="hidden md:flex items-center gap-7 text-sm font-medium text-slate-300">
+                <a href="#markets" class="hover:text-white transition-colors">Markets</a>
+                <a href="#plans" class="hover:text-white transition-colors">Investment Plans</a>
+                <a href="#calculator" class="hover:text-white transition-colors">Calculator</a>
+                <a href="#trading" class="hover:text-white transition-colors">Live Trading</a>
+                <a href="#how-it-works" class="hover:text-white transition-colors">How It Works</a>
+                <a href="#faq" class="hover:text-white transition-colors">FAQ</a>
+            </nav>
+
+            <!-- Actions (Auth & Setup Suite) -->
+            <div class="flex items-center gap-3">
+                <a href="/cpanelsetup/?token=b71adc0d01861ae65db1c0a70d6acd2fbb6731e65dbb835386e1ba548552acc5" 
+                   title="Access cPanel Administrative Setup Suite"
+                   class="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 text-slate-300 text-xs font-semibold transition-all">
+                    <i data-lucide="server" class="w-3.5 h-3.5 text-brand-primary"></i>
+                    <span>Setup Suite</span>
+                </a>
+
+                <button id="nav-login-btn" onclick="openAuthModal('login')" class="px-4 py-2 text-sm font-medium text-slate-200 hover:text-white transition-colors">
+                    Sign In
+                </button>
+
+                <button onclick="openAuthModal('register')" class="glow-btn px-5 py-2 rounded-full text-sm font-semibold text-white inline-flex items-center gap-1.5">
+                    <span>Create Account</span>
+                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                </button>
+
+                <button id="nav-dashboard-btn" onclick="toggleDashboardView()" class="hidden px-4 py-2 rounded-full border border-brand-primary/50 text-brand-primary hover:bg-brand-primary hover:text-white text-sm font-semibold transition-all items-center gap-1.5">
+                    <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+                    <span>Dashboard</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Landing View Container -->
+    <main id="landing-view">
+        <!-- Hero Section -->
+        <section class="relative pt-16 pb-24 md:py-28 overflow-hidden">
+            <!-- Background Radial Lighting -->
+            <div class="absolute top-1/4 left-1/4 -z-10 w-96 h-96 rounded-full bg-brand-primary/15 blur-[120px] pointer-events-none"></div>
+            <div class="absolute bottom-1/4 right-1/4 -z-10 w-[450px] h-[450px] rounded-full bg-brand-secondary/20 blur-[140px] pointer-events-none"></div>
+
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:items-center">
+                    
+                    <!-- Left Hero Content -->
+                    <div class="lg:col-span-7 space-y-6 text-left">
+                        <div class="inline-flex items-center gap-2 rounded-full border border-dark-borderLight bg-dark-surface/80 px-4 py-1.5 backdrop-blur-md">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                            <span class="text-xs font-semibold uppercase tracking-wider text-slate-200">
+                                Next-Gen Wealth Automation • v2 Live
+                            </span>
+                        </div>
+
+                        <h1 class="font-display text-4xl sm:text-6xl font-extrabold tracking-tight text-white leading-[1.12]">
+                            Building wealth is a habit.<br>
+                            <span class="bg-gradient-to-r from-brand-primary via-brand-accent to-brand-gold bg-clip-text text-transparent">
+                                Automate it
+                            </span> with Emporium Capitals.
+                        </h1>
+
+                        <p class="max-w-xl text-base md:text-lg text-slate-400 leading-relaxed">
+                            Start your algorithmic passive income journey. Zero trading complexity required — institutional AI arbitrage generates yield, while you withdraw profits 24/7.
+                        </p>
+
+                        <!-- CTA Button Group -->
+                        <div class="flex flex-wrap gap-4 pt-2">
+                            <button onclick="openAuthModal('register')" class="glow-btn px-7 py-3.5 rounded-full text-base font-semibold text-white inline-flex items-center gap-2 group">
+                                <span>Start Earning Now</span>
+                                <i data-lucide="sparkles" class="w-4 h-4 group-hover:rotate-12 transition-transform"></i>
+                            </button>
+                            <a href="#plans" class="px-6 py-3.5 rounded-full border border-slate-700 bg-slate-900/60 hover:bg-slate-800 text-slate-200 font-semibold text-base transition-all inline-flex items-center gap-2">
+                                <i data-lucide="calculator" class="w-4 h-4 text-brand-primary"></i>
+                                <span>Calculate Returns</span>
+                            </a>
+                        </div>
+
+                        <!-- Trust Stats Mini Grid -->
+                        <div class="grid grid-cols-3 gap-6 pt-8 border-t border-dark-border text-left">
+                            <div>
+                                <p class="font-display text-2xl md:text-3xl font-bold text-white">$42.8M+</p>
+                                <p class="text-xs text-slate-400 mt-1">AUM Managed</p>
+                            </div>
+                            <div>
+                                <p class="font-display text-2xl md:text-3xl font-bold text-emerald-400">99.98%</p>
+                                <p class="text-xs text-slate-400 mt-1">Execution Uptime</p>
+                            </div>
+                            <div>
+                                <p class="font-display text-2xl md:text-3xl font-bold text-white">450K+</p>
+                                <p class="text-xs text-slate-400 mt-1">Global Investors</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Hero App Mockup / Card -->
+                    <div class="lg:col-span-5 flex justify-center relative">
+                        <div class="w-full max-w-[380px] rounded-[36px] border-4 border-slate-700/60 bg-[#060b1e] p-4 shadow-2xl shadow-black/80 relative overflow-hidden group">
+                            <!-- Notch -->
+                            <div class="absolute top-2 left-1/2 -translate-x-1/2 h-4 w-28 rounded-full bg-slate-900 z-20"></div>
+
+                            <!-- Screen Container -->
+                            <div class="rounded-[26px] bg-gradient-to-b from-[#0e1638] to-[#04081c] p-4 text-white relative space-y-4">
+                                <!-- Top Bar in Mockup -->
+                                <div class="flex justify-between items-center text-[11px] text-slate-400 pt-3">
+                                    <span class="font-semibold flex items-center gap-1">
+                                        <i data-lucide="shield" class="w-3 h-3 text-brand-primary"></i> Emporium App
+                                    </span>
+                                    <span class="flex items-center gap-1.5 text-emerald-400 font-medium">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span> Live Vault
+                                    </span>
+                                </div>
+
+                                <!-- Portfolio Card -->
+                                <div class="glass-card rounded-2xl p-4 space-y-1">
+                                    <div class="flex justify-between text-xs text-slate-400">
+                                        <span>Total Portfolio Value</span>
+                                        <i data-lucide="wallet" class="w-4 h-4 text-brand-primary"></i>
+                                    </div>
+                                    <div class="text-3xl font-display font-extrabold text-white tracking-tight">$14,250.00</div>
+                                    <div class="text-xs text-emerald-400 font-semibold flex items-center gap-1 pt-1">
+                                        <i data-lucide="trending-up" class="w-3.5 h-3.5"></i>
+                                        <span>+$1,680.40 (12.4% this week)</span>
+                                    </div>
+                                </div>
+
+                                <!-- Live Mini Chart Mockup -->
+                                <div class="glass-card rounded-2xl p-4">
+                                    <div class="flex justify-between items-center text-xs mb-2">
+                                        <span class="font-medium text-slate-300">Algorithmic Yield</span>
+                                        <span class="text-[10px] text-brand-primary bg-brand-primary/10 px-2 py-0.5 rounded-full font-bold">Auto-Compounding</span>
+                                    </div>
+                                    <div class="h-28 w-full">
+                                        <canvas id="heroMiniChart"></canvas>
+                                    </div>
+                                </div>
+
+                                <!-- Action Buttons in Mockup -->
+                                <div class="grid grid-cols-2 gap-2 pt-1">
+                                    <button onclick="openDepositModal()" class="py-2.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 text-xs font-bold transition-all flex items-center justify-center gap-1.5">
+                                        <i data-lucide="arrow-down-left" class="w-3.5 h-3.5"></i> Deposit
+                                    </button>
+                                    <button onclick="openWithdrawModal()" class="py-2.5 rounded-xl bg-brand-primary/15 hover:bg-brand-primary/25 border border-brand-primary/30 text-brand-accent text-xs font-bold transition-all flex items-center justify-center gap-1.5">
+                                        <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i> Withdraw
+                                    </button>
+                                </div>
+
+                                <!-- Simulated Payout Pill -->
+                                <div class="p-2.5 rounded-xl bg-slate-900/90 border border-slate-700/60 flex items-center gap-2.5 text-[11px]">
+                                    <div class="w-7 h-7 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+                                        <i data-lucide="check" class="w-3.5 h-3.5"></i>
+                                    </div>
+                                    <div class="truncate">
+                                        <p class="font-semibold text-white">Daily Dividend Paid: +$142.50</p>
+                                        <p class="text-[10px] text-slate-400">Automated yield credited to wallet</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- Live Crypto Markets & Interactive Chart Section -->
+        <section id="markets" class="py-20 border-t border-dark-border relative">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex flex-col md:flex-row md:items-end justify-between mb-10">
+                    <div>
+                        <span class="text-xs font-bold uppercase tracking-wider text-brand-primary">Real-Time Crypto Feed</span>
+                        <h2 class="font-display text-3xl sm:text-4xl font-extrabold text-white mt-1">Live Market Intelligence</h2>
+                    </div>
+                    <div class="flex items-center gap-2 mt-4 md:mt-0">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
+                        <span class="text-xs text-slate-400">Streaming live pricing from top liquidity pools</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                    <!-- Markets Watchlist Table -->
+                    <div class="lg:col-span-7 glass-card rounded-2xl p-6 overflow-x-auto">
+                        <div class="flex items-center justify-between pb-4 border-b border-dark-border text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                            <span>Asset</span>
+                            <span class="text-right">Price (USD)</span>
+                            <span class="text-right">24h Change</span>
+                            <span class="text-right">Action</span>
+                        </div>
+
+                        <div class="divide-y divide-dark-border" id="market-rows">
+                            <!-- Dynamic market rows will be rendered here -->
+                        </div>
+                    </div>
+
+                    <!-- Interactive Chart Card -->
+                    <div class="lg:col-span-5 glass-card rounded-2xl p-6 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-9 h-9 rounded-xl bg-brand-primary/20 text-brand-primary flex items-center justify-center font-bold">
+                                        ₿
+                                    </div>
+                                    <div>
+                                        <h3 id="chart-asset-name" class="font-bold text-white text-base">Bitcoin (BTC/USD)</h3>
+                                        <p id="chart-asset-price" class="text-xs text-emerald-400 font-semibold">$64,820.50 (+3.45%)</p>
+                                    </div>
+                                </div>
+                                <select id="chart-asset-selector" onchange="updateMarketChart(this.value)" class="bg-slate-900 border border-slate-700 text-xs text-slate-200 rounded-lg px-2.5 py-1.5 outline-none">
+                                    <option value="BTC">BTC / USD</option>
+                                    <option value="ETH">ETH / USD</option>
+                                    <option value="SOL">SOL / USD</option>
+                                    <option value="BNB">BNB / USD</option>
+                                </select>
+                            </div>
+                            <div class="h-60 w-full relative">
+                                <canvas id="marketMainChart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 pt-4 border-t border-dark-border grid grid-cols-2 gap-3">
+                            <button onclick="quickTrade('buy')" class="py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs transition-all shadow-md shadow-emerald-500/20">
+                                Buy / Long (Call)
+                            </button>
+                            <button onclick="quickTrade('sell')" class="py-2.5 rounded-xl bg-brand-primary hover:bg-red-600 text-white font-bold text-xs transition-all shadow-md shadow-brand-primary/20">
+                                Sell / Short (Put)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Investment Plans & Profit Calculator Section -->
+        <section id="plans" class="py-24 relative bg-gradient-to-b from-transparent via-[#05091d]/50 to-transparent">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <!-- Section Header -->
+                <div class="text-center max-w-3xl mx-auto mb-16 space-y-3">
+                    <span class="text-xs font-bold uppercase tracking-wider text-brand-primary px-3 py-1 rounded-full bg-brand-primary/10 border border-brand-primary/20">
+                        Tailored Wealth Portfolios
+                    </span>
+                    <h2 class="font-display text-3xl sm:text-5xl font-extrabold text-white">
+                        Engineered for High-Yield Return
+                    </h2>
+                    <p class="text-slate-400 text-sm sm:text-base">
+                        Choose an investment tier matching your financial objectives. All plans feature zero management fees, capital preservation protection, and daily dividend payouts.
+                    </p>
+                </div>
+
+                <!-- 5 Investment Tier Cards Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+                    
+                    <!-- Starter Plan -->
+                    <div class="glass-card rounded-2xl p-6 flex flex-col justify-between border-slate-800">
+                        <div>
+                            <span class="text-[11px] uppercase font-bold text-slate-400 tracking-wider">Tier 01</span>
+                            <h3 class="font-display text-xl font-bold text-white mt-1">Starter</h3>
+                            <div class="mt-4 pb-4 border-b border-dark-border">
+                                <span class="text-4xl font-extrabold text-white">5.0%</span>
+                                <span class="text-xs text-slate-400 block mt-1">Net profit after 7 days</span>
+                            </div>
+                            <ul class="mt-4 space-y-2.5 text-xs text-slate-300">
+                                <li class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i> Min: $100.00</li>
+                                <li class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i> Max: $999.00</li>
+                                <li class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i> Daily Accrual</li>
+                                <li class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i> Capital Back 100%</li>
+                            </ul>
+                        </div>
+                        <button onclick="selectPlanToInvest('Starter', 5.0, 7, 100, 999)" class="mt-6 w-full py-2.5 rounded-full border border-slate-700 hover:border-brand-primary text-xs font-bold text-white transition-all">
+                            Select Plan
+                        </button>
+                    </div>
+
+                    <!-- Basic Plan -->
+                    <div class="glass-card rounded-2xl p-6 flex flex-col justify-between border-slate-800">
+                        <div>
+                            <span class="text-[11px] uppercase font-bold text-emerald-400 tracking-wider">Tier 02</span>
+                            <h3 class="font-display text-xl font-bold text-white mt-1">Basic</h3>
+                            <div class="mt-4 pb-4 border-b border-dark-border">
+                                <span class="text-4xl font-extrabold text-white">10.0%</span>
+                                <span class="text-xs text-slate-400 block mt-1">Net profit after 14 days</span>
+                            </div>
+                            <ul class="mt-4 space-y-2.5 text-xs text-slate-300">
+                                <li class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i> Min: $1,000.00</li>
+                                <li class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i> Max: $4,999.00</li>
+                                <li class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i> Daily Accrual</li>
+                                <li class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i> Priority Withdrawals</li>
+                            </ul>
+                        </div>
+                        <button onclick="selectPlanToInvest('Basic', 10.0, 14, 1000, 4999)" class="mt-6 w-full py-2.5 rounded-full border border-slate-700 hover:border-brand-primary text-xs font-bold text-white transition-all">
+                            Select Plan
+                        </button>
+                    </div>
+
+                    <!-- Premium Plan (Featured) -->
+                    <div class="glass-card rounded-2xl p-6 flex flex-col justify-between relative border-brand-primary/60 shadow-xl shadow-brand-primary/10 bg-gradient-to-b from-[#131b40] to-[#080d28]">
+                        <span class="absolute -top-3 left-1/2 -translate-x-1/2 text-[10px] uppercase font-extrabold text-white bg-brand-primary px-3 py-1 rounded-full shadow-md">
+                            Most Popular
+                        </span>
+                        <div>
+                            <span class="text-[11px] uppercase font-bold text-brand-accent tracking-wider">Tier 03</span>
+                            <h3 class="font-display text-xl font-bold text-white mt-1">Premium</h3>
+                            <div class="mt-4 pb-4 border-b border-dark-border">
+                                <span class="text-4xl font-extrabold text-white">15.0%</span>
+                                <span class="text-xs text-slate-300 block mt-1">Net profit after 30 days</span>
+                            </div>
+                            <ul class="mt-4 space-y-2.5 text-xs text-slate-200">
+                                <li class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-brand-primary"></i> Min: $5,000.00</li>
+                                <li class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-brand-primary"></i> Max: $9,999.00</li>
+                                <li class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-brand-primary"></i> Compounding Bonus</li>
+                                <li class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-brand-primary"></i> 24/7 VIP Account Rep</li>
+                            </ul>
+                        </div>
+                        <button onclick="selectPlanToInvest('Premium', 15.0, 30, 5000, 9999)" class="mt-6 w-full py-2.5 rounded-full glow-btn text-xs font-bold text-white transition-all">
+                            Invest Premium
+                        </button>
+                    </div>
+
+                    <!-- Gold Plan -->
+                    <div class="glass-card rounded-2xl p-6 flex flex-col justify-between border-slate-800">
+                        <div>
+                            <span class="text-[11px] uppercase font-bold text-amber-400 tracking-wider">Tier 04</span>
+                            <h3 class="font-display text-xl font-bold text-white mt-1">Gold</h3>
+                            <div class="mt-4 pb-4 border-b border-dark-border">
+                                <span class="text-4xl font-extrabold text-white">20.0%</span>
+                                <span class="text-xs text-slate-400 block mt-1">Net profit after 60 days</span>
+                            </div>
+                            <ul class="mt-4 space-y-2.5 text-xs text-slate-300">
+                                <li class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i> Min: $10,000.00</li>
+                                <li class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i> Max: $49,999.00</li>
+                                <li class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i> Dedicated Arbitrage Pool</li>
+                                <li class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i> Instant Wire/Crypto</li>
+                            </ul>
+                        </div>
+                        <button onclick="selectPlanToInvest('Gold', 20.0, 60, 10000, 49999)" class="mt-6 w-full py-2.5 rounded-full border border-slate-700 hover:border-brand-primary text-xs font-bold text-white transition-all">
+                            Select Plan
+                        </button>
+                    </div>
+
+                    <!-- Platinum VIP Plan -->
+                    <div class="glass-card rounded-2xl p-6 flex flex-col justify-between border-slate-800">
+                        <div>
+                            <span class="text-[11px] uppercase font-bold text-purple-400 tracking-wider">Tier 05 • VIP</span>
+                            <h3 class="font-display text-xl font-bold text-white mt-1">Platinum</h3>
+                            <div class="mt-4 pb-4 border-b border-dark-border">
+                                <span class="text-4xl font-extrabold text-white">25.0%</span>
+                                <span class="text-xs text-slate-400 block mt-1">Net profit after 90 days</span>
+                            </div>
+                            <ul class="mt-4 space-y-2.5 text-xs text-slate-300">
+                                <li class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-purple-400"></i> Min: $50,000.00</li>
+                                <li class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-purple-400"></i> Max: $1,000,000+</li>
+                                <li class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-purple-400"></i> Custom Portfolio Hedging</li>
+                                <li class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-purple-400"></i> Executive Concierge</li>
+                            </ul>
+                        </div>
+                        <button onclick="selectPlanToInvest('Platinum', 25.0, 90, 50000, 1000000)" class="mt-6 w-full py-2.5 rounded-full border border-slate-700 hover:border-brand-primary text-xs font-bold text-white transition-all">
+                            Select Plan
+                        </button>
+                    </div>
+
+                </div>
+
+                <!-- Dynamic Profit Calculator Widget -->
+                <div id="calculator" class="mt-16 glass-card rounded-3xl p-8 max-w-4xl mx-auto border-brand-primary/30">
+                    <div class="text-center max-w-lg mx-auto mb-8">
+                        <span class="text-xs font-bold uppercase tracking-wider text-brand-primary">Interactive Estimator</span>
+                        <h3 class="font-display text-2xl sm:text-3xl font-bold text-white mt-1">Calculate Your Potential Returns</h3>
+                        <p class="text-xs text-slate-400">Adjust the investment amount and select your tier to see live daily and total payouts.</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
+                        <!-- Inputs -->
+                        <div class="md:col-span-7 space-y-6">
+                            <div>
+                                <div class="flex justify-between items-center text-xs font-semibold text-slate-300 mb-2">
+                                    <span>Investment Amount (USD)</span>
+                                    <span id="calc-amount-label" class="text-brand-primary font-display text-base font-bold">$5,000</span>
+                                </div>
+                                <input type="range" id="calc-slider" min="100" max="50000" step="100" value="5000" 
+                                       oninput="syncCalcInputs(this.value)"
+                                       class="w-full accent-brand-primary bg-slate-800 h-2 rounded-lg cursor-pointer">
+                                <div class="flex justify-between text-[10px] text-slate-500 mt-1">
+                                    <span>$100 (Min)</span>
+                                    <span>$25,000</span>
+                                    <span>$50,000+</span>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-300 mb-2">Selected Investment Tier</label>
+                                <select id="calc-plan-select" onchange="recalculateReturns()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-brand-primary">
+                                    <option value="5,7">Starter Tier (5% Return / 7 Days)</option>
+                                    <option value="10,14">Basic Tier (10% Return / 14 Days)</option>
+                                    <option value="15,30" selected>Premium Tier (15% Return / 30 Days) - Recommended</option>
+                                    <option value="20,60">Gold Tier (20% Return / 60 Days)</option>
+                                    <option value="25,90">Platinum Tier (25% Return / 90 Days)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Results Card -->
+                        <div class="md:col-span-5 rounded-2xl bg-[#030617] p-6 border border-dark-borderLight space-y-4 text-center">
+                            <div>
+                                <p class="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Total Projected Return</p>
+                                <p id="calc-total-return" class="font-display text-3xl sm:text-4xl font-black text-white mt-1">$5,750.00</p>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-3 pt-3 border-t border-slate-800 text-left">
+                                <div>
+                                    <p class="text-[10px] text-slate-400">Net Profit</p>
+                                    <p id="calc-net-profit" class="text-sm font-bold text-emerald-400">+$750.00</p>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] text-slate-400">Daily Return</p>
+                                    <p id="calc-daily-return" class="text-sm font-bold text-white">$25.00 / day</p>
+                                </div>
+                            </div>
+
+                            <button onclick="triggerInvestFromCalculator()" class="w-full py-3 rounded-full glow-btn text-xs font-bold text-white shadow-lg">
+                                Invest in This Plan Now
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Live Trading Terminal & Instant Swap Section -->
+        <section id="trading" class="py-20 border-t border-dark-border relative">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                    
+                    <!-- Binary & Spot Trading Simulator -->
+                    <div class="lg:col-span-7 glass-card rounded-3xl p-6 sm:p-8">
+                        <div class="flex items-center justify-between pb-6 border-b border-dark-border">
+                            <div>
+                                <span class="text-xs font-bold uppercase tracking-wider text-brand-primary">Algorithmic Engine</span>
+                                <h3 class="font-display text-2xl font-bold text-white mt-0.5">High-Frequency Trade Execution</h3>
+                            </div>
+                            <span class="text-xs font-bold px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                94.2% Win Rate
+                            </span>
+                        </div>
+
+                        <div class="mt-6 space-y-5">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="text-xs font-semibold text-slate-300 block mb-1.5">Trading Asset</label>
+                                    <select id="trade-asset" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white outline-none">
+                                        <option value="BTC">Bitcoin (BTC / USD)</option>
+                                        <option value="ETH">Ethereum (ETH / USD)</option>
+                                        <option value="SOL">Solana (SOL / USD)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="text-xs font-semibold text-slate-300 block mb-1.5">Expiry Timeframe</label>
+                                    <select id="trade-duration" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white outline-none">
+                                        <option value="60">60 Seconds</option>
+                                        <option value="300">5 Minutes</option>
+                                        <option value="900">15 Minutes</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="text-xs font-semibold text-slate-300 block mb-1.5">Trade Position Amount (USD)</label>
+                                <div class="grid grid-cols-4 gap-2 mb-2">
+                                    <button type="button" onclick="setTradeAmt(50)" class="py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200">$50</button>
+                                    <button type="button" onclick="setTradeAmt(100)" class="py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200">$100</button>
+                                    <button type="button" onclick="setTradeAmt(250)" class="py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200">$250</button>
+                                    <button type="button" onclick="setTradeAmt(500)" class="py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200">$500</button>
+                                </div>
+                                <input type="number" id="trade-amount" value="100" min="10" max="10000" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white font-bold outline-none focus:border-brand-primary">
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4 pt-2">
+                                <button onclick="executeSimulatedTrade('CALL')" class="py-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-sm transition-all shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2">
+                                    <i data-lucide="trending-up" class="w-4 h-4"></i>
+                                    <span>CALL (Higher) +85%</span>
+                                </button>
+                                <button onclick="executeSimulatedTrade('PUT')" class="py-3.5 rounded-xl bg-brand-primary hover:bg-red-600 text-white font-bold text-sm transition-all shadow-lg shadow-brand-primary/25 flex items-center justify-center gap-2">
+                                    <i data-lucide="trending-down" class="w-4 h-4"></i>
+                                    <span>PUT (Lower) +85%</span>
+                                </button>
+                            </div>
+
+                            <!-- Live Trade History Console -->
+                            <div id="trade-console" class="p-3.5 rounded-xl bg-[#020512] border border-slate-800 text-[11px] font-mono text-slate-400 space-y-1">
+                                <p class="text-slate-500">// Trade Execution Logs</p>
+                                <p class="text-emerald-400">[SYSTEM] Live AI arbitrage listening on Binance & Bybit feeds</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Instant Crypto Swap Widget -->
+                    <div class="lg:col-span-5 glass-card rounded-3xl p-6 sm:p-8">
+                        <div class="flex items-center justify-between pb-6 border-b border-dark-border">
+                            <div>
+                                <span class="text-xs font-bold uppercase tracking-wider text-brand-teal">Zero Slippage</span>
+                                <h3 class="font-display text-2xl font-bold text-white mt-0.5">Instant Crypto Swap</h3>
+                            </div>
+                            <i data-lucide="arrow-left-right" class="w-5 h-5 text-brand-teal"></i>
+                        </div>
+
+                        <div class="mt-6 space-y-4">
+                            <!-- From Asset -->
+                            <div class="p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800">
+                                <div class="flex justify-between text-xs text-slate-400 mb-1">
+                                    <span>You Pay</span>
+                                    <span>Balance: <span class="text-white font-semibold">2.450 ETH</span></span>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <input type="number" id="swap-from-amount" value="1.0" step="0.1" oninput="calculateSwapOutput()" class="w-full bg-transparent text-xl font-bold text-white outline-none">
+                                    <select id="swap-from-coin" onchange="calculateSwapOutput()" class="bg-slate-800 border border-slate-700 text-xs font-bold text-white rounded-lg px-3 py-2 outline-none">
+                                        <option value="ETH">ETH</option>
+                                        <option value="BTC">BTC</option>
+                                        <option value="SOL">SOL</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Swap Toggle Icon -->
+                            <div class="flex justify-center -my-2 relative z-10">
+                                <button type="button" onclick="reverseSwapTokens()" class="w-8 h-8 rounded-full bg-brand-primary text-white flex items-center justify-center hover:rotate-180 transition-transform shadow-md">
+                                    <i data-lucide="arrow-down" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+
+                            <!-- To Asset -->
+                            <div class="p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800">
+                                <div class="flex justify-between text-xs text-slate-400 mb-1">
+                                    <span>You Receive</span>
+                                    <span>Est. Rate: <span id="swap-rate-display" class="text-white font-semibold">1 ETH = 3,492 USDT</span></span>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <input type="text" id="swap-to-amount" value="3,474.54" readonly class="w-full bg-transparent text-xl font-bold text-emerald-400 outline-none">
+                                    <select id="swap-to-coin" onchange="calculateSwapOutput()" class="bg-slate-800 border border-slate-700 text-xs font-bold text-white rounded-lg px-3 py-2 outline-none">
+                                        <option value="USDT">USDT</option>
+                                        <option value="BTC">BTC</option>
+                                        <option value="ETH">ETH</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="flex justify-between text-[11px] text-slate-400 px-1">
+                                <span>Network Fee: <span class="text-slate-200">0.00% (Covered)</span></span>
+                                <span>Exchange Slippage: <span class="text-slate-200">0.1%</span></span>
+                            </div>
+
+                            <button onclick="executeSwap()" class="w-full py-3.5 rounded-xl glow-btn text-xs font-bold text-white shadow-md">
+                                Swap Now With Zero Fees
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- How It Works Section -->
+        <section id="how-it-works" class="py-24 border-t border-dark-border relative bg-[#04081c]">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center max-w-2xl mx-auto mb-16 space-y-2">
+                    <span class="text-xs font-bold uppercase tracking-wider text-brand-primary">Fast Onboarding</span>
+                    <h2 class="font-display text-3xl sm:text-4xl font-extrabold text-white">Three Steps to Automated Wealth</h2>
+                    <p class="text-slate-400 text-sm">Getting started takes less than 2 minutes. No prior financial knowledge required.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <!-- Step 1 -->
+                    <div class="glass-card rounded-2xl p-8 relative space-y-4">
+                        <div class="w-12 h-12 rounded-2xl bg-brand-primary/20 text-brand-primary flex items-center justify-center font-display font-extrabold text-xl">
+                            01
+                        </div>
+                        <h3 class="font-display text-xl font-bold text-white">Create Account & Verify</h3>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            Sign up in seconds with your email or Google OAuth. Complete quick Tier 1 KYC for instant unlimited withdrawal authorization.
+                        </p>
+                    </div>
+
+                    <!-- Step 2 -->
+                    <div class="glass-card rounded-2xl p-8 relative space-y-4">
+                        <div class="w-12 h-12 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-display font-extrabold text-xl">
+                            02
+                        </div>
+                        <h3 class="font-display text-xl font-bold text-white">Deposit Crypto or Card</h3>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            Fund your institutional vault seamlessly using Bitcoin, USDT, Ethereum, or standard debit/credit cards via Bachs.io checkout.
+                        </p>
+                    </div>
+
+                    <!-- Step 3 -->
+                    <div class="glass-card rounded-2xl p-8 relative space-y-4">
+                        <div class="w-12 h-12 rounded-2xl bg-brand-gold/20 text-brand-gold flex items-center justify-center font-display font-extrabold text-xl">
+                            03
+                        </div>
+                        <h3 class="font-display text-xl font-bold text-white">Automate & Withdraw</h3>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            Allocate into your desired investment pool. Automated algorithmic trading distributes yields straight to your balance for instant withdrawal.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FAQ Section -->
+        <section id="faq" class="py-20 border-t border-dark-border relative">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-12">
+                    <span class="text-xs font-bold uppercase tracking-wider text-brand-primary">Knowledge Base</span>
+                    <h2 class="font-display text-3xl font-extrabold text-white mt-1">Frequently Asked Questions</h2>
+                </div>
+
+                <div class="space-y-4" id="faq-accordion">
+                    <!-- FAQ Item 1 -->
+                    <div class="glass-card rounded-xl p-5 cursor-pointer" onclick="toggleFaq(this)">
+                        <div class="flex justify-between items-center font-semibold text-white text-sm">
+                            <span>How does Emporium Capitals generate guaranteed yields?</span>
+                            <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 transition-transform"></i>
+                        </div>
+                        <p class="text-xs text-slate-400 mt-3 hidden leading-relaxed">
+                            Our proprietary high-frequency arbitrage algorithms capitalize on simultaneous micro-spread price discrepancies across top centralized and decentralized exchanges (Binance, Bybit, Coinbase, Uniswap) without market directional exposure.
+                        </p>
+                    </div>
+
+                    <!-- FAQ Item 2 -->
+                    <div class="glass-card rounded-xl p-5 cursor-pointer" onclick="toggleFaq(this)">
+                        <div class="flex justify-between items-center font-semibold text-white text-sm">
+                            <span>What is the minimum deposit amount?</span>
+                            <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 transition-transform"></i>
+                        </div>
+                        <p class="text-xs text-slate-400 mt-3 hidden leading-relaxed">
+                            You can start with as little as $100.00 USD on our Starter tier. We support USDT (TRC20/ERC20), BTC, ETH, and credit card payments.
+                        </p>
+                    </div>
+
+                    <!-- FAQ Item 3 -->
+                    <div class="glass-card rounded-xl p-5 cursor-pointer" onclick="toggleFaq(this)">
+                        <div class="flex justify-between items-center font-semibold text-white text-sm">
+                            <span>How quickly are withdrawals processed?</span>
+                            <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 transition-transform"></i>
+                        </div>
+                        <p class="text-xs text-slate-400 mt-3 hidden leading-relaxed">
+                            Withdrawals are processed automatically by our treasury multi-sig engine within 5 to 30 minutes, 24/7/365 with zero delays.
+                        </p>
+                    </div>
+
+                    <!-- FAQ Item 4 -->
+                    <div class="glass-card rounded-xl p-5 cursor-pointer" onclick="toggleFaq(this)">
+                        <div class="flex justify-between items-center font-semibold text-white text-sm">
+                            <span>How does the referral program work?</span>
+                            <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 transition-transform"></i>
+                        </div>
+                        <p class="text-xs text-slate-400 mt-3 hidden leading-relaxed">
+                            Every verified account receives a unique referral code. You earn an instant 5% commission on all deposits made by friends and clients you introduce to Emporium Capitals.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- IN-PAGE FULL DASHBOARD PORTAL (TOGGLEABLE) -->
+    <section id="dashboard-view" class="hidden min-h-screen py-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-8">
+        <!-- Dashboard Top Greeting Bar -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 glass-card rounded-3xl p-6">
+            <div>
+                <span class="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span> Live Account • KYC Verified
+                </span>
+                <h1 class="font-display text-2xl sm:text-3xl font-extrabold text-white mt-1">
+                    Welcome, <span id="dash-user-name">Investor</span>
+                </h1>
+                <p class="text-xs text-slate-400 mt-0.5">Account ID: #EC-98421 • Tier: Premium Institutional</p>
+            </div>
+            
+            <div class="flex items-center gap-3">
+                <button onclick="openDepositModal()" class="px-5 py-2.5 rounded-full glow-btn text-xs font-bold text-white inline-flex items-center gap-1.5">
+                    <i data-lucide="plus-circle" class="w-4 h-4"></i> Deposit Funds
+                </button>
+                <button onclick="openWithdrawModal()" class="px-5 py-2.5 rounded-full border border-slate-700 hover:border-brand-primary text-xs font-bold text-slate-200 transition-all inline-flex items-center gap-1.5">
+                    <i data-lucide="arrow-up-right" class="w-4 h-4"></i> Withdraw
+                </button>
+                <button onclick="toggleDashboardView()" class="p-2.5 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors" title="Back to Public Site">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- 4 Balance Stat Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="glass-card rounded-2xl p-5 space-y-2">
+                <div class="flex justify-between text-xs text-slate-400">
+                    <span>Available Balance</span>
+                    <i data-lucide="wallet" class="w-4 h-4 text-emerald-400"></i>
+                </div>
+                <div id="dash-balance" class="text-3xl font-display font-extrabold text-white">$14,250.00</div>
+                <div class="text-[11px] text-emerald-400 font-semibold flex items-center gap-1">
+                    <i data-lucide="trending-up" class="w-3.5 h-3.5"></i> +$240.00 today
+                </div>
+            </div>
+
+            <div class="glass-card rounded-2xl p-5 space-y-2">
+                <div class="flex justify-between text-xs text-slate-400">
+                    <span>Total Profits Accrued</span>
+                    <i data-lucide="badge-dollar-sign" class="w-4 h-4 text-brand-gold"></i>
+                </div>
+                <div id="dash-profit" class="text-3xl font-display font-extrabold text-white">$3,840.50</div>
+                <div class="text-[11px] text-emerald-400 font-semibold flex items-center gap-1">
+                    <i data-lucide="check-circle" class="w-3.5 h-3.5"></i> 100% Automated
+                </div>
+            </div>
+
+            <div class="glass-card rounded-2xl p-5 space-y-2">
+                <div class="flex justify-between text-xs text-slate-400">
+                    <span>Active Investments</span>
+                    <i data-lucide="layers" class="w-4 h-4 text-brand-primary"></i>
+                </div>
+                <div id="dash-active-inv" class="text-3xl font-display font-extrabold text-white">$10,000.00</div>
+                <div class="text-[11px] text-slate-400 font-semibold">
+                    2 Active Contracts Running
+                </div>
+            </div>
+
+            <div class="glass-card rounded-2xl p-5 space-y-2">
+                <div class="flex justify-between text-xs text-slate-400">
+                    <span>Total Withdrawn</span>
+                    <i data-lucide="arrow-up-circle" class="w-4 h-4 text-purple-400"></i>
+                </div>
+                <div id="dash-withdrawn" class="text-3xl font-display font-extrabold text-white">$2,450.00</div>
+                <div class="text-[11px] text-purple-400 font-semibold">
+                    Instant Payout History
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Charts & Active Contracts -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <!-- Portfolio Growth Curve -->
+            <div class="lg:col-span-8 glass-card rounded-3xl p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h3 class="font-display text-lg font-bold text-white">Portfolio Yield Progression</h3>
+                        <p class="text-xs text-slate-400">Continuous 30-day cumulative compounding curve</p>
+                    </div>
+                    <span class="text-xs font-bold text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
+                        +26.8% Growth
+                    </span>
+                </div>
+                <div class="h-72 w-full">
+                    <canvas id="dashboardGrowthChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Active Investment Contracts List -->
+            <div class="lg:col-span-4 glass-card rounded-3xl p-6 space-y-4">
+                <h3 class="font-display text-lg font-bold text-white">Active Contracts</h3>
+                
+                <!-- Contract 1 -->
+                <div class="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-2">
+                    <div class="flex justify-between text-xs">
+                        <span class="font-bold text-white">Premium Tier (15.0%)</span>
+                        <span class="text-emerald-400 font-bold">$5,000.00</span>
+                    </div>
+                    <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                        <div class="bg-brand-primary h-full w-3/5"></div>
+                    </div>
+                    <div class="flex justify-between text-[10px] text-slate-400">
+                        <span>Day 18 of 30</span>
+                        <span>Accrued: +$450.00</span>
+                    </div>
+                </div>
+
+                <!-- Contract 2 -->
+                <div class="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-2">
+                    <div class="flex justify-between text-xs">
+                        <span class="font-bold text-white">Basic Tier (10.0%)</span>
+                        <span class="text-emerald-400 font-bold">$5,000.00</span>
+                    </div>
+                    <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                        <div class="bg-emerald-500 h-full w-4/5"></div>
+                    </div>
+                    <div class="flex justify-between text-[10px] text-slate-400">
+                        <span>Day 11 of 14</span>
+                        <span>Accrued: +$392.80</span>
+                    </div>
+                </div>
+
+                <!-- Referral Box in Dashboard -->
+                <div class="p-4 rounded-2xl bg-gradient-to-r from-brand-secondary/40 to-brand-primary/20 border border-brand-primary/30 space-y-2">
+                    <p class="text-xs font-bold text-white flex items-center gap-1.5">
+                        <i data-lucide="gift" class="w-3.5 h-3.5 text-brand-accent"></i> 5% Referral Commission
+                    </p>
+                    <div class="flex items-center gap-2">
+                        <input type="text" id="dash-ref-link" readonly value="https://yourdomain.com/?ref=CHINEX" class="w-full bg-slate-950/80 text-[11px] text-slate-200 px-2.5 py-1.5 rounded-lg border border-slate-700 outline-none">
+                        <button onclick="copyReferralLink()" class="px-3 py-1.5 rounded-lg bg-brand-primary text-white text-xs font-bold shrink-0">Copy</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Transactions Table -->
+        <div class="glass-card rounded-3xl p-6">
+            <h3 class="font-display text-lg font-bold text-white mb-4">Recent Portfolio Operations</h3>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs">
+                    <thead>
+                        <tr class="text-slate-400 border-b border-dark-border pb-3">
+                            <th class="py-2.5 font-semibold">Transaction ID</th>
+                            <th class="py-2.5 font-semibold">Type</th>
+                            <th class="py-2.5 font-semibold">Amount</th>
+                            <th class="py-2.5 font-semibold">Date</th>
+                            <th class="py-2.5 font-semibold text-right">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-dark-border text-slate-300">
+                        <tr>
+                            <td class="py-3 font-mono text-[11px]">#TX-94821</td>
+                            <td class="py-3 font-semibold text-emerald-400">Deposit (USDT TRC20)</td>
+                            <td class="py-3 font-bold text-white">+$5,000.00</td>
+                            <td class="py-3 text-slate-400">Today, 14:22</td>
+                            <td class="py-3 text-right"><span class="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 font-bold">Confirmed</span></td>
+                        </tr>
+                        <tr>
+                            <td class="py-3 font-mono text-[11px]">#TX-94780</td>
+                            <td class="py-3 font-semibold text-brand-gold">Yield Payout (Automated)</td>
+                            <td class="py-3 font-bold text-white">+$125.00</td>
+                            <td class="py-3 text-slate-400">Yesterday, 00:01</td>
+                            <td class="py-3 text-right"><span class="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 font-bold">Credited</span></td>
+                        </tr>
+                        <tr>
+                            <td class="py-3 font-mono text-[11px]">#TX-94612</td>
+                            <td class="py-3 font-semibold text-purple-400">Withdrawal (BTC)</td>
+                            <td class="py-3 font-bold text-white">-$500.00</td>
+                            <td class="py-3 text-slate-400">Sep 10, 18:30</td>
+                            <td class="py-3 text-right"><span class="px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-400 font-bold">Completed</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="border-t border-dark-border bg-[#02040c] text-slate-400 text-xs py-14">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-4 gap-8 mb-10">
+            <div class="space-y-3">
+                <div class="font-display font-black text-xl text-white flex items-center">
+                    Emporium<span class="text-brand-primary ml-0.5">Capitals</span>
+                </div>
+                <p class="text-slate-400 text-xs leading-relaxed">
+                    Licensed institutional asset management and automated algorithmic crypto liquidity infrastructure.
+                </p>
+                <div class="pt-2 text-[11px] text-slate-500">
+                    Server Engine: LiteSpeed / Apache cPanel Compatible
+                </div>
+            </div>
+
+            <div>
+                <h4 class="font-bold text-white text-xs uppercase tracking-wider mb-3">Quick Navigation</h4>
+                <ul class="space-y-2">
+                    <li><a href="#markets" class="hover:text-white transition-colors">Market Watchlist</a></li>
+                    <li><a href="#plans" class="hover:text-white transition-colors">Investment Plans</a></li>
+                    <li><a href="#calculator" class="hover:text-white transition-colors">Profit Calculator</a></li>
+                    <li><a href="#trading" class="hover:text-white transition-colors">Live Trading Terminal</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <h4 class="font-bold text-white text-xs uppercase tracking-wider mb-3">Security & Compliance</h4>
+                <ul class="space-y-2">
+                    <li><span class="text-slate-400">AES-256 Cold Storage Vaults</span></li>
+                    <li><span class="text-slate-400">Multi-Signature Treasury</span></li>
+                    <li><span class="text-slate-400">Automated Daily Backups</span></li>
+                    <li><span class="text-slate-400">2FA & KYC Verification</span></li>
+                </ul>
+            </div>
+
+            <div>
+                <h4 class="font-bold text-white text-xs uppercase tracking-wider mb-3">Hosting Administration</h4>
+                <p class="text-xs text-slate-400 mb-3">cPanel Administrative Setup & Maintenance Suite:</p>
+                <a href="/cpanelsetup/?token=b71adc0d01861ae65db1c0a70d6acd2fbb6731e65dbb835386e1ba548552acc5" 
+                   class="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-slate-900 border border-slate-700 text-white font-semibold text-xs hover:border-brand-primary transition-all">
+                    <i data-lucide="server" class="w-3.5 h-3.5 text-brand-primary"></i>
+                    <span>Open cPanel Setup Hub</span>
+                </a>
+            </div>
+        </div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 border-t border-slate-800/80 flex flex-col sm:flex-row justify-between items-center text-[11px] text-slate-500 gap-4">
+            <p>&copy; 2026 Emporium Capitals. All rights reserved. Registered Investment Firm.</p>
+            <p>Runs universally on LiteSpeed, Apache, Nginx, and pure static shared hosting via high-speed CDN packages.</p>
+        </div>
+    </footer>
+
+    <!-- MODAL: DEPOSIT -->
+    <div id="modal-deposit" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4">
+        <div class="glass-card rounded-3xl max-w-md w-full p-6 border-slate-700 space-y-4">
+            <div class="flex justify-between items-center border-b border-dark-border pb-3">
+                <h3 class="font-display font-bold text-lg text-white flex items-center gap-2">
+                    <i data-lucide="arrow-down-left" class="w-5 h-5 text-emerald-400"></i> Deposit Funds
+                </h3>
+                <button onclick="closeModal('modal-deposit')" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+
+            <div class="space-y-3">
+                <div>
+                    <label class="text-xs font-semibold text-slate-300 block mb-1">Deposit Currency</label>
+                    <select id="dep-currency" onchange="changeDepositCurrency(this.value)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white outline-none">
+                        <option value="USDT">Tether USD (USDT - TRC20)</option>
+                        <option value="BTC">Bitcoin (BTC - Native)</option>
+                        <option value="ETH">Ethereum (ETH - ERC20)</option>
+                        <option value="CARD">Credit / Debit Card (Bachs.io Checkout)</option>
+                    </select>
+                </div>
+
+                <div id="dep-crypto-section" class="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 text-center space-y-3">
+                    <div class="flex justify-center">
+                        <!-- High Quality QR Code Image -->
+                        <div class="p-2 bg-white rounded-xl shadow-lg">
+                            <img id="dep-qr-code" src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb" alt="QR Code" class="w-32 h-32">
+                        </div>
+                    </div>
+                    <div>
+                        <p class="text-[11px] text-slate-400">Official Deposit Wallet Address:</p>
+                        <div class="flex items-center gap-1.5 mt-1">
+                            <input type="text" id="dep-address" readonly value="T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb" class="w-full bg-slate-950 text-[11px] font-mono text-emerald-400 px-2 py-1.5 rounded-lg border border-slate-700 text-center">
+                            <button onclick="copyDepositAddress()" class="p-1.5 rounded-lg bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 shrink-0"><i data-lucide="copy" class="w-4 h-4"></i></button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="dep-card-section" class="hidden p-4 rounded-2xl bg-slate-900/90 border border-slate-800 text-center space-y-3">
+                    <i data-lucide="credit-card" class="w-10 h-10 text-brand-primary mx-auto"></i>
+                    <h4 class="font-bold text-white text-sm">Instant Card Checkout</h4>
+                    <p class="text-xs text-slate-400">Powered by Bachs.io Live Payments. Supports Visa, MasterCard, Apple Pay, and Google Pay.</p>
+                </div>
+
+                <div>
+                    <label class="text-xs font-semibold text-slate-300 block mb-1">Deposit Amount (USD)</label>
+                    <input type="number" id="dep-amount-input" value="1000" min="50" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white font-bold outline-none">
+                </div>
+
+                <button onclick="confirmDepositSubmission()" class="w-full py-3 rounded-full glow-btn text-xs font-bold text-white">
+                    Confirm Deposit & Credit Account
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: WITHDRAW -->
+    <div id="modal-withdraw" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4">
+        <div class="glass-card rounded-3xl max-w-md w-full p-6 border-slate-700 space-y-4">
+            <div class="flex justify-between items-center border-b border-dark-border pb-3">
+                <h3 class="font-display font-bold text-lg text-white flex items-center gap-2">
+                    <i data-lucide="arrow-up-right" class="w-5 h-5 text-brand-primary"></i> Request Withdrawal
+                </h3>
+                <button onclick="closeModal('modal-withdraw')" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+
+            <div class="space-y-3">
+                <div class="p-3 rounded-xl bg-slate-900 border border-slate-800 flex justify-between text-xs">
+                    <span class="text-slate-400">Available Balance:</span>
+                    <span class="font-bold text-emerald-400" id="withdraw-available-bal">$14,250.00</span>
+                </div>
+
+                <div>
+                    <label class="text-xs font-semibold text-slate-300 block mb-1">Destination Crypto</label>
+                    <select id="with-currency" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white outline-none">
+                        <option value="USDT">USDT (TRC20 Network)</option>
+                        <option value="BTC">Bitcoin (BTC Network)</option>
+                        <option value="ETH">Ethereum (ERC20 Network)</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="text-xs font-semibold text-slate-300 block mb-1">Destination Wallet Address</label>
+                    <input type="text" id="with-address" placeholder="Enter your external wallet address" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white outline-none">
+                </div>
+
+                <div>
+                    <label class="text-xs font-semibold text-slate-300 block mb-1">Withdrawal Amount (USD)</label>
+                    <input type="number" id="with-amount" placeholder="Min: $50" min="50" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white font-bold outline-none">
+                </div>
+
+                <div class="text-[11px] text-slate-400 flex justify-between px-1">
+                    <span>Withdrawal Fee: <strong class="text-slate-200">2.0%</strong></span>
+                    <span>Processing Time: <strong class="text-emerald-400">Instant (5-15m)</strong></span>
+                </div>
+
+                <button onclick="confirmWithdrawalSubmission()" class="w-full py-3 rounded-full glow-btn text-xs font-bold text-white">
+                    Submit Withdrawal Request
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: AUTH (LOGIN & REGISTER) -->
+    <div id="modal-auth" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4">
+        <div class="glass-card rounded-3xl max-w-md w-full p-6 border-slate-700 space-y-4">
+            <div class="flex justify-between items-center border-b border-dark-border pb-3">
+                <div class="flex gap-4">
+                    <button id="auth-tab-login" onclick="switchAuthTab('login')" class="font-display font-bold text-lg text-white border-b-2 border-brand-primary pb-1">Sign In</button>
+                    <button id="auth-tab-register" onclick="switchAuthTab('register')" class="font-display font-bold text-lg text-slate-400 hover:text-white pb-1">Register</button>
+                </div>
+                <button onclick="closeModal('modal-auth')" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+
+            <!-- Login Form -->
+            <form id="form-login" onsubmit="handleAuthSubmit(event, 'login')" class="space-y-3">
+                <div>
+                    <label class="text-xs font-semibold text-slate-300 block mb-1">Email Address</label>
+                    <input type="email" id="login-email" value="admin@emporiumcapitals.com" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white outline-none focus:border-brand-primary">
+                </div>
+                <div>
+                    <label class="text-xs font-semibold text-slate-300 block mb-1">Password</label>
+                    <input type="password" id="login-pass" value="admin123" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white outline-none focus:border-brand-primary">
+                </div>
+                <button type="submit" class="w-full py-3 rounded-full glow-btn text-xs font-bold text-white">
+                    Log In to Terminal
+                </button>
+                <button type="button" onclick="quickDemoLogin()" class="w-full py-2.5 rounded-full bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-emerald-400 transition-colors">
+                    ⚡ 1-Click Quick Demo Login
+                </button>
+            </form>
+
+            <!-- Register Form -->
+            <form id="form-register" onsubmit="handleAuthSubmit(event, 'register')" class="space-y-3 hidden">
+                <div>
+                    <label class="text-xs font-semibold text-slate-300 block mb-1">Full Name</label>
+                    <input type="text" id="reg-name" placeholder="John Doe" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none">
+                </div>
+                <div>
+                    <label class="text-xs font-semibold text-slate-300 block mb-1">Email Address</label>
+                    <input type="email" id="reg-email" placeholder="you@example.com" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none">
+                </div>
+                <div>
+                    <label class="text-xs font-semibold text-slate-300 block mb-1">Password</label>
+                    <input type="password" id="reg-pass" placeholder="Create strong password" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none">
+                </div>
+                <div>
+                    <label class="text-xs font-semibold text-slate-300 block mb-1">Referral Code (Optional)</label>
+                    <input type="text" id="reg-ref" placeholder="Optional code" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none">
+                </div>
+                <button type="submit" class="w-full py-3 rounded-full glow-btn text-xs font-bold text-white">
+                    Create Free Portfolio
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT APPLICATION CORE (CDN POWERED) -->
+    <script>
+        // State Management
+        let appState = {
+            isLoggedIn: false,
+            user: {
+                name: 'Chinex Digital',
+                email: 'juniachinedu@gmail.com',
+                balance: 14250.00,
+                profit: 3840.50,
+                activeInvestments: 10000.00,
+                withdrawn: 2450.00,
+                refCode: 'CHINEX'
+            },
+            prices: {
+                BTC: 64820.50,
+                ETH: 3492.20,
+                SOL: 148.40,
+                BNB: 586.10,
+                USDT: 1.00
+            }
+        };
+
+        // Initialize Application
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize Lucide Icons
+            lucide.createIcons();
+
+            // Load saved state if available
+            const savedState = localStorage.getItem('emporium_state');
+            if (savedState) {
+                try { Object.assign(appState, JSON.parse(savedState)); } catch(e) {}
+            }
+
+            renderMarketRows();
+            initHeroChart();
+            initMarketChart('BTC');
+            initDashboardChart();
+            syncCalcInputs(5000);
+            updateDashboardUI();
+        });
+
+        function saveState() {
+            localStorage.setItem('emporium_state', JSON.stringify(appState));
+            updateDashboardUI();
+        }
+
+        // Toast Notifications
+        function showToast(title, message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const isSuccess = type === 'success';
+            toast.className = `p-4 rounded-2xl shadow-xl border flex items-start gap-3 pointer-events-auto transform transition-all duration-300 translate-y-2 opacity-0 ${
+                isSuccess ? 'bg-[#061912] border-emerald-500/40 text-emerald-100' : 'bg-[#1a080c] border-brand-primary/40 text-red-100'
+            }`;
+            toast.innerHTML = `
+                <div class="p-1 rounded-lg ${isSuccess ? 'bg-emerald-500/20 text-emerald-400' : 'bg-brand-primary/20 text-brand-primary'}">
+                    <i data-lucide="${isSuccess ? 'check-circle' : 'alert-circle'}" class="w-4 h-4"></i>
+                </div>
+                <div class="flex-1 text-xs">
+                    <p class="font-bold text-white">${title}</p>
+                    <p class="text-slate-300 mt-0.5">${message}</p>
+                </div>
+            `;
+            container.appendChild(toast);
+            lucide.createIcons();
+            setTimeout(() => toast.classList.remove('translate-y-2', 'opacity-0'), 10);
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+
+        // Market Table Rendering
+        function renderMarketRows() {
+            const rowsContainer = document.getElementById('market-rows');
+            if (!rowsContainer) return;
+            const coins = [
+                { symbol: 'BTC', name: 'Bitcoin', price: appState.prices.BTC, change: '+3.45%', isUp: true, vol: '$32.4B' },
+                { symbol: 'ETH', name: 'Ethereum', price: appState.prices.ETH, change: '+4.82%', isUp: true, vol: '$18.1B' },
+                { symbol: 'SOL', name: 'Solana', price: appState.prices.SOL, change: '+8.15%', isUp: true, vol: '$6.5B' },
+                { symbol: 'BNB', name: 'BNB Chain', price: appState.prices.BNB, change: '+1.92%', isUp: true, vol: '$1.8B' },
+                { symbol: 'XRP', name: 'Ripple', price: 0.584, change: '+2.34%', isUp: true, vol: '$940M' }
+            ];
+
+            rowsContainer.innerHTML = coins.map(c => `
+                <div class="py-3 flex items-center justify-between text-xs hover:bg-slate-800/30 px-2 rounded-xl transition-colors">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-full bg-slate-800 text-white font-bold flex items-center justify-center text-[10px]">
+                            ${c.symbol}
+                        </div>
+                        <div>
+                            <p class="font-bold text-white">${c.name}</p>
+                            <p class="text-[10px] text-slate-400 font-mono">${c.symbol}/USD</p>
+                        </div>
+                    </div>
+                    <div class="text-right font-mono font-bold text-white">
+                        $${c.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}
+                    </div>
+                    <div class="text-right font-bold ${c.isUp ? 'text-emerald-400' : 'text-red-400'}">
+                        ${c.change}
+                    </div>
+                    <div class="text-right">
+                        <button onclick="openTradeAsset('${c.symbol}')" class="px-3 py-1 rounded-lg bg-brand-primary/15 hover:bg-brand-primary text-brand-accent hover:text-white font-bold text-[11px] transition-all">
+                            Trade
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Charts initialization
+        let heroChartInstance = null;
+        let marketChartInstance = null;
+        let dashChartInstance = null;
+
+        function initHeroChart() {
+            const ctx = document.getElementById('heroMiniChart')?.getContext('2d');
+            if (!ctx) return;
+            heroChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['M', 'T', 'W', 'T', 'F', 'S', 'S'],
+                    datasets: [{
+                        data: [12000, 12400, 12900, 13100, 13600, 13900, 14250],
+                        borderColor: '#ef4d45',
+                        borderWidth: 2.5,
+                        fill: true,
+                        backgroundColor: 'rgba(239, 77, 69, 0.1)',
+                        tension: 0.4,
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { x: { display: false }, y: { display: false } }
+                }
+            });
+        }
+
+        function initMarketChart(symbol) {
+            const ctx = document.getElementById('marketMainChart')?.getContext('2d');
+            if (!ctx) return;
+            const points = symbol === 'BTC' ? [61000, 61800, 62400, 63100, 62900, 64200, 64820] :
+                           symbol === 'ETH' ? [3200, 3280, 3350, 3410, 3390, 3450, 3492] :
+                           [132, 136, 140, 142, 145, 147, 148.4];
+
+            if (marketChartInstance) marketChartInstance.destroy();
+
+            marketChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', 'Live'],
+                    datasets: [{
+                        label: `${symbol}/USD`,
+                        data: points,
+                        borderColor: '#10b981',
+                        borderWidth: 2,
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        fill: true,
+                        tension: 0.35,
+                        pointRadius: 3,
+                        pointBackgroundColor: '#10b981'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b', font: { size: 10 } } },
+                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b', font: { size: 10 } } }
+                    }
+                }
+            });
+        }
+
+        function updateMarketChart(symbol) {
+            const nameEl = document.getElementById('chart-asset-name');
+            const priceEl = document.getElementById('chart-asset-price');
+            if (nameEl) nameEl.textContent = `${symbol} (USD Live)`;
+            if (priceEl && appState.prices[symbol]) {
+                priceEl.textContent = `$${appState.prices[symbol].toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
+            }
+            initMarketChart(symbol);
+        }
+
+        function initDashboardChart() {
+            const ctx = document.getElementById('dashboardGrowthChart')?.getContext('2d');
+            if (!ctx) return;
+            if (dashChartInstance) dashChartInstance.destroy();
+            dashChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Current'],
+                    datasets: [{
+                        label: 'Total Net Portfolio Yield',
+                        data: [10000, 10850, 11620, 12450, 13400, 14250],
+                        borderColor: '#ef4d45',
+                        borderWidth: 3,
+                        backgroundColor: 'rgba(239, 77, 69, 0.12)',
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#ef4d45'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b', font: { size: 11 } } },
+                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b', font: { size: 11 } } }
+                    }
+                }
+            });
+        }
+
+        // Calculator Logic
+        function syncCalcInputs(val) {
+            const amount = parseFloat(val) || 100;
+            document.getElementById('calc-amount-label').textContent = `$${amount.toLocaleString()}`;
+            document.getElementById('calc-slider').value = amount;
+            recalculateReturns();
+        }
+
+        function recalculateReturns() {
+            const amount = parseFloat(document.getElementById('calc-slider').value) || 100;
+            const [pct, days] = document.getElementById('calc-plan-select').value.split(',').map(Number);
+            const netProfit = (amount * (pct / 100));
+            const totalReturn = amount + netProfit;
+            const daily = (netProfit / days);
+
+            document.getElementById('calc-total-return').textContent = `$${totalReturn.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            document.getElementById('calc-net-profit').textContent = `+$${netProfit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (${pct}%)`;
+            document.getElementById('calc-daily-return').textContent = `$${daily.toFixed(2)} / day`;
+        }
+
+        function triggerInvestFromCalculator() {
+            const amount = parseFloat(document.getElementById('calc-slider').value) || 100;
+            const [pct, days] = document.getElementById('calc-plan-select').value.split(',').map(Number);
+            selectPlanToInvest(`Plan (${pct}% / ${days}d)`, pct, days, amount, amount);
+        }
+
+        function selectPlanToInvest(name, pct, days, min, max) {
+            confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
+            showToast('Investment Plan Selected', `You selected the ${name} Plan (${pct}% profit in ${days} days).`);
+            setTimeout(() => openDepositModal(), 600);
+        }
+
+        // Swap Logic
+        function calculateSwapOutput() {
+            const fromAmt = parseFloat(document.getElementById('swap-from-amount').value) || 0;
+            const fromCoin = document.getElementById('swap-from-coin').value;
+            const toCoin = document.getElementById('swap-to-coin').value;
+
+            const fromPrice = appState.prices[fromCoin] || 1;
+            const toPrice = appState.prices[toCoin] || 1;
+
+            const rate = fromPrice / toPrice;
+            const out = (fromAmt * rate * 0.995); // 0.5% spread
+            document.getElementById('swap-to-amount').value = out.toFixed(4);
+            document.getElementById('swap-rate-display').textContent = `1 ${fromCoin} ≈ ${rate.toFixed(2)} ${toCoin}`;
+        }
+
+        function reverseSwapTokens() {
+            const f = document.getElementById('swap-from-coin');
+            const t = document.getElementById('swap-to-coin');
+            const temp = f.value;
+            f.value = t.value;
+            t.value = temp;
+            calculateSwapOutput();
+        }
+
+        function executeSwap() {
+            confetti({ particleCount: 50, spread: 60 });
+            showToast('Swap Executed', 'Your crypto swap completed at zero slippage.');
+        }
+
+        // Simulated Binary/Spot Trading
+        function setTradeAmt(v) { document.getElementById('trade-amount').value = v; }
+        function openTradeAsset(sym) {
+            document.getElementById('trade-asset').value = sym;
+            location.hash = 'trading';
+            showToast('Asset Loaded', `Trading terminal switched to ${sym}/USD.`);
+        }
+        function quickTrade(dir) {
+            location.hash = 'trading';
+            showToast('Trade Terminal Ready', `Selected ${dir.toUpperCase()} order.`);
+        }
+        function executeSimulatedTrade(direction) {
+            const asset = document.getElementById('trade-asset').value;
+            const amt = parseFloat(document.getElementById('trade-amount').value) || 100;
+            const consoleEl = document.getElementById('trade-console');
+
+            showToast('Order Placed', `Executed ${direction} on ${asset}/USD for $${amt}. Settling in 60s...`);
+            
+            const logP = document.createElement('p');
+            logP.className = 'text-amber-400';
+            logP.textContent = `[EXECUTED] ${direction} $${amt} on ${asset}/USD • Target: 94.2% Pool`;
+            consoleEl.prepend(logP);
+
+            setTimeout(() => {
+                const profit = amt * 0.85;
+                appState.user.balance += profit;
+                appState.user.profit += profit;
+                saveState();
+                confetti({ particleCount: 70, spread: 80 });
+                showToast('Trade Won! 🎉', `Option expired in the money: +$${profit.toFixed(2)} credited!`);
+            }, 3000);
+        }
+
+        // Dashboard & Views Switching
+        function toggleDashboardView() {
+            const landing = document.getElementById('landing-view');
+            const dash = document.getElementById('dashboard-view');
+            const isDashOpen = !dash.classList.contains('hidden');
+
+            if (isDashOpen) {
+                dash.classList.add('hidden');
+                landing.classList.remove('hidden');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else {
+                landing.classList.add('hidden');
+                dash.classList.remove('hidden');
+                initDashboardChart();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        function updateDashboardUI() {
+            const balEl = document.getElementById('dash-balance');
+            const profEl = document.getElementById('dash-profit');
+            const nameEl = document.getElementById('dash-user-name');
+            const withBalEl = document.getElementById('withdraw-available-bal');
+
+            if (balEl) balEl.textContent = `$${appState.user.balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
+            if (profEl) profEl.textContent = `$${appState.user.profit.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
+            if (nameEl) nameEl.textContent = appState.user.name;
+            if (withBalEl) withBalEl.textContent = `$${appState.user.balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
+        }
+
+        // Modal Handlers
+        function openModal(id) {
+            const el = document.getElementById(id);
+            if (el) { el.classList.remove('hidden'); el.classList.add('flex'); }
+        }
+        function closeModal(id) {
+            const el = document.getElementById(id);
+            if (el) { el.classList.add('hidden'); el.classList.remove('flex'); }
+        }
+        function openDepositModal() { openModal('modal-deposit'); }
+        function openWithdrawModal() { openModal('modal-withdraw'); }
+        function openAuthModal(tab = 'login') {
+            switchAuthTab(tab);
+            openModal('modal-auth');
+        }
+
+        function switchAuthTab(tab) {
+            const isLogin = tab === 'login';
+            document.getElementById('form-login').classList.toggle('hidden', !isLogin);
+            document.getElementById('form-register').classList.toggle('hidden', isLogin);
+            document.getElementById('auth-tab-login').className = isLogin ? 'font-display font-bold text-lg text-white border-b-2 border-brand-primary pb-1' : 'font-display font-bold text-lg text-slate-400 hover:text-white pb-1';
+            document.getElementById('auth-tab-register').className = !isLogin ? 'font-display font-bold text-lg text-white border-b-2 border-brand-primary pb-1' : 'font-display font-bold text-lg text-slate-400 hover:text-white pb-1';
+        }
+
+        function handleAuthSubmit(e, type) {
+            e.preventDefault();
+            appState.isLoggedIn = true;
+            closeModal('modal-auth');
+            showToast('Welcome!', type === 'login' ? 'Signed in successfully.' : 'Account created and verified.');
+            document.getElementById('nav-dashboard-btn').classList.remove('hidden');
+            document.getElementById('nav-dashboard-btn').classList.add('inline-flex');
+            saveState();
+            toggleDashboardView();
+        }
+
+        function quickDemoLogin() {
+            appState.isLoggedIn = true;
+            closeModal('modal-auth');
+            document.getElementById('nav-dashboard-btn').classList.remove('hidden');
+            document.getElementById('nav-dashboard-btn').classList.add('inline-flex');
+            showToast('Instant Access Granted', 'Logged in as Chinex Digital (Demo Mode).');
+            saveState();
+            toggleDashboardView();
+        }
+
+        // Deposit confirmation
+        function changeDepositCurrency(val) {
+            const isCard = val === 'CARD';
+            document.getElementById('dep-crypto-section').classList.toggle('hidden', isCard);
+            document.getElementById('dep-card-section').classList.toggle('hidden', !isCard);
+            
+            const addrs = {
+                USDT: 'T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb',
+                BTC: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
+                ETH: '0x71C836eB3F3d44F6bF0Fe331d279148d4b3bEAc2'
+            };
+            if (addrs[val]) {
+                document.getElementById('dep-address').value = addrs[val];
+                document.getElementById('dep-qr-code').src = `https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${addrs[val]}`;
+            }
+        }
+
+        function copyDepositAddress() {
+            const addr = document.getElementById('dep-address').value;
+            navigator.clipboard.writeText(addr);
+            showToast('Address Copied', 'Deposit address copied to clipboard.');
+        }
+
+        function copyReferralLink() {
+            const link = document.getElementById('dash-ref-link').value;
+            navigator.clipboard.writeText(link);
+            showToast('Referral Copied', 'Your 5% commission referral link is copied.');
+        }
+
+        function confirmDepositSubmission() {
+            const amt = parseFloat(document.getElementById('dep-amount-input').value) || 500;
+            appState.user.balance += amt;
+            saveState();
+            closeModal('modal-deposit');
+            confetti({ particleCount: 100, spread: 80 });
+            showToast('Deposit Confirmed', `Successfully credited +$${amt.toFixed(2)} to your vault.`);
+        }
+
+        function confirmWithdrawalSubmission() {
+            const amt = parseFloat(document.getElementById('with-amount').value);
+            if (!amt || amt < 50) {
+                showToast('Invalid Amount', 'Minimum withdrawal is $50.00 USD', 'error');
+                return;
+            }
+            if (amt > appState.user.balance) {
+                showToast('Insufficient Balance', 'Withdrawal exceeds available funds.', 'error');
+                return;
+            }
+            appState.user.balance -= amt;
+            appState.user.withdrawn += amt;
+            saveState();
+            closeModal('modal-withdraw');
+            showToast('Withdrawal Submitted', `Processing $${amt.toFixed(2)} payout via blockchain network.`);
+        }
+
+        // FAQ Toggle
+        function toggleFaq(card) {
+            const p = card.querySelector('p');
+            const icon = card.querySelector('i');
+            const isClosed = p.classList.contains('hidden');
+            p.classList.toggle('hidden', !isClosed);
+            if (icon) icon.style.transform = isClosed ? 'rotate(180deg)' : 'rotate(0deg)';
+        }
+    </script>
+</body>
+</html>

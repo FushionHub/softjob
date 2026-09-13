@@ -93,6 +93,7 @@ echo json_encode(array(
         'started_at'      => $pidInfo ? ($pidInfo['startedAt'] ?? null) : null,
     ),
     'files' => array(
+        'index_html'           => fileOk($root . '/index.html'),
         'server.js'            => fileOk($root . '/server.js'),
         'ecosystem.config.js'  => fileOk($root . '/ecosystem.config.js'),
         'package.json'         => fileOk($root . '/package.json'),
