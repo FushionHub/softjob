@@ -59,7 +59,7 @@
             <div>
                 <span class="text-xs font-bold text-emerald-400 uppercase tracking-wider block">Audited Ledger</span>
                 <h1 class="font-display font-black text-3xl sm:text-4xl text-white">Transaction Records</h1>
-                <p class="text-xs text-slate-400">Complete historical activity log for account Chinex digital</p>
+                <p class="text-xs text-slate-400">Complete historical activity log for account <span class="val-name font-bold text-slate-300">Chinex digital</span></p>
             </div>
             <button onclick="exportCSV()" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-bold text-white flex items-center gap-2 transition-colors">
                 <i data-lucide="download" class="w-4 h-4 text-brand-primary"></i>
@@ -100,101 +100,7 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-dark-border/50 text-slate-300" id="ledger-tbody">
-                        <!-- Deposit 1 -->
-                        <tr class="hover:bg-slate-900/40" data-type="deposit">
-                            <td class="py-4 px-3 font-semibold text-white flex items-center gap-2">
-                                <span class="p-1.5 rounded-lg bg-emerald-500/20 text-emerald-400"><i data-lucide="arrow-down-left" class="w-4 h-4"></i></span>
-                                <div>
-                                    <span class="font-bold block text-white">Deposit</span>
-                                    <span class="text-[10px] text-slate-500">TRC20 Inbound</span>
-                                </div>
-                            </td>
-                            <td class="py-4 px-3 font-mono font-bold text-emerald-400">+$5,000.00</td>
-                            <td class="py-4 px-3 font-bold">USDT</td>
-                            <td class="py-4 px-3 font-mono text-slate-400">0x8f4d...31b2</td>
-                            <td class="py-4 px-3 text-slate-400">Today, 13:42</td>
-                            <td class="py-4 px-3 text-right"><span class="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 font-bold">Confirmed</span></td>
-                        </tr>
-
-                        <!-- Yield 1 -->
-                        <tr class="hover:bg-slate-900/40" data-type="yield">
-                            <td class="py-4 px-3 font-semibold text-white flex items-center gap-2">
-                                <span class="p-1.5 rounded-lg bg-blue-500/20 text-blue-400"><i data-lucide="trending-up" class="w-4 h-4"></i></span>
-                                <div>
-                                    <span class="font-bold block text-white">Tier Dividend</span>
-                                    <span class="text-[10px] text-slate-500">Premium Contract</span>
-                                </div>
-                            </td>
-                            <td class="py-4 px-3 font-mono font-bold text-emerald-400">+$125.00</td>
-                            <td class="py-4 px-3 font-bold">USD</td>
-                            <td class="py-4 px-3 font-mono text-slate-400">DIV-PREM-2026</td>
-                            <td class="py-4 px-3 text-slate-400">Yesterday, 00:01</td>
-                            <td class="py-4 px-3 text-right"><span class="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 font-bold">Completed</span></td>
-                        </tr>
-
-                        <!-- Withdrawal 1 -->
-                        <tr class="hover:bg-slate-900/40" data-type="withdrawal">
-                            <td class="py-4 px-3 font-semibold text-white flex items-center gap-2">
-                                <span class="p-1.5 rounded-lg bg-amber-500/20 text-amber-400"><i data-lucide="arrow-up-right" class="w-4 h-4"></i></span>
-                                <div>
-                                    <span class="font-bold block text-white">Payout Withdrawal</span>
-                                    <span class="text-[10px] text-slate-500">Bitcoin Network</span>
-                                </div>
-                            </td>
-                            <td class="py-4 px-3 font-mono font-bold text-red-400">-$500.00</td>
-                            <td class="py-4 px-3 font-bold">BTC</td>
-                            <td class="py-4 px-3 font-mono text-slate-400">0x3a9c...77e1</td>
-                            <td class="py-4 px-3 text-slate-400">3 days ago</td>
-                            <td class="py-4 px-3 text-right"><span class="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 font-bold">Completed</span></td>
-                        </tr>
-
-                        <!-- Trade 1 -->
-                        <tr class="hover:bg-slate-900/40" data-type="trade">
-                            <td class="py-4 px-3 font-semibold text-white flex items-center gap-2">
-                                <span class="p-1.5 rounded-lg bg-emerald-500/20 text-emerald-400"><i data-lucide="activity" class="w-4 h-4"></i></span>
-                                <div>
-                                    <span class="font-bold block text-white">Algorithmic Trade Win</span>
-                                    <span class="text-[10px] text-slate-500">BTC CALL (60s)</span>
-                                </div>
-                            </td>
-                            <td class="py-4 px-3 font-mono font-bold text-emerald-400">+$212.50</td>
-                            <td class="py-4 px-3 font-bold">USD</td>
-                            <td class="py-4 px-3 font-mono text-slate-400">OPT-BTC-85PCT</td>
-                            <td class="py-4 px-3 text-slate-400">4 days ago</td>
-                            <td class="py-4 px-3 text-right"><span class="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 font-bold">Settled</span></td>
-                        </tr>
-
-                        <!-- Deposit 2 -->
-                        <tr class="hover:bg-slate-900/40" data-type="deposit">
-                            <td class="py-4 px-3 font-semibold text-white flex items-center gap-2">
-                                <span class="p-1.5 rounded-lg bg-emerald-500/20 text-emerald-400"><i data-lucide="arrow-down-left" class="w-4 h-4"></i></span>
-                                <div>
-                                    <span class="font-bold block text-white">Deposit</span>
-                                    <span class="text-[10px] text-slate-500">Native SegWit</span>
-                                </div>
-                            </td>
-                            <td class="py-4 px-3 font-mono font-bold text-emerald-400">+$5,000.00</td>
-                            <td class="py-4 px-3 font-bold">BTC</td>
-                            <td class="py-4 px-3 font-mono text-slate-400">0x1e2f...99d4</td>
-                            <td class="py-4 px-3 text-slate-400">10 days ago</td>
-                            <td class="py-4 px-3 text-right"><span class="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 font-bold">Confirmed</span></td>
-                        </tr>
-
-                        <!-- Withdrawal 2 -->
-                        <tr class="hover:bg-slate-900/40" data-type="withdrawal">
-                            <td class="py-4 px-3 font-semibold text-white flex items-center gap-2">
-                                <span class="p-1.5 rounded-lg bg-amber-500/20 text-amber-400"><i data-lucide="arrow-up-right" class="w-4 h-4"></i></span>
-                                <div>
-                                    <span class="font-bold block text-white">Payout Withdrawal</span>
-                                    <span class="text-[10px] text-slate-500">TRC20 Transfer</span>
-                                </div>
-                            </td>
-                            <td class="py-4 px-3 font-mono font-bold text-red-400">-$1,950.00</td>
-                            <td class="py-4 px-3 font-bold">USDT</td>
-                            <td class="py-4 px-3 font-mono text-slate-400">T9yD...Wwb</td>
-                            <td class="py-4 px-3 text-slate-400">14 days ago</td>
-                            <td class="py-4 px-3 text-right"><span class="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 font-bold">Completed</span></td>
-                        </tr>
+                        <tr><td colspan="6" class="py-8 text-center text-slate-500 font-mono text-xs">Loading ledger records from database...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -208,9 +114,86 @@
     <!-- Scripts -->
     <script src="/assets/js/app-core.js"></script>
     <script>
+        let allTransactions = [];
+
         document.addEventListener('DOMContentLoaded', () => {
             AppCore.init('transactions');
+            loadLedgerData();
         });
+
+        async function loadLedgerData() {
+            allTransactions = await AppCore.getRealTransactions();
+            renderLedger(allTransactions);
+        }
+        window.reloadPageData = loadLedgerData;
+
+        function renderLedger(list) {
+            const tbody = document.getElementById('ledger-tbody');
+            if (!tbody) return;
+
+            if (!list || list.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="py-12 text-center text-slate-500 font-mono text-xs">No transactions recorded in database yet. Deposit, trade, or withdraw to generate live activity.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = list.map(tx => {
+                const type = tx.type || 'transaction';
+                const isPositive = type === 'deposit' || type === 'yield' || (type === 'trade' && tx.amount > 0);
+                const amtFormatted = (isPositive ? '+' : '-') + '$' + Math.abs(tx.amount).toFixed(2);
+                const amtClass = isPositive ? 'text-emerald-400' : 'text-red-400';
+                
+                let icon = 'activity';
+                let iconColor = 'text-blue-400';
+                let iconBg = 'bg-blue-500/20';
+                let subtitle = 'System Event';
+
+                if (type === 'deposit') {
+                    icon = 'arrow-down-left';
+                    iconColor = 'text-emerald-400';
+                    iconBg = 'bg-emerald-500/20';
+                    subtitle = `${tx.currency || 'Crypto'} Inbound`;
+                } else if (type === 'withdrawal') {
+                    icon = 'arrow-up-right';
+                    iconColor = 'text-amber-400';
+                    iconBg = 'bg-amber-500/20';
+                    subtitle = `${tx.currency || 'Asset'} Payout`;
+                } else if (type === 'trade') {
+                    icon = 'trending-up';
+                    iconColor = 'text-emerald-400';
+                    iconBg = 'bg-emerald-500/20';
+                    subtitle = 'Algorithmic Execution';
+                } else if (type === 'yield') {
+                    icon = 'pie-chart';
+                    iconColor = 'text-purple-400';
+                    iconBg = 'bg-purple-500/20';
+                    subtitle = 'Yield Dividend';
+                }
+
+                const hashDisplay = tx.tx_hash ? (tx.tx_hash.length > 14 ? tx.tx_hash.substr(0, 8) + '...' + tx.tx_hash.substr(-4) : tx.tx_hash) : 'Audited Vault';
+                const dateDisplay = tx.created_at ? new Date(tx.created_at).toLocaleString() : 'Recent';
+                const status = tx.status || 'completed';
+
+                return `
+                    <tr class="hover:bg-slate-900/40" data-type="${type}">
+                        <td class="py-4 px-3 font-semibold text-white flex items-center gap-2">
+                            <span class="p-1.5 rounded-lg ${iconBg} ${iconColor}"><i data-lucide="${icon}" class="w-4 h-4"></i></span>
+                            <div>
+                                <span class="font-bold block text-white capitalize">${type}</span>
+                                <span class="text-[10px] text-slate-500">${subtitle}</span>
+                            </div>
+                        </td>
+                        <td class="py-4 px-3 font-mono font-bold ${amtClass}">${amtFormatted}</td>
+                        <td class="py-4 px-3 font-bold">${tx.currency || 'USD'}</td>
+                        <td class="py-4 px-3 font-mono text-slate-400">${hashDisplay}</td>
+                        <td class="py-4 px-3 text-slate-400">${dateDisplay}</td>
+                        <td class="py-4 px-3 text-right">
+                            <span class="px-2.5 py-1 rounded-full ${status === 'completed' || status === 'confirmed' || status === 'won' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'} font-bold capitalize text-[11px]">${status}</span>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+            if (window.lucide) lucide.createIcons();
+        }
 
         function filterType(type, btn) {
             document.querySelectorAll('.tx-filter-btn').forEach(b => {
@@ -218,39 +201,30 @@
             });
             btn.className = 'tx-filter-btn px-3.5 py-1.5 rounded-xl bg-brand-primary text-white text-xs font-bold';
 
-            const rows = document.querySelectorAll('#ledger-tbody tr');
-            rows.forEach(r => {
-                if (type === 'all' || r.getAttribute('data-type') === type) {
-                    r.style.display = '';
-                } else {
-                    r.style.display = 'none';
-                }
-            });
+            if (type === 'all') {
+                renderLedger(allTransactions);
+            } else {
+                renderLedger(allTransactions.filter(t => t.type === type));
+            }
         }
 
         function searchLedger(query) {
             const q = query.toLowerCase();
-            const rows = document.querySelectorAll('#ledger-tbody tr');
-            rows.forEach(r => {
-                const text = r.textContent.toLowerCase();
-                r.style.display = text.includes(q) ? '' : 'none';
+            const filtered = allTransactions.filter(t => {
+                const searchStr = `${t.type || ''} ${t.currency || ''} ${t.tx_hash || ''} ${t.amount || ''} ${t.status || ''}`.toLowerCase();
+                return searchStr.includes(q);
             });
+            renderLedger(filtered);
         }
 
         function exportCSV() {
+            if (!allTransactions || allTransactions.length === 0) {
+                AppCore.showToast('No Records', 'There are no ledger records to export.', 'error');
+                return;
+            }
             let csv = 'Type,Amount,Asset,Reference,Date,Status\n';
-            const rows = document.querySelectorAll('#ledger-tbody tr');
-            rows.forEach(r => {
-                const cols = r.querySelectorAll('td');
-                if (cols.length >= 6) {
-                    const type = cols[0].querySelector('.font-bold')?.textContent || '';
-                    const amt = cols[1].textContent.trim();
-                    const asset = cols[2].textContent.trim();
-                    const ref = cols[3].textContent.trim();
-                    const date = cols[4].textContent.trim();
-                    const status = cols[5].textContent.trim();
-                    csv += `"${type}","${amt}","${asset}","${ref}","${date}","${status}"\n`;
-                }
+            allTransactions.forEach(t => {
+                csv += `"${t.type}","${t.amount}","${t.currency || 'USD'}","${t.tx_hash || ''}","${t.created_at || ''}","${t.status || ''}"\n`;
             });
 
             const blob = new Blob([csv], { type: 'text/csv' });
@@ -259,7 +233,7 @@
             a.href = url;
             a.download = `emporium-ledger-${Date.now()}.csv`;
             a.click();
-            AppCore.showToast('CSV Exported', 'Full transaction ledger downloaded.');
+            AppCore.showToast('Export Ready', 'Ledger exported as CSV successfully.');
         }
     </script>
 </body>

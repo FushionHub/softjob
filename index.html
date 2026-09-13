@@ -277,10 +277,10 @@
                                         <span>Total Portfolio Value</span>
                                         <i data-lucide="wallet" class="w-4 h-4 text-brand-primary"></i>
                                     </div>
-                                    <div class="text-3xl font-display font-extrabold text-white tracking-tight">$14,250.00</div>
+                                    <div id="hero-vault-val" class="text-3xl font-display font-extrabold text-white tracking-tight">$0.00</div>
                                     <div class="text-xs text-emerald-400 font-semibold flex items-center gap-1 pt-1">
                                         <i data-lucide="trending-up" class="w-3.5 h-3.5"></i>
-                                        <span>+$1,680.40 (12.4% this week)</span>
+                                        <span>Real-time Vault Sync</span>
                                     </div>
                                 </div>
 
@@ -853,9 +853,9 @@
                     <span>Available Balance</span>
                     <i data-lucide="wallet" class="w-4 h-4 text-emerald-400"></i>
                 </div>
-                <div id="dash-balance" class="text-3xl font-display font-extrabold text-white">$14,250.00</div>
+                <div id="dash-balance" class="text-3xl font-display font-extrabold text-white">$0.00</div>
                 <div class="text-[11px] text-emerald-400 font-semibold flex items-center gap-1">
-                    <i data-lucide="trending-up" class="w-3.5 h-3.5"></i> +$240.00 today
+                    <i data-lucide="trending-up" class="w-3.5 h-3.5"></i> Live Database Synchronized
                 </div>
             </div>
 
@@ -864,7 +864,7 @@
                     <span>Total Profits Accrued</span>
                     <i data-lucide="badge-dollar-sign" class="w-4 h-4 text-brand-gold"></i>
                 </div>
-                <div id="dash-profit" class="text-3xl font-display font-extrabold text-white">$3,840.50</div>
+                <div id="dash-profit" class="text-3xl font-display font-extrabold text-white">$0.00</div>
                 <div class="text-[11px] text-emerald-400 font-semibold flex items-center gap-1">
                     <i data-lucide="check-circle" class="w-3.5 h-3.5"></i> 100% Automated
                 </div>
@@ -875,9 +875,9 @@
                     <span>Active Investments</span>
                     <i data-lucide="layers" class="w-4 h-4 text-brand-primary"></i>
                 </div>
-                <div id="dash-active-inv" class="text-3xl font-display font-extrabold text-white">$10,000.00</div>
-                <div class="text-[11px] text-slate-400 font-semibold">
-                    2 Active Contracts Running
+                <div id="dash-active-inv" class="text-3xl font-display font-extrabold text-white">$0.00</div>
+                <div class="text-[11px] text-slate-400 font-semibold" id="dash-active-contracts-count">
+                    0 Active Contracts Running
                 </div>
             </div>
 
@@ -886,7 +886,7 @@
                     <span>Total Withdrawn</span>
                     <i data-lucide="arrow-up-circle" class="w-4 h-4 text-purple-400"></i>
                 </div>
-                <div id="dash-withdrawn" class="text-3xl font-display font-extrabold text-white">$2,450.00</div>
+                <div id="dash-withdrawn" class="text-3xl font-display font-extrabold text-white">$0.00</div>
                 <div class="text-[11px] text-purple-400 font-semibold">
                     Instant Payout History
                 </div>
@@ -900,10 +900,10 @@
                 <div class="flex justify-between items-center mb-6">
                     <div>
                         <h3 class="font-display text-lg font-bold text-white">Portfolio Yield Progression</h3>
-                        <p class="text-xs text-slate-400">Continuous 30-day cumulative compounding curve</p>
+                        <p class="text-xs text-slate-400">Continuous cumulative compounding curve</p>
                     </div>
                     <span class="text-xs font-bold text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
-                        +26.8% Growth
+                        Live Metrics
                     </span>
                 </div>
                 <div class="h-72 w-full">
@@ -915,33 +915,9 @@
             <div class="lg:col-span-4 glass-card rounded-3xl p-6 space-y-4">
                 <h3 class="font-display text-lg font-bold text-white">Active Contracts</h3>
                 
-                <!-- Contract 1 -->
-                <div class="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-2">
-                    <div class="flex justify-between text-xs">
-                        <span class="font-bold text-white">Premium Tier (15.0%)</span>
-                        <span class="text-emerald-400 font-bold">$5,000.00</span>
-                    </div>
-                    <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                        <div class="bg-brand-primary h-full w-3/5"></div>
-                    </div>
-                    <div class="flex justify-between text-[10px] text-slate-400">
-                        <span>Day 18 of 30</span>
-                        <span>Accrued: +$450.00</span>
-                    </div>
-                </div>
-
-                <!-- Contract 2 -->
-                <div class="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-2">
-                    <div class="flex justify-between text-xs">
-                        <span class="font-bold text-white">Basic Tier (10.0%)</span>
-                        <span class="text-emerald-400 font-bold">$5,000.00</span>
-                    </div>
-                    <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                        <div class="bg-emerald-500 h-full w-4/5"></div>
-                    </div>
-                    <div class="flex justify-between text-[10px] text-slate-400">
-                        <span>Day 11 of 14</span>
-                        <span>Accrued: +$392.80</span>
+                <div id="dash-contracts-container" class="space-y-3">
+                    <div class="p-6 rounded-2xl bg-slate-900/80 border border-slate-800 text-center text-slate-500 text-xs">
+                        No active investment contracts yet. Select an investment tier below to allocate capital.
                     </div>
                 </div>
 
@@ -951,7 +927,7 @@
                         <i data-lucide="gift" class="w-3.5 h-3.5 text-brand-accent"></i> 5% Referral Commission
                     </p>
                     <div class="flex items-center gap-2">
-                        <input type="text" id="dash-ref-link" readonly value="https://yourdomain.com/?ref=CHINEX" class="w-full bg-slate-950/80 text-[11px] text-slate-200 px-2.5 py-1.5 rounded-lg border border-slate-700 outline-none">
+                        <input type="text" id="dash-ref-link" readonly value="" class="w-full bg-slate-950/80 text-[11px] text-slate-200 px-2.5 py-1.5 rounded-lg border border-slate-700 outline-none">
                         <button onclick="copyReferralLink()" class="px-3 py-1.5 rounded-lg bg-brand-primary text-white text-xs font-bold shrink-0">Copy</button>
                     </div>
                 </div>
@@ -972,28 +948,8 @@
                             <th class="py-2.5 font-semibold text-right">Status</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-dark-border text-slate-300">
-                        <tr>
-                            <td class="py-3 font-mono text-[11px]">#TX-94821</td>
-                            <td class="py-3 font-semibold text-emerald-400">Deposit (USDT TRC20)</td>
-                            <td class="py-3 font-bold text-white">+$5,000.00</td>
-                            <td class="py-3 text-slate-400">Today, 14:22</td>
-                            <td class="py-3 text-right"><span class="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 font-bold">Confirmed</span></td>
-                        </tr>
-                        <tr>
-                            <td class="py-3 font-mono text-[11px]">#TX-94780</td>
-                            <td class="py-3 font-semibold text-brand-gold">Yield Payout (Automated)</td>
-                            <td class="py-3 font-bold text-white">+$125.00</td>
-                            <td class="py-3 text-slate-400">Yesterday, 00:01</td>
-                            <td class="py-3 text-right"><span class="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 font-bold">Credited</span></td>
-                        </tr>
-                        <tr>
-                            <td class="py-3 font-mono text-[11px]">#TX-94612</td>
-                            <td class="py-3 font-semibold text-purple-400">Withdrawal (BTC)</td>
-                            <td class="py-3 font-bold text-white">-$500.00</td>
-                            <td class="py-3 text-slate-400">Sep 10, 18:30</td>
-                            <td class="py-3 text-right"><span class="px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-400 font-bold">Completed</span></td>
-                        </tr>
+                    <tbody class="divide-y divide-dark-border text-slate-300" id="dash-transactions-tbody">
+                        <tr><td colspan="5" class="py-8 text-center text-slate-500 font-mono text-xs">Loading ledger activity from database...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -1120,7 +1076,7 @@
             <div class="space-y-3">
                 <div class="p-3 rounded-xl bg-slate-900 border border-slate-800 flex justify-between text-xs">
                     <span class="text-slate-400">Available Balance:</span>
-                    <span class="font-bold text-emerald-400" id="withdraw-available-bal">$14,250.00</span>
+                    <span class="font-bold text-emerald-400" id="withdraw-available-bal">$0.00</span>
                 </div>
 
                 <div>
@@ -1179,7 +1135,7 @@
                     Log In to Terminal
                 </button>
                 <button type="button" onclick="quickDemoLogin()" class="w-full py-2.5 rounded-full bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-emerald-400 transition-colors">
-                    ⚡ 1-Click Quick Demo Login
+                    ⚡ 1-Click Instant Investor Access (Chinex digital)
                 </button>
             </form>
 
@@ -1213,14 +1169,15 @@
         // State Management
         let appState = {
             isLoggedIn: false,
+            apiBase: '/api.php',
             user: {
-                name: 'Chinex Digital',
+                name: 'Chinex digital',
                 email: 'juniachinedu@gmail.com',
-                balance: 14250.00,
-                profit: 3840.50,
-                activeInvestments: 10000.00,
-                withdrawn: 2450.00,
-                refCode: 'CHINEX'
+                balance: 0.00,
+                profit: 0.00,
+                activeInvestments: 0.00,
+                withdrawn: 0.00,
+                refCode: 'CHINU1UM822'
             },
             prices: {
                 BTC: 64820.50,
@@ -1248,6 +1205,10 @@
             initDashboardChart();
             syncCalcInputs(5000);
             updateDashboardUI();
+
+            // Real-Time Database & Market Hydration
+            fetchRealUserData();
+            initBinanceLiveFeed();
         });
 
         function saveState() {
@@ -1541,16 +1502,125 @@
             }
         }
 
+        async function fetchRealUserData() {
+            try {
+                const res = await fetch('/api.php?action=user&email=' + encodeURIComponent(appState.user.email));
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.status === 'success' && data.user) {
+                        appState.user.name = data.user.name;
+                        appState.user.balance = parseFloat(data.user.balance) || 0;
+                        appState.user.profit = parseFloat(data.user.total_profit) || 0;
+                        appState.user.withdrawn = parseFloat(data.user.total_withdrawal) || 0;
+                        appState.user.refCode = data.user.referral_code || 'CHINU1UM822';
+                        updateDashboardUI();
+                    }
+                }
+            } catch(e) {}
+            loadDashboardActivity();
+        }
+
+        async function loadDashboardActivity() {
+            // Load real transactions
+            try {
+                const res = await fetch('/api.php?action=transactions&email=' + encodeURIComponent(appState.user.email));
+                if (res.ok) {
+                    const data = await res.json();
+                    const tbody = document.getElementById('dash-transactions-tbody');
+                    if (tbody && data.status === 'success') {
+                        if (!data.transactions || data.transactions.length === 0) {
+                            tbody.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-slate-500 font-mono text-xs">No ledger activity in database yet. Real transactions will display here.</td></tr>`;
+                        } else {
+                            tbody.innerHTML = data.transactions.slice(0, 5).map(tx => `
+                                <tr>
+                                    <td class="py-3 font-mono text-[11px]">${tx.tx_hash ? (tx.tx_hash.length > 12 ? tx.tx_hash.substr(0, 8) + '...' : tx.tx_hash) : '#TX-' + tx.id}</td>
+                                    <td class="py-3 font-semibold ${tx.type === 'deposit' ? 'text-emerald-400' : tx.type === 'withdrawal' ? 'text-purple-400' : 'text-brand-gold'} capitalize">${tx.type} (${tx.currency || 'USD'})</td>
+                                    <td class="py-3 font-bold text-white">${(tx.type === 'deposit' || tx.type === 'yield' ? '+' : '-') + '$' + Math.abs(tx.amount).toFixed(2)}</td>
+                                    <td class="py-3 text-slate-400">${new Date(tx.created_at).toLocaleDateString()}</td>
+                                    <td class="py-3 text-right"><span class="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 font-bold capitalize">${tx.status}</span></td>
+                                </tr>
+                            `).join('');
+                        }
+                    }
+                }
+            } catch(e) {}
+
+            // Load real investments
+            try {
+                const res = await fetch('/api.php?action=investments&email=' + encodeURIComponent(appState.user.email));
+                if (res.ok) {
+                    const data = await res.json();
+                    const container = document.getElementById('dash-contracts-container');
+                    const countEl = document.getElementById('dash-active-contracts-count');
+                    if (container && data.status === 'success') {
+                        const invs = data.investments || [];
+                        if (countEl) countEl.textContent = `${invs.length} Active Contracts Running`;
+                        if (invs.length === 0) {
+                            container.innerHTML = `<div class="p-6 rounded-2xl bg-slate-900/80 border border-slate-800 text-center text-slate-500 text-xs">No active investment contracts yet. Select an investment tier below to allocate capital.</div>`;
+                        } else {
+                            container.innerHTML = invs.map(inv => `
+                                <div class="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-2">
+                                    <div class="flex justify-between text-xs">
+                                        <span class="font-bold text-white">${inv.plan_name} (${inv.percentage}%)</span>
+                                        <span class="text-emerald-400 font-bold">$${inv.amount.toFixed(2)}</span>
+                                    </div>
+                                    <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                                        <div class="bg-brand-primary h-full w-1/2"></div>
+                                    </div>
+                                    <div class="flex justify-between text-[10px] text-slate-400">
+                                        <span>Status: ${inv.status}</span>
+                                        <span>Accrued: +$${inv.profit.toFixed(2)}</span>
+                                    </div>
+                                </div>
+                            `).join('');
+                        }
+                    }
+                }
+            } catch(e) {}
+        }
+
+        function initBinanceLiveFeed() {
+            const symbols = ['btcusdt', 'ethusdt', 'solusdt', 'bnbusdt'];
+            const wsUrl = 'wss://stream.binance.com:9443/ws/' + symbols.map(s => s + '@trade').join('/');
+            try {
+                const ws = new WebSocket(wsUrl);
+                ws.onmessage = (event) => {
+                    try {
+                        const msg = JSON.parse(event.data);
+                        const rawSym = msg.s; // e.g. BTCUSDT
+                        const price = parseFloat(msg.p);
+                        if (!isNaN(price)) {
+                            if (rawSym === 'BTCUSDT') appState.prices.BTC = price;
+                            else if (rawSym === 'ETHUSDT') appState.prices.ETH = price;
+                            else if (rawSym === 'SOLUSDT') appState.prices.SOL = price;
+                            else if (rawSym === 'BNBUSDT') appState.prices.BNB = price;
+                            renderMarketRows();
+                        }
+                    } catch(err) {}
+                };
+            } catch(e) {}
+        }
+
         function updateDashboardUI() {
             const balEl = document.getElementById('dash-balance');
+            const heroBalEl = document.getElementById('hero-vault-val');
             const profEl = document.getElementById('dash-profit');
             const nameEl = document.getElementById('dash-user-name');
             const withBalEl = document.getElementById('withdraw-available-bal');
+            const refLinkInput = document.getElementById('dash-ref-link');
 
-            if (balEl) balEl.textContent = `$${appState.user.balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
-            if (profEl) profEl.textContent = `$${appState.user.profit.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
+            const formattedBal = `$${appState.user.balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            const formattedProf = `$${appState.user.profit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+            if (balEl) balEl.textContent = formattedBal;
+            if (heroBalEl) heroBalEl.textContent = formattedBal;
+            if (profEl) profEl.textContent = formattedProf;
             if (nameEl) nameEl.textContent = appState.user.name;
-            if (withBalEl) withBalEl.textContent = `$${appState.user.balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
+            if (withBalEl) withBalEl.textContent = formattedBal;
+            if (refLinkInput) {
+                const origin = window.location.origin || '';
+                refLinkInput.value = `${origin}/register/?ref=${appState.user.refCode || 'CHINU1UM822'}`;
+            }
         }
 
         // Modal Handlers
@@ -1593,7 +1663,7 @@
             closeModal('modal-auth');
             document.getElementById('nav-dashboard-btn').classList.remove('hidden');
             document.getElementById('nav-dashboard-btn').classList.add('inline-flex');
-            showToast('Instant Access Granted', 'Logged in as Chinex Digital (Demo Mode).');
+            showToast('Instant Access Granted', 'Signed in as Chinex digital.');
             saveState();
             toggleDashboardView();
         }

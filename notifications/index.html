@@ -67,71 +67,9 @@
 
         <!-- Notification Feed List -->
         <div class="space-y-3" id="notif-list">
-            
-            <!-- Item 1: Deposit -->
-            <div class="glass-card rounded-2xl p-4 border border-dark-border flex items-start gap-4 hover:border-emerald-500/40 transition-all">
-                <div class="p-2.5 rounded-xl bg-emerald-500/20 text-emerald-400 shrink-0">
-                    <i data-lucide="arrow-down-left" class="w-5 h-5"></i>
-                </div>
-                <div class="flex-1 space-y-1">
-                    <div class="flex justify-between items-center">
-                        <h4 class="font-bold text-xs text-white">Deposit Confirmed & Credited</h4>
-                        <span class="text-[10px] text-slate-500 font-mono">Today, 13:42</span>
-                    </div>
-                    <p class="text-xs text-slate-300">
-                        +$5,000.00 USDT (TRC20) confirmed on blockchain and added to your portfolio balance.
-                    </p>
-                </div>
+            <div class="glass-card rounded-2xl p-8 border border-dark-border text-center text-slate-500 text-xs font-mono">
+                Loading notifications...
             </div>
-
-            <!-- Item 2: Yield -->
-            <div class="glass-card rounded-2xl p-4 border border-dark-border flex items-start gap-4 hover:border-blue-500/40 transition-all">
-                <div class="p-2.5 rounded-xl bg-blue-500/20 text-blue-400 shrink-0">
-                    <i data-lucide="trending-up" class="w-5 h-5"></i>
-                </div>
-                <div class="flex-1 space-y-1">
-                    <div class="flex justify-between items-center">
-                        <h4 class="font-bold text-xs text-white">Daily Tier Dividend Accrual</h4>
-                        <span class="text-[10px] text-slate-500 font-mono">Yesterday, 00:01</span>
-                    </div>
-                    <p class="text-xs text-slate-300">
-                        +$125.00 USD interest distribution credited from active Premium Investment Contract.
-                    </p>
-                </div>
-            </div>
-
-            <!-- Item 3: Trade Win -->
-            <div class="glass-card rounded-2xl p-4 border border-dark-border flex items-start gap-4 hover:border-emerald-500/40 transition-all">
-                <div class="p-2.5 rounded-xl bg-emerald-500/20 text-emerald-400 shrink-0">
-                    <i data-lucide="activity" class="w-5 h-5"></i>
-                </div>
-                <div class="flex-1 space-y-1">
-                    <div class="flex justify-between items-center">
-                        <h4 class="font-bold text-xs text-white">Algorithmic Trade Settled (In-The-Money)</h4>
-                        <span class="text-[10px] text-slate-500 font-mono">3 days ago</span>
-                    </div>
-                    <p class="text-xs text-slate-300">
-                        BTC/USD 60s CALL closed above entry. +$212.50 USD credited.
-                    </p>
-                </div>
-            </div>
-
-            <!-- Item 4: Security -->
-            <div class="glass-card rounded-2xl p-4 border border-dark-border flex items-start gap-4 hover:border-amber-500/40 transition-all">
-                <div class="p-2.5 rounded-xl bg-amber-500/20 text-amber-400 shrink-0">
-                    <i data-lucide="shield-alert" class="w-5 h-5"></i>
-                </div>
-                <div class="flex-1 space-y-1">
-                    <div class="flex justify-between items-center">
-                        <h4 class="font-bold text-xs text-white">KYC Verification Approved</h4>
-                        <span class="text-[10px] text-slate-500 font-mono">5 days ago</span>
-                    </div>
-                    <p class="text-xs text-slate-300">
-                        Institutional Level 2 compliance approved. Daily limits elevated to $500,000.00 USD.
-                    </p>
-                </div>
-            </div>
-
         </div>
 
     </main>
@@ -144,7 +82,82 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             AppCore.init('notifications');
+            loadNotifications();
         });
+
+        async function loadNotifications() {
+            const notifs = await AppCore.getRealNotifications();
+            const container = document.getElementById('notif-list');
+            if (!container) return;
+
+            if (!notifs || notifs.length === 0) {
+                container.innerHTML = `
+                    <div class="glass-card rounded-2xl p-12 border border-dark-border text-center space-y-3">
+                        <div class="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center mx-auto text-slate-500">
+                            <i data-lucide="bell-off" class="w-6 h-6"></i>
+                        </div>
+                        <h4 class="font-bold text-white text-sm">No Notifications Yet</h4>
+                        <p class="text-slate-400 text-xs max-w-sm mx-auto">
+                            Your account is fully synchronized. Upcoming deposits, trades, withdrawals, and system notifications will be logged here in real time.
+                        </p>
+                    </div>
+                `;
+                if (window.lucide) lucide.createIcons();
+                return;
+            }
+
+            container.innerHTML = notifs.map(n => {
+                const type = n.type || 'info';
+                let icon = 'bell';
+                let iconColor = 'text-blue-400';
+                let iconBg = 'bg-blue-500/20';
+                let borderColor = 'hover:border-blue-500/40';
+
+                if (type === 'deposit' || type === 'success') {
+                    icon = 'arrow-down-left';
+                    iconColor = 'text-emerald-400';
+                    iconBg = 'bg-emerald-500/20';
+                    borderColor = 'hover:border-emerald-500/40';
+                } else if (type === 'withdrawal') {
+                    icon = 'arrow-up-right';
+                    iconColor = 'text-amber-400';
+                    iconBg = 'bg-amber-500/20';
+                    borderColor = 'hover:border-amber-500/40';
+                } else if (type === 'trade') {
+                    icon = 'activity';
+                    iconColor = 'text-brand-primary';
+                    iconBg = 'bg-brand-primary/20';
+                    borderColor = 'hover:border-brand-primary/40';
+                } else if (type === 'security') {
+                    icon = 'shield-alert';
+                    iconColor = 'text-amber-400';
+                    iconBg = 'bg-amber-500/20';
+                    borderColor = 'hover:border-amber-500/40';
+                }
+
+                const dateDisplay = n.created_at ? new Date(n.created_at).toLocaleString() : 'Recent';
+
+                return `
+                    <div class="glass-card rounded-2xl p-4 border border-dark-border flex items-start gap-4 ${borderColor} transition-all">
+                        <div class="p-2.5 rounded-xl ${iconBg} ${iconColor} shrink-0">
+                            <i data-lucide="${icon}" class="w-5 h-5"></i>
+                        </div>
+                        <div class="flex-1 space-y-1">
+                            <div class="flex justify-between items-center">
+                                <h4 class="font-bold text-xs text-white">${n.title || 'System Notification'}</h4>
+                                <span class="text-[10px] text-slate-500 font-mono">${dateDisplay}</span>
+                            </div>
+                            <p class="text-xs text-slate-300">
+                                ${n.message || ''}
+                            </p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            if (window.lucide) lucide.createIcons();
+        }
+        window.reloadPageData = loadNotifications;
 
         function markAllRead() {
             AppCore.showToast('All Read', 'All notifications marked as read.');

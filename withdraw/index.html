@@ -74,7 +74,7 @@
                 <div class="p-4 rounded-2xl bg-gradient-to-r from-brand-primary/10 to-brand-secondary/10 border border-brand-primary/20 flex justify-between items-center">
                     <div>
                         <span class="text-[10px] uppercase font-bold text-slate-400 block">Available For Withdrawal</span>
-                        <span class="font-display font-black text-2xl sm:text-3xl text-white val-balance">$14,250.00</span>
+                        <span class="font-display font-black text-2xl sm:text-3xl text-white val-balance">$0.00</span>
                     </div>
                     <button onclick="setMaxWithdrawal()" class="px-3 py-1.5 rounded-xl bg-brand-primary/20 hover:bg-brand-primary/30 text-brand-primary text-xs font-bold border border-brand-primary/40 transition-colors">
                         Use Max
@@ -200,26 +200,7 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-dark-border/50 text-slate-300">
-                        <tr class="hover:bg-slate-900/40">
-                            <td class="py-3.5 px-3 font-bold text-white flex items-center gap-2">
-                                <span class="p-1 rounded-md bg-amber-500/20 text-amber-400"><i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i></span>
-                                BTC (Native)
-                            </td>
-                            <td class="py-3.5 px-3 font-mono font-bold text-red-400">-$500.00</td>
-                            <td class="py-3.5 px-3 font-mono text-slate-400">bc1q9h8x...92kd</td>
-                            <td class="py-3.5 px-3 text-slate-400">3 days ago</td>
-                            <td class="py-3.5 px-3 text-right"><span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold">Completed</span></td>
-                        </tr>
-                        <tr class="hover:bg-slate-900/40">
-                            <td class="py-3.5 px-3 font-bold text-white flex items-center gap-2">
-                                <span class="p-1 rounded-md bg-emerald-500/20 text-emerald-400"><i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i></span>
-                                USDT (TRC20)
-                            </td>
-                            <td class="py-3.5 px-3 font-mono font-bold text-red-400">-$1,950.00</td>
-                            <td class="py-3.5 px-3 font-mono text-slate-400">T9yD14...Wwb</td>
-                            <td class="py-3.5 px-3 text-slate-400">14 days ago</td>
-                            <td class="py-3.5 px-3 text-right"><span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold">Completed</span></td>
-                        </tr>
+                        <tr><td colspan="5" class="py-8 text-center text-slate-500 text-xs">Loading disbursement ledger...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -238,7 +219,34 @@
         document.addEventListener('DOMContentLoaded', () => {
             AppCore.init('withdraw');
             calculateWithdrawBreakdown();
+            loadWithdrawLedger();
         });
+
+        async function loadWithdrawLedger() {
+            const txs = await AppCore.getRealTransactions();
+            const withdrawals = txs.filter(t => t.type === 'withdrawal');
+            const tbody = document.querySelector('#withdraw-records-table tbody');
+            if (!tbody) return;
+
+            if (withdrawals.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-slate-500 text-xs font-mono">No payout disbursements recorded in database yet. Submit a withdrawal request above to track in real time.</td></tr>`;
+            } else {
+                tbody.innerHTML = withdrawals.map(w => `
+                    <tr class="hover:bg-slate-900/40">
+                        <td class="py-3.5 px-3 font-bold text-white flex items-center gap-2">
+                            <span class="p-1 rounded-md bg-amber-500/20 text-amber-400"><i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i></span>
+                            ${w.currency || 'USD'}
+                        </td>
+                        <td class="py-3.5 px-3 font-mono font-bold text-red-400">-$${Math.abs(w.amount).toFixed(2)}</td>
+                        <td class="py-3.5 px-3 font-mono text-slate-400">${(w.tx_hash || 'N/A').length > 12 ? w.tx_hash.substr(0, 8) + '...' + w.tx_hash.substr(-4) : (w.tx_hash || 'Multi-sig Cold Vault')}</td>
+                        <td class="py-3.5 px-3 text-slate-400">${new Date(w.created_at).toLocaleDateString()}</td>
+                        <td class="py-3.5 px-3 text-right"><span class="px-2 py-0.5 rounded-full ${w.status === 'completed' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'} font-bold capitalize">${w.status}</span></td>
+                    </tr>
+                `).join('');
+                if (window.lucide) lucide.createIcons();
+            }
+        }
+        window.reloadPageData = loadWithdrawLedger;
 
         function selectWithdrawCurrency(cur, btn) {
             withdrawCurrency = cur;

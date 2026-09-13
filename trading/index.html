@@ -92,7 +92,7 @@
                 </div>
                 <div class="hidden sm:block">
                     <span class="text-slate-400 block text-[10px] uppercase font-bold">Available Vault Balance</span>
-                    <span class="text-sm font-bold text-white font-mono val-balance">$14,250.00</span>
+                    <span class="text-sm font-bold text-white font-mono val-balance">$0.00</span>
                 </div>
             </div>
         </div>
@@ -138,7 +138,7 @@
                     <div class="space-y-2">
                         <div class="flex justify-between text-xs">
                             <span class="text-slate-300 font-semibold">Stake Amount ($)</span>
-                            <span class="text-slate-400">Vault: <strong class="text-white val-balance">$14,250.00</strong></span>
+                            <span class="text-slate-400">Vault: <strong class="text-white val-balance">$0.00</strong></span>
                         </div>
                         <input type="number" id="trade-stake-amount" value="100" min="10" max="10000" oninput="calculateTradeProfit()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-lg font-bold text-white outline-none focus:border-brand-primary">
                         
@@ -241,25 +241,8 @@
                             <th class="py-3 px-3 text-right">Result</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-dark-border/50 text-slate-300">
-                        <tr class="hover:bg-slate-900/40">
-                            <td class="py-3.5 px-3 font-bold text-white">BTC / USD</td>
-                            <td class="py-3.5 px-3 text-emerald-400 font-bold">CALL</td>
-                            <td class="py-3.5 px-3 font-mono">$250.00</td>
-                            <td class="py-3.5 px-3 font-mono text-slate-400">$64,510.00</td>
-                            <td class="py-3.5 px-3 font-mono text-slate-400">$64,740.00</td>
-                            <td class="py-3.5 px-3 font-mono font-bold text-emerald-400">+$212.50</td>
-                            <td class="py-3.5 px-3 text-right"><span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold">ITM Won</span></td>
-                        </tr>
-                        <tr class="hover:bg-slate-900/40">
-                            <td class="py-3.5 px-3 font-bold text-white">ETH / USD</td>
-                            <td class="py-3.5 px-3 text-red-400 font-bold">PUT</td>
-                            <td class="py-3.5 px-3 font-mono">$100.00</td>
-                            <td class="py-3.5 px-3 font-mono text-slate-400">$3,510.00</td>
-                            <td class="py-3.5 px-3 font-mono text-slate-400">$3,485.00</td>
-                            <td class="py-3.5 px-3 font-mono font-bold text-emerald-400">+$85.00</td>
-                            <td class="py-3.5 px-3 text-right"><span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold">ITM Won</span></td>
-                        </tr>
+                    <tbody class="divide-y divide-dark-border/50 text-slate-300" id="trade-history-tbody">
+                        <tr><td colspan="7" class="py-8 text-center text-slate-500 text-xs">Loading trade history from database...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -280,7 +263,42 @@
             AppCore.init('trading');
             initTradingChart();
             calculateTradeProfit();
+            loadRealTradeHistory();
         });
+
+        async function loadRealTradeHistory() {
+            const trades = await AppCore.getRealTrades();
+            const tbody = document.getElementById('trade-history-tbody');
+            if (!tbody) return;
+
+            if (!trades || trades.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="py-8 text-center text-slate-500 text-xs">
+                            No trades executed in the database yet.<br>
+                            Select your stake and click <strong>CALL</strong> or <strong>PUT</strong> to execute an order in real time.
+                        </td>
+                    </tr>
+                `;
+            } else {
+                tbody.innerHTML = trades.map(t => {
+                    const isCall = t.type.toUpperCase() === 'CALL';
+                    return `
+                        <tr class="hover:bg-slate-900/40">
+                            <td class="py-3.5 px-3 font-bold text-white">${t.asset} / USD</td>
+                            <td class="py-3.5 px-3 ${isCall ? 'text-emerald-400' : 'text-red-400'} font-bold">${t.type}</td>
+                            <td class="py-3.5 px-3 font-mono">$${t.amount.toFixed(2)}</td>
+                            <td class="py-3.5 px-3 font-mono text-slate-400">$${t.entry_price ? t.entry_price.toLocaleString() : '---'}</td>
+                            <td class="py-3.5 px-3 font-mono text-slate-400">$${t.exit_price ? t.exit_price.toLocaleString() : '---'}</td>
+                            <td class="py-3.5 px-3 font-mono font-bold text-emerald-400">+$${t.profit.toFixed(2)}</td>
+                            <td class="py-3.5 px-3 text-right"><span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold capitalize">${t.status}</span></td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+        }
+        window.reloadPageData = loadRealTradeHistory;
+
 
         function switchTradingPair(asset) {
             currentAsset = asset;

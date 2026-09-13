@@ -194,26 +194,7 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-dark-border/50 text-slate-300">
-                        <tr class="hover:bg-slate-900/40">
-                            <td class="py-3.5 px-3 font-bold text-white flex items-center gap-2">
-                                <span class="p-1 rounded-md bg-emerald-500/20 text-emerald-400"><i data-lucide="arrow-down-left" class="w-3.5 h-3.5"></i></span>
-                                USDT (TRC20)
-                            </td>
-                            <td class="py-3.5 px-3 font-mono font-bold text-emerald-400">+$5,000.00</td>
-                            <td class="py-3.5 px-3 font-mono text-slate-400">0x8f4d...31b2</td>
-                            <td class="py-3.5 px-3 text-slate-400">Today, 13:42</td>
-                            <td class="py-3.5 px-3 text-right"><span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold">Confirmed</span></td>
-                        </tr>
-                        <tr class="hover:bg-slate-900/40">
-                            <td class="py-3.5 px-3 font-bold text-white flex items-center gap-2">
-                                <span class="p-1 rounded-md bg-amber-500/20 text-amber-400"><i data-lucide="arrow-down-left" class="w-3.5 h-3.5"></i></span>
-                                BTC (Native)
-                            </td>
-                            <td class="py-3.5 px-3 font-mono font-bold text-emerald-400">+$5,000.00</td>
-                            <td class="py-3.5 px-3 font-mono text-slate-400">0x1e2f...99d4</td>
-                            <td class="py-3.5 px-3 text-slate-400">10 days ago</td>
-                            <td class="py-3.5 px-3 text-right"><span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold">Confirmed</span></td>
-                        </tr>
+                        <tr><td colspan="5" class="py-8 text-center text-slate-500 text-xs">Loading deposits from database...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -232,7 +213,35 @@
         document.addEventListener('DOMContentLoaded', () => {
             AppCore.init('deposit');
             calculateCryptoAmount();
+            loadDepositLedger();
         });
+
+        async function loadDepositLedger() {
+            const txs = await AppCore.getRealTransactions();
+            const deposits = txs.filter(t => t.type === 'deposit');
+            const tbody = document.querySelector('#deposit-records-table tbody');
+            if (!tbody) return;
+
+            if (deposits.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-slate-500 text-xs">No deposits in database yet. Send crypto to your vault address above to see it appear in real time.</td></tr>`;
+            } else {
+                tbody.innerHTML = deposits.map(d => `
+                    <tr class="hover:bg-slate-900/40">
+                        <td class="py-3.5 px-3 font-bold text-white flex items-center gap-2">
+                            <span class="p-1 rounded-md bg-emerald-500/20 text-emerald-400"><i data-lucide="arrow-down-left" class="w-3.5 h-3.5"></i></span>
+                            ${d.currency}
+                        </td>
+                        <td class="py-3.5 px-3 font-mono font-bold text-emerald-400">+$${d.amount.toFixed(2)}</td>
+                        <td class="py-3.5 px-3 font-mono text-slate-400">${(d.tx_hash || 'N/A').substr(0, 12)}...</td>
+                        <td class="py-3.5 px-3 text-slate-400">${new Date(d.created_at).toLocaleDateString()}</td>
+                        <td class="py-3.5 px-3 text-right"><span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold capitalize">${d.status}</span></td>
+                    </tr>
+                `).join('');
+                if (window.lucide) lucide.createIcons();
+            }
+        }
+        window.reloadPageData = loadDepositLedger;
+
 
         function selectAsset(asset, btn) {
             selectedAsset = asset;
