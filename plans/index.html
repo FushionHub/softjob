@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Investment Plans & Tiers — Emporium Capitals High-Yield Portfolios</title>
+    <meta name="description" content="Explore institutional crypto investment tiers offering guaranteed daily yields from 5% to 25% with full principal return.">
+    <link rel="icon" href="/assets/icon.png" type="image/png">
+    <meta name="theme-color" content="#02040e">
+
+    <!-- Fonts & CDNs -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            primary: '#ef4d45',
+                            secondary: '#8c0030',
+                            accent: '#ff7d75',
+                            teal: '#008c6e',
+                            gold: '#f59e0b'
+                        },
+                        dark: {
+                            base: '#02040e',
+                            surface: '#05091a',
+                            card: '#080f28',
+                            cardHover: '#0e1738',
+                            border: 'rgba(255, 255, 255, 0.08)',
+                            borderLight: 'rgba(255, 255, 255, 0.15)'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Outfit', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="/assets/css/app.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+</head>
+<body class="bg-dark-base text-slate-100 font-sans antialiased min-h-screen flex flex-col selection:bg-brand-primary selection:text-white">
+
+    <!-- Universal Header & Real-Time Ticker -->
+    <header id="app-header"></header>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full space-y-12">
+
+        <!-- Title & Hero -->
+        <div class="text-center space-y-3 max-w-3xl mx-auto">
+            <span class="px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-brand-primary/10 text-brand-primary border border-brand-primary/20 inline-block">
+                Automated Wealth Generation
+            </span>
+            <h1 class="font-display font-black text-3xl sm:text-5xl text-white tracking-tight">
+                Institutional Investment Tiers
+            </h1>
+            <p class="text-sm sm:text-base text-slate-400">
+                Choose a proven algorithmic portfolio tailored to your risk tolerance. Dividends compound daily into your vault with full capital preservation.
+            </p>
+        </div>
+
+        <!-- Dynamic Yield Calculator Card -->
+        <div class="glass-card rounded-3xl p-6 sm:p-10 border border-dark-border space-y-6 max-w-4xl mx-auto relative overflow-hidden">
+            <div class="absolute -left-20 -bottom-20 w-80 h-80 bg-brand-primary/10 rounded-full blur-3xl pointer-events-none"></div>
+
+            <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-2 border-b border-dark-border pb-4">
+                <div>
+                    <h3 class="font-display font-bold text-xl text-white">Dynamic Yield & Profit Forecaster</h3>
+                    <p class="text-xs text-slate-400">Slide capital to visualize guaranteed contract returns</p>
+                </div>
+                <div class="text-right">
+                    <span class="text-xs text-slate-400">Available Balance:</span>
+                    <span class="font-bold text-white font-mono ml-1 val-balance">$14,250.00</span>
+                </div>
+            </div>
+
+            <!-- Slider Controls -->
+            <div class="space-y-3">
+                <div class="flex justify-between items-center">
+                    <span class="text-xs font-bold uppercase text-slate-300">Investment Capital</span>
+                    <span id="slider-val-display" class="font-display font-black text-2xl text-white font-mono">$5,000 USD</span>
+                </div>
+                <input type="range" id="capital-slider" min="100" max="100000" step="100" value="5000" oninput="updateCalculator(this.value)" class="w-full accent-brand-primary cursor-pointer h-2 bg-slate-800 rounded-lg">
+                <div class="flex justify-between text-[11px] text-slate-500 font-mono">
+                    <span>$100 Min</span>
+                    <span>$10,000</span>
+                    <span>$50,000</span>
+                    <span>$100,000 Max</span>
+                </div>
+            </div>
+
+            <!-- Yield Projection Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+                <div class="p-4 rounded-2xl bg-slate-900/80 border border-slate-800">
+                    <span class="text-[10px] uppercase font-bold text-slate-400 block mb-1">Recommended Tier</span>
+                    <span id="calc-tier-name" class="font-display font-black text-lg text-brand-primary">Premium (15%)</span>
+                    <span id="calc-tier-dur" class="text-[11px] text-slate-400 block mt-0.5">30 Days Duration</span>
+                </div>
+                <div class="p-4 rounded-2xl bg-slate-900/80 border border-slate-800">
+                    <span class="text-[10px] uppercase font-bold text-slate-400 block mb-1">Net Yield Profit</span>
+                    <span id="calc-net-profit" class="font-display font-black text-xl text-emerald-400 font-mono">+$750.00</span>
+                    <span class="text-[11px] text-slate-400 block mt-0.5">Disbursed on maturity</span>
+                </div>
+                <div class="p-4 rounded-2xl bg-slate-900/80 border border-slate-800">
+                    <span class="text-[10px] uppercase font-bold text-slate-400 block mb-1">Total Vault Return</span>
+                    <span id="calc-total-return" class="font-display font-black text-xl text-white font-mono">$5,750.00</span>
+                    <span class="text-[11px] text-emerald-400 block mt-0.5">100% Principal Returned</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5 Investment Tier Cards (Real DB Plans) -->
+        <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
+
+            <!-- Tier 1: Starter -->
+            <div class="glass-card rounded-3xl p-6 border border-dark-border flex flex-col justify-between space-y-6 hover:border-slate-500 transition-all">
+                <div class="space-y-4">
+                    <div class="space-y-1">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Low Commitment</span>
+                        <h3 class="font-display font-black text-xl text-white">Starter</h3>
+                        <div class="font-display font-black text-3xl text-emerald-400">5.0%</div>
+                        <p class="text-xs text-slate-400">Duration: <strong>7 Days</strong></p>
+                    </div>
+                    <ul class="space-y-2 text-xs text-slate-300 border-t border-dark-border pt-4">
+                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i> Min: $100.00</li>
+                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i> Max: $999.00</li>
+                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i> Capital Back</li>
+                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i> 24/7 Support</li>
+                    </ul>
+                </div>
+                <button onclick="investModal(1, 'Starter', 100, 999)" class="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-white border border-slate-700 transition-colors">
+                    Invest in Starter
+                </button>
+            </div>
+
+            <!-- Tier 2: Basic -->
+            <div class="glass-card rounded-3xl p-6 border border-dark-border flex flex-col justify-between space-y-6 hover:border-slate-500 transition-all">
+                <div class="space-y-4">
+                    <div class="space-y-1">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Popular</span>
+                        <h3 class="font-display font-black text-xl text-white">Basic</h3>
+                        <div class="font-display font-black text-3xl text-emerald-400">10.0%</div>
+                        <p class="text-xs text-slate-400">Duration: <strong>14 Days</strong></p>
+                    </div>
+                    <ul class="space-y-2 text-xs text-slate-300 border-t border-dark-border pt-4">
+                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i> Min: $1,000.00</li>
+                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i> Max: $4,999.00</li>
+                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i> Capital Back</li>
+                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i> Bi-weekly Payouts</li>
+                    </ul>
+                </div>
+                <button onclick="investModal(2, 'Basic', 1000, 4999)" class="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-white border border-slate-700 transition-colors">
+                    Invest in Basic
+                </button>
+            </div>
+
+            <!-- Tier 3: Premium (Featured) -->
+            <div class="glass-card rounded-3xl p-6 border-2 border-brand-primary flex flex-col justify-between space-y-6 relative overflow-hidden shadow-xl shadow-brand-primary/10">
+                <div class="absolute top-0 right-0 bg-brand-primary text-white text-[9px] font-black uppercase px-3 py-1 rounded-bl-xl tracking-wider">
+                    Most Popular
+                </div>
+                <div class="space-y-4">
+                    <div class="space-y-1">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-brand-primary">Optimal Yield</span>
+                        <h3 class="font-display font-black text-xl text-white">Premium</h3>
+                        <div class="font-display font-black text-3xl text-emerald-400">15.0%</div>
+                        <p class="text-xs text-slate-400">Duration: <strong>30 Days</strong></p>
+                    </div>
+                    <ul class="space-y-2 text-xs text-slate-300 border-t border-dark-border pt-4">
+                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i> Min: $5,000.00</li>
+                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i> Max: $9,999.00</li>
+                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i> Capital Back</li>
+                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i> Priority Allocation</li>
+                    </ul>
+                </div>
+                <button onclick="investModal(3, 'Premium', 5000, 9999)" class="w-full py-3 rounded-xl glow-btn text-xs font-bold text-white text-center">
+                    Invest in Premium
+                </button>
+            </div>
+
+            <!-- Tier 4: Gold -->
+            <div class="glass-card rounded-3xl p-6 border border-dark-border flex flex-col justify-between space-y-6 hover:border-amber-500/50 transition-all">
+                <div class="space-y-4">
+                    <div class="space-y-1">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-amber-400">High Yield</span>
+                        <h3 class="font-display font-black text-xl text-white">Gold</h3>
+                        <div class="font-display font-black text-3xl text-amber-400">20.0%</div>
+                        <p class="text-xs text-slate-400">Duration: <strong>60 Days</strong></p>
+                    </div>
+                    <ul class="space-y-2 text-xs text-slate-300 border-t border-dark-border pt-4">
+                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i> Min: $10,000.00</li>
+                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i> Max: $49,999.00</li>
+                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i> Capital Back</li>
+                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i> Dedicated Advisor</li>
+                    </ul>
+                </div>
+                <button onclick="investModal(4, 'Gold', 10000, 49999)" class="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-white border border-slate-700 transition-colors">
+                    Invest in Gold
+                </button>
+            </div>
+
+            <!-- Tier 5: Platinum -->
+            <div class="glass-card rounded-3xl p-6 border border-dark-border flex flex-col justify-between space-y-6 hover:border-blue-500/50 transition-all">
+                <div class="space-y-4">
+                    <div class="space-y-1">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-blue-400">Institutional</span>
+                        <h3 class="font-display font-black text-xl text-white">Platinum</h3>
+                        <div class="font-display font-black text-3xl text-blue-400">25.0%</div>
+                        <p class="text-xs text-slate-400">Duration: <strong>90 Days</strong></p>
+                    </div>
+                    <ul class="space-y-2 text-xs text-slate-300 border-t border-dark-border pt-4">
+                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i> Min: $50,000.00</li>
+                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i> Max: $1,000,000</li>
+                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i> Capital Back</li>
+                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i> VIP Concierge & Audit</li>
+                    </ul>
+                </div>
+                <button onclick="investModal(5, 'Platinum', 50000, 1000000)" class="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-white border border-slate-700 transition-colors">
+                    Invest in Platinum
+                </button>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Investment Modal -->
+    <div id="modal-invest" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4">
+        <div class="glass-card rounded-3xl max-w-md w-full p-6 border-slate-700 space-y-4">
+            <div class="flex justify-between items-center border-b border-dark-border pb-3">
+                <h3 class="font-display font-bold text-lg text-white flex items-center gap-2">
+                    <i data-lucide="briefcase" class="w-5 h-5 text-brand-primary"></i> <span id="modal-invest-title">Subscribe Plan</span>
+                </h3>
+                <button onclick="AppCore.closeModal('modal-invest')" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div class="space-y-4">
+                <div class="p-3 rounded-xl bg-slate-900 border border-slate-800 flex justify-between items-center text-xs">
+                    <span class="text-slate-400">Vault Balance:</span>
+                    <span class="font-bold text-white font-mono val-balance">$14,250.00</span>
+                </div>
+                <div>
+                    <label class="text-xs font-semibold text-slate-300 block mb-1">Investment Amount ($)</label>
+                    <input type="number" id="modal-invest-amount" value="5000" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-base text-white font-bold outline-none">
+                    <p id="modal-invest-range" class="text-[11px] text-slate-400 mt-1">Min: $5,000.00 — Max: $9,999.00</p>
+                </div>
+                <button onclick="confirmInvestment()" class="w-full py-3.5 rounded-xl glow-btn text-xs font-bold text-white">
+                    Confirm Capital Allocation
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Universal Footer -->
+    <footer id="app-footer"></footer>
+
+    <!-- Scripts -->
+    <script src="/assets/js/app-core.js"></script>
+    <script>
+        let selectedPlanId = 3;
+        let selectedPlanName = 'Premium';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            AppCore.init('plans');
+            updateCalculator(5000);
+        });
+
+        function updateCalculator(val) {
+            const num = parseFloat(val);
+            document.getElementById('slider-val-display').textContent = `$${num.toLocaleString()} USD`;
+
+            let tierName = 'Starter (5%)';
+            let tierDur = '7 Days Duration';
+            let rate = 0.05;
+
+            if (num >= 50000) {
+                tierName = 'Platinum (25%)';
+                tierDur = '90 Days Duration';
+                rate = 0.25;
+            } else if (num >= 10000) {
+                tierName = 'Gold (20%)';
+                tierDur = '60 Days Duration';
+                rate = 0.20;
+            } else if (num >= 5000) {
+                tierName = 'Premium (15%)';
+                tierDur = '30 Days Duration';
+                rate = 0.15;
+            } else if (num >= 1000) {
+                tierName = 'Basic (10%)';
+                tierDur = '14 Days Duration';
+                rate = 0.10;
+            }
+
+            const net = num * rate;
+            const total = num + net;
+
+            document.getElementById('calc-tier-name').textContent = tierName;
+            document.getElementById('calc-tier-dur').textContent = tierDur;
+            document.getElementById('calc-net-profit').textContent = `+$${net.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            document.getElementById('calc-total-return').textContent = `$${total.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        }
+
+        function investModal(id, name, min, max) {
+            selectedPlanId = id;
+            selectedPlanName = name;
+            document.getElementById('modal-invest-title').textContent = `Subscribe ${name} Tier`;
+            document.getElementById('modal-invest-amount').value = min;
+            document.getElementById('modal-invest-range').textContent = `Min: $${min.toLocaleString()} — Max: $${max.toLocaleString()}`;
+            
+            const modal = document.getElementById('modal-invest');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            if (window.lucide) lucide.createIcons();
+        }
+
+        async function confirmInvestment() {
+            const amt = parseFloat(document.getElementById('modal-invest-amount').value);
+            const success = await AppCore.executeInvest(selectedPlanId, selectedPlanName, amt);
+            if (success) {
+                AppCore.closeModal('modal-invest');
+            }
+        }
+    </script>
+</body>
+</html>

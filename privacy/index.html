@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy — Emporium Capitals Institutional Data Protection</title>
+    <meta name="description" content="Official privacy statement detailing cryptographic encryption, non-disclosure policies, and AML compliance data protection.">
+    <link rel="icon" href="/assets/icon.png" type="image/png">
+    <meta name="theme-color" content="#02040e">
+
+    <!-- Fonts & CDNs -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            primary: '#ef4d45',
+                            secondary: '#8c0030',
+                            accent: '#ff7d75',
+                            teal: '#008c6e',
+                            gold: '#f59e0b'
+                        },
+                        dark: {
+                            base: '#02040e',
+                            surface: '#05091a',
+                            card: '#080f28',
+                            cardHover: '#0e1738',
+                            border: 'rgba(255, 255, 255, 0.08)',
+                            borderLight: 'rgba(255, 255, 255, 0.15)'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Outfit', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="/assets/css/app.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-dark-base text-slate-100 font-sans antialiased min-h-screen flex flex-col selection:bg-brand-primary selection:text-white">
+
+    <!-- Universal Header & Real-Time Ticker -->
+    <header id="app-header"></header>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full space-y-8">
+
+        <!-- Title -->
+        <div class="border-b border-dark-border pb-6 space-y-2">
+            <span class="text-xs font-bold text-brand-primary uppercase tracking-wider block">Legal & Compliance</span>
+            <h1 class="font-display font-black text-3xl sm:text-4xl text-white">Privacy & Data Governance Policy</h1>
+            <p class="text-xs text-slate-400">Effective Date: January 1, 2026 • Emporium Capitals Institutional Holdings</p>
+        </div>
+
+        <div class="glass-card rounded-3xl p-6 sm:p-10 border border-dark-border space-y-6 text-xs text-slate-300 leading-relaxed">
+            
+            <section class="space-y-2">
+                <h2 class="font-display font-bold text-base text-white">1. Information Collection & Cryptographic Security</h2>
+                <p>
+                    Emporium Capitals collects personal identifying information (full legal name, email address, phone number, and residential jurisdiction) strictly for the purpose of fulfilling Know-Your-Customer (KYC) and Anti-Money Laundering (AML) regulatory compliance. All sensitive identity records are encrypted at rest using AES-256 protocols.
+                </p>
+            </section>
+
+            <section class="space-y-2">
+                <h2 class="font-display font-bold text-base text-white">2. Blockchain & Transaction Telemetry</h2>
+                <p>
+                    Public blockchain transactions (TX hashes, deposit addresses, and token amounts) are recorded in our immutable ledger. We do not link public wallet addresses with external marketing data or third-party tracking engines.
+                </p>
+            </section>
+
+            <section class="space-y-2">
+                <h2 class="font-display font-bold text-base text-white">3. Non-Disclosure & Data Protection</h2>
+                <p>
+                    We maintain strict non-disclosure obligations. Client investment records, portfolio yields, and capital balances are confidential and will never be monetized, sold, or shared with commercial entities.
+                </p>
+            </section>
+
+            <section class="space-y-2">
+                <h2 class="font-display font-bold text-base text-white">4. Data Deletion & Account Closure</h2>
+                <p>
+                    Investors may request the complete deletion of their account telemetry and personal identification documents upon full withdrawal of capital, subject to mandatory 5-year AML statutory retention requirements.
+                </p>
+            </section>
+
+        </div>
+
+    </main>
+
+    <!-- Universal Footer -->
+    <footer id="app-footer"></footer>
+
+    <!-- Scripts -->
+    <script src="/assets/js/app-core.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            AppCore.init('privacy');
+        });
+    </script>
+</body>
+</html>

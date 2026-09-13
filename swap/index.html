@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instant Crypto Swap — Emporium Capitals Liquidity Bridge</title>
+    <meta name="description" content="Exchange Bitcoin, Ethereum, Solana, and USDT instantly with zero slippage and deep institutional liquidity.">
+    <link rel="icon" href="/assets/icon.png" type="image/png">
+    <meta name="theme-color" content="#02040e">
+
+    <!-- Fonts & CDNs -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            primary: '#ef4d45',
+                            secondary: '#8c0030',
+                            accent: '#ff7d75',
+                            teal: '#008c6e',
+                            gold: '#f59e0b'
+                        },
+                        dark: {
+                            base: '#02040e',
+                            surface: '#05091a',
+                            card: '#080f28',
+                            cardHover: '#0e1738',
+                            border: 'rgba(255, 255, 255, 0.08)',
+                            borderLight: 'rgba(255, 255, 255, 0.15)'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Outfit', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="/assets/css/app.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+</head>
+<body class="bg-dark-base text-slate-100 font-sans antialiased min-h-screen flex flex-col selection:bg-brand-primary selection:text-white">
+
+    <!-- Universal Header & Real-Time Ticker -->
+    <header id="app-header"></header>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full space-y-8">
+
+        <!-- Title -->
+        <div class="text-center space-y-2">
+            <span class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 inline-block">
+                Algorithmic Cross-Chain Routing
+            </span>
+            <h1 class="font-display font-black text-3xl sm:text-4xl text-white">Instant Asset Swap</h1>
+            <p class="text-sm text-slate-400 max-w-lg mx-auto">
+                Swap major crypto assets instantly with optimal market pricing directly from your portfolio vault.
+            </p>
+        </div>
+
+        <!-- Swap Card -->
+        <div class="glass-card rounded-3xl p-6 sm:p-8 border border-dark-border space-y-6 max-w-lg mx-auto shadow-2xl relative">
+
+            <!-- You Pay Box -->
+            <div class="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-2">
+                <div class="flex justify-between text-xs text-slate-400">
+                    <span>You Pay</span>
+                    <span>Vault Balance: <strong class="text-white val-balance">$14,250.00</strong></span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <input type="number" id="swap-from-amount" value="500" min="1" oninput="calculateSwap()" class="w-full bg-transparent font-display font-black text-2xl sm:text-3xl text-white outline-none">
+                    <select id="swap-from-asset" onchange="calculateSwap()" class="bg-slate-800 border border-slate-700 text-white font-bold text-sm rounded-xl px-3 py-2 outline-none cursor-pointer">
+                        <option value="USDT" selected>USDT</option>
+                        <option value="BTC">BTC</option>
+                        <option value="ETH">ETH</option>
+                        <option value="SOL">SOL</option>
+                        <option value="BNB">BNB</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Swap Switcher Button -->
+            <div class="flex justify-center -my-3 relative z-10">
+                <button type="button" onclick="reverseSwap()" class="p-3 rounded-2xl bg-brand-primary text-white hover:rotate-180 transition-all duration-300 shadow-lg shadow-brand-primary/30 border-2 border-dark-base">
+                    <i data-lucide="arrow-down-up" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- You Receive Box -->
+            <div class="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-2">
+                <div class="flex justify-between text-xs text-slate-400">
+                    <span>You Receive (Estimated)</span>
+                    <span id="rate-display" class="font-mono text-emerald-400 font-bold">1 USDT = 0.000015 BTC</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <input type="number" id="swap-to-amount" readonly class="w-full bg-transparent font-display font-black text-2xl sm:text-3xl text-emerald-400 outline-none">
+                    <select id="swap-to-asset" onchange="calculateSwap()" class="bg-slate-800 border border-slate-700 text-white font-bold text-sm rounded-xl px-3 py-2 outline-none cursor-pointer">
+                        <option value="BTC" selected>BTC</option>
+                        <option value="USDT">USDT</option>
+                        <option value="ETH">ETH</option>
+                        <option value="SOL">SOL</option>
+                        <option value="BNB">BNB</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Rate & Fee Breakdown -->
+            <div class="space-y-2 text-xs border-t border-dark-border pt-4">
+                <div class="flex justify-between text-slate-400">
+                    <span>Liquidity Provider Fee:</span>
+                    <span class="text-white font-bold">0.5%</span>
+                </div>
+                <div class="flex justify-between text-slate-400">
+                    <span>Slippage Tolerance:</span>
+                    <span class="text-emerald-400 font-bold">0.1% (Auto)</span>
+                </div>
+                <div class="flex justify-between text-slate-400">
+                    <span>Routing:</span>
+                    <span class="text-white">Binance Deep Liquidity Pool</span>
+                </div>
+            </div>
+
+            <!-- Swap Execution Button -->
+            <button onclick="confirmSwapExecution()" class="w-full py-4 rounded-2xl glow-btn font-display font-black text-sm text-white shadow-xl shadow-brand-primary/20 flex items-center justify-center gap-2 transition-all hover:scale-[1.01]">
+                <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                <span>Execute Instant Swap</span>
+            </button>
+        </div>
+
+        <!-- Recent Swaps Ledger Table -->
+        <div class="glass-card rounded-3xl p-6 sm:p-8 border border-dark-border space-y-4 max-w-3xl mx-auto">
+            <div class="flex justify-between items-center border-b border-dark-border pb-3">
+                <h3 class="font-display font-bold text-base text-white flex items-center gap-2">
+                    <i data-lucide="history" class="w-4 h-4 text-emerald-400"></i> Recent Swap Activity
+                </h3>
+                <span class="text-xs text-slate-400">Instant blockchain fills</span>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs" id="swap-records-table">
+                    <thead>
+                        <tr class="border-b border-dark-border text-slate-400 font-bold uppercase tracking-wider">
+                            <th class="py-3 px-3">Pair</th>
+                            <th class="py-3 px-3">Sent</th>
+                            <th class="py-3 px-3">Received</th>
+                            <th class="py-3 px-3">Time</th>
+                            <th class="py-3 px-3 text-right">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-dark-border/50 text-slate-300">
+                        <tr class="hover:bg-slate-900/40">
+                            <td class="py-3.5 px-3 font-bold text-white">USDT &rarr; BTC</td>
+                            <td class="py-3.5 px-3 font-mono">1,000.00 USDT</td>
+                            <td class="py-3.5 px-3 font-mono text-emerald-400 font-bold">0.015420 BTC</td>
+                            <td class="py-3.5 px-3 text-slate-400">Yesterday</td>
+                            <td class="py-3.5 px-3 text-right"><span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold">Filled</span></td>
+                        </tr>
+                        <tr class="hover:bg-slate-900/40">
+                            <td class="py-3.5 px-3 font-bold text-white">ETH &rarr; USDT</td>
+                            <td class="py-3.5 px-3 font-mono">0.500000 ETH</td>
+                            <td class="py-3.5 px-3 font-mono text-emerald-400 font-bold">1,746.10 USDT</td>
+                            <td class="py-3.5 px-3 text-slate-400">5 days ago</td>
+                            <td class="py-3.5 px-3 text-right"><span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold">Filled</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Universal Footer -->
+    <footer id="app-footer"></footer>
+
+    <!-- Scripts -->
+    <script src="/assets/js/app-core.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            AppCore.init('swap');
+            calculateSwap();
+        });
+
+        function calculateSwap() {
+            const fromAsset = document.getElementById('swap-from-asset').value;
+            const toAsset = document.getElementById('swap-to-asset').value;
+            const fromAmt = parseFloat(document.getElementById('swap-from-amount').value) || 0;
+
+            const fromPrice = AppCore.state.prices[fromAsset] || 1;
+            const toPrice = AppCore.state.prices[toAsset] || 1;
+
+            const usdVal = fromAmt * fromPrice;
+            const toAmt = (usdVal * 0.995) / toPrice; // 0.5% fee
+
+            document.getElementById('swap-to-amount').value = toAmt < 1 ? toAmt.toFixed(6) : toAmt.toFixed(2);
+            document.getElementById('rate-display').textContent = `1 ${fromAsset} ≈ ${(fromPrice / toPrice).toFixed(6)} ${toAsset}`;
+        }
+
+        function reverseSwap() {
+            const fromEl = document.getElementById('swap-from-asset');
+            const toEl = document.getElementById('swap-to-asset');
+            const tmp = fromEl.value;
+            fromEl.value = toEl.value;
+            toEl.value = tmp;
+            calculateSwap();
+        }
+
+        async function confirmSwapExecution() {
+            const fromAsset = document.getElementById('swap-from-asset').value;
+            const toAsset = document.getElementById('swap-to-asset').value;
+            const fromAmt = parseFloat(document.getElementById('swap-from-amount').value);
+            const toAmt = parseFloat(document.getElementById('swap-to-amount').value);
+
+            if (!fromAmt || fromAmt <= 0) {
+                AppCore.showToast('Invalid Amount', 'Please enter a valid swap amount.', 'error');
+                return;
+            }
+
+            const success = await AppCore.executeSwap(fromAsset, toAsset, fromAmt, toAmt);
+            if (success) {
+                if (window.confetti) confetti({ particleCount: 80, spread: 70 });
+
+                // Add to table
+                const table = document.querySelector('#swap-records-table tbody');
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-slate-900/40 bg-emerald-500/5 animate-pulse';
+                row.innerHTML = `
+                    <td class="py-3.5 px-3 font-bold text-white">${fromAsset} &rarr; ${toAsset}</td>
+                    <td class="py-3.5 px-3 font-mono">${fromAmt.toLocaleString()} ${fromAsset}</td>
+                    <td class="py-3.5 px-3 font-mono text-emerald-400 font-bold">${toAmt} ${toAsset}</td>
+                    <td class="py-3.5 px-3 text-slate-400">Just now</td>
+                    <td class="py-3.5 px-3 text-right"><span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold">Filled</span></td>
+                `;
+                table.insertBefore(row, table.firstChild);
+            }
+        }
+    </script>
+</body>
+</html>

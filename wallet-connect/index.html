@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web3 Wallet Connect — Emporium Capitals Custody Bridge</title>
+    <meta name="description" content="Connect Web3 decentralized wallets like MetaMask, TrustWallet, and Phantom for seamless non-custodial capital deposits.">
+    <link rel="icon" href="/assets/icon.png" type="image/png">
+    <meta name="theme-color" content="#02040e">
+
+    <!-- Fonts & CDNs -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            primary: '#ef4d45',
+                            secondary: '#8c0030',
+                            accent: '#ff7d75',
+                            teal: '#008c6e',
+                            gold: '#f59e0b'
+                        },
+                        dark: {
+                            base: '#02040e',
+                            surface: '#05091a',
+                            card: '#080f28',
+                            cardHover: '#0e1738',
+                            border: 'rgba(255, 255, 255, 0.08)',
+                            borderLight: 'rgba(255, 255, 255, 0.15)'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Outfit', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="/assets/css/app.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+</head>
+<body class="bg-dark-base text-slate-100 font-sans antialiased min-h-screen flex flex-col selection:bg-brand-primary selection:text-white">
+
+    <!-- Universal Header & Real-Time Ticker -->
+    <header id="app-header"></header>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full space-y-8">
+
+        <!-- Title -->
+        <div class="text-center space-y-2">
+            <span class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-blue-500/10 text-blue-400 border border-blue-500/20 inline-block">
+                Decentralized Custody Link
+            </span>
+            <h1 class="font-display font-black text-3xl sm:text-4xl text-white">Connect Web3 Wallet</h1>
+            <p class="text-sm text-slate-400 max-w-lg mx-auto">
+                Securely link your decentralized browser wallet to authorize direct smart contract deposits and withdrawals.
+            </p>
+        </div>
+
+        <!-- Wallet Status Indicator -->
+        <div id="wallet-connected-banner" class="glass-card rounded-3xl p-6 border border-emerald-500/40 hidden items-center justify-between gap-4 bg-emerald-500/5">
+            <div class="flex items-center gap-3">
+                <div class="p-2.5 rounded-2xl bg-emerald-500/20 text-emerald-400">
+                    <i data-lucide="check-circle" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-sm text-white">Wallet Active & Synchronized</h3>
+                    <p id="connected-address" class="text-xs font-mono text-emerald-400">0x71C8...EAc2</p>
+                </div>
+            </div>
+            <button onclick="disconnectWallet()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300 transition-colors">
+                Disconnect
+            </button>
+        </div>
+
+        <!-- Wallets Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+            <!-- MetaMask -->
+            <button onclick="connectWallet('MetaMask', '0x71C836eB3F3d44F6bF0Fe331d279148d4b3bEAc2')" class="glass-card rounded-3xl p-6 border border-dark-border text-left hover:border-brand-primary transition-all group flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-500 font-black text-xl group-hover:scale-105 transition-transform">
+                        🦊
+                    </div>
+                    <div>
+                        <h3 class="font-display font-bold text-base text-white">MetaMask</h3>
+                        <p class="text-xs text-slate-400">Ethereum, Arbitrum & BSC</p>
+                    </div>
+                </div>
+                <i data-lucide="chevron-right" class="w-5 h-5 text-slate-500 group-hover:text-white transition-colors"></i>
+            </button>
+
+            <!-- TrustWallet -->
+            <button onclick="connectWallet('Trust Wallet', '0x9a4F22c0919Da40c98fAc551984dB4D761b09C4B')" class="glass-card rounded-3xl p-6 border border-dark-border text-left hover:border-blue-500 transition-all group flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-400 font-black text-xl group-hover:scale-105 transition-transform">
+                        🛡️
+                    </div>
+                    <div>
+                        <h3 class="font-display font-bold text-base text-white">Trust Wallet</h3>
+                        <p class="text-xs text-slate-400">Multi-Chain Mobile & Web</p>
+                    </div>
+                </div>
+                <i data-lucide="chevron-right" class="w-5 h-5 text-slate-500 group-hover:text-white transition-colors"></i>
+            </button>
+
+            <!-- Phantom -->
+            <button onclick="connectWallet('Phantom', '7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU')" class="glass-card rounded-3xl p-6 border border-dark-border text-left hover:border-purple-500 transition-all group flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-2xl bg-purple-500/10 flex items-center justify-center text-purple-400 font-black text-xl group-hover:scale-105 transition-transform">
+                        👻
+                    </div>
+                    <div>
+                        <h3 class="font-display font-bold text-base text-white">Phantom</h3>
+                        <p class="text-xs text-slate-400">Solana & Multi-chain</p>
+                    </div>
+                </div>
+                <i data-lucide="chevron-right" class="w-5 h-5 text-slate-500 group-hover:text-white transition-colors"></i>
+            </button>
+
+            <!-- Coinbase Wallet -->
+            <button onclick="connectWallet('Coinbase Wallet', '0x1C83F3d44F6bF0Fe331d279148d4b3bEAc28a9b')" class="glass-card rounded-3xl p-6 border border-dark-border text-left hover:border-blue-400 transition-all group flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-2xl bg-blue-600/10 flex items-center justify-center text-blue-400 font-black text-xl group-hover:scale-105 transition-transform">
+                        🔵
+                    </div>
+                    <div>
+                        <h3 class="font-display font-bold text-base text-white">Coinbase Wallet</h3>
+                        <p class="text-xs text-slate-400">Direct exchange linking</p>
+                    </div>
+                </div>
+                <i data-lucide="chevron-right" class="w-5 h-5 text-slate-500 group-hover:text-white transition-colors"></i>
+            </button>
+
+        </div>
+
+    </main>
+
+    <!-- Universal Footer -->
+    <footer id="app-footer"></footer>
+
+    <!-- Scripts -->
+    <script src="/assets/js/app-core.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            AppCore.init('wallet-connect');
+        });
+
+        function connectWallet(name, address) {
+            const banner = document.getElementById('wallet-connected-banner');
+            const addrEl = document.getElementById('connected-address');
+            addrEl.textContent = `${name} Connected: ${address.substr(0, 8)}...${address.substr(-6)}`;
+            banner.classList.remove('hidden');
+            banner.classList.add('flex');
+
+            if (window.confetti) confetti({ particleCount: 70, spread: 60 });
+            AppCore.showToast('Wallet Connected', `Successfully paired ${name} with your investment vault.`);
+        }
+
+        function disconnectWallet() {
+            const banner = document.getElementById('wallet-connected-banner');
+            banner.classList.add('hidden');
+            banner.classList.remove('flex');
+            AppCore.showToast('Wallet Disconnected', 'Decentralized session terminated.');
+        }
+    </script>
+</body>
+</html>

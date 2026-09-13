@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transaction History & Ledger — Emporium Capitals Institutional Records</title>
+    <meta name="description" content="View complete ledger history of deposits, withdrawals, trading profits, and algorithmic dividend distributions.">
+    <link rel="icon" href="/assets/icon.png" type="image/png">
+    <meta name="theme-color" content="#02040e">
+
+    <!-- Fonts & CDNs -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            primary: '#ef4d45',
+                            secondary: '#8c0030',
+                            accent: '#ff7d75',
+                            teal: '#008c6e',
+                            gold: '#f59e0b'
+                        },
+                        dark: {
+                            base: '#02040e',
+                            surface: '#05091a',
+                            card: '#080f28',
+                            cardHover: '#0e1738',
+                            border: 'rgba(255, 255, 255, 0.08)',
+                            borderLight: 'rgba(255, 255, 255, 0.15)'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Outfit', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="/assets/css/app.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-dark-base text-slate-100 font-sans antialiased min-h-screen flex flex-col selection:bg-brand-primary selection:text-white">
+
+    <!-- Universal Header & Real-Time Ticker -->
+    <header id="app-header"></header>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full space-y-8">
+
+        <!-- Title & Header Bar -->
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+                <span class="text-xs font-bold text-emerald-400 uppercase tracking-wider block">Audited Ledger</span>
+                <h1 class="font-display font-black text-3xl sm:text-4xl text-white">Transaction Records</h1>
+                <p class="text-xs text-slate-400">Complete historical activity log for account Chinex digital</p>
+            </div>
+            <button onclick="exportCSV()" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-bold text-white flex items-center gap-2 transition-colors">
+                <i data-lucide="download" class="w-4 h-4 text-brand-primary"></i>
+                <span>Export CSV Ledger</span>
+            </button>
+        </div>
+
+        <!-- Filter & Search Controls -->
+        <div class="glass-card rounded-2xl p-4 border border-dark-border flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
+                <button onclick="filterType('all', this)" class="tx-filter-btn px-3.5 py-1.5 rounded-xl bg-brand-primary text-white text-xs font-bold">All Records</button>
+                <button onclick="filterType('deposit', this)" class="tx-filter-btn px-3.5 py-1.5 rounded-xl bg-slate-800 text-slate-400 hover:text-white text-xs font-bold">Deposits</button>
+                <button onclick="filterType('withdrawal', this)" class="tx-filter-btn px-3.5 py-1.5 rounded-xl bg-slate-800 text-slate-400 hover:text-white text-xs font-bold">Withdrawals</button>
+                <button onclick="filterType('yield', this)" class="tx-filter-btn px-3.5 py-1.5 rounded-xl bg-slate-800 text-slate-400 hover:text-white text-xs font-bold">Dividends</button>
+                <button onclick="filterType('trade', this)" class="tx-filter-btn px-3.5 py-1.5 rounded-xl bg-slate-800 text-slate-400 hover:text-white text-xs font-bold">Trades</button>
+            </div>
+
+            <div class="w-full md:w-72">
+                <div class="relative">
+                    <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+                    <input type="text" id="tx-search-input" oninput="searchLedger(this.value)" placeholder="Search TX hash, asset, amount..." class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-9 pr-3 py-2 text-xs text-white outline-none focus:border-brand-primary">
+                </div>
+            </div>
+        </div>
+
+        <!-- Transaction Table -->
+        <div class="glass-card rounded-3xl p-6 sm:p-8 border border-dark-border space-y-4">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs" id="ledger-table">
+                    <thead>
+                        <tr class="border-b border-dark-border text-slate-400 font-bold uppercase tracking-wider">
+                            <th class="py-3 px-3">Transaction Type</th>
+                            <th class="py-3 px-3">Gross Amount</th>
+                            <th class="py-3 px-3">Asset</th>
+                            <th class="py-3 px-3">Reference / Hash</th>
+                            <th class="py-3 px-3">Timestamp</th>
+                            <th class="py-3 px-3 text-right">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-dark-border/50 text-slate-300" id="ledger-tbody">
+                        <!-- Deposit 1 -->
+                        <tr class="hover:bg-slate-900/40" data-type="deposit">
+                            <td class="py-4 px-3 font-semibold text-white flex items-center gap-2">
+                                <span class="p-1.5 rounded-lg bg-emerald-500/20 text-emerald-400"><i data-lucide="arrow-down-left" class="w-4 h-4"></i></span>
+                                <div>
+                                    <span class="font-bold block text-white">Deposit</span>
+                                    <span class="text-[10px] text-slate-500">TRC20 Inbound</span>
+                                </div>
+                            </td>
+                            <td class="py-4 px-3 font-mono font-bold text-emerald-400">+$5,000.00</td>
+                            <td class="py-4 px-3 font-bold">USDT</td>
+                            <td class="py-4 px-3 font-mono text-slate-400">0x8f4d...31b2</td>
+                            <td class="py-4 px-3 text-slate-400">Today, 13:42</td>
+                            <td class="py-4 px-3 text-right"><span class="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 font-bold">Confirmed</span></td>
+                        </tr>
+
+                        <!-- Yield 1 -->
+                        <tr class="hover:bg-slate-900/40" data-type="yield">
+                            <td class="py-4 px-3 font-semibold text-white flex items-center gap-2">
+                                <span class="p-1.5 rounded-lg bg-blue-500/20 text-blue-400"><i data-lucide="trending-up" class="w-4 h-4"></i></span>
+                                <div>
+                                    <span class="font-bold block text-white">Tier Dividend</span>
+                                    <span class="text-[10px] text-slate-500">Premium Contract</span>
+                                </div>
+                            </td>
+                            <td class="py-4 px-3 font-mono font-bold text-emerald-400">+$125.00</td>
+                            <td class="py-4 px-3 font-bold">USD</td>
+                            <td class="py-4 px-3 font-mono text-slate-400">DIV-PREM-2026</td>
+                            <td class="py-4 px-3 text-slate-400">Yesterday, 00:01</td>
+                            <td class="py-4 px-3 text-right"><span class="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 font-bold">Completed</span></td>
+                        </tr>
+
+                        <!-- Withdrawal 1 -->
+                        <tr class="hover:bg-slate-900/40" data-type="withdrawal">
+                            <td class="py-4 px-3 font-semibold text-white flex items-center gap-2">
+                                <span class="p-1.5 rounded-lg bg-amber-500/20 text-amber-400"><i data-lucide="arrow-up-right" class="w-4 h-4"></i></span>
+                                <div>
+                                    <span class="font-bold block text-white">Payout Withdrawal</span>
+                                    <span class="text-[10px] text-slate-500">Bitcoin Network</span>
+                                </div>
+                            </td>
+                            <td class="py-4 px-3 font-mono font-bold text-red-400">-$500.00</td>
+                            <td class="py-4 px-3 font-bold">BTC</td>
+                            <td class="py-4 px-3 font-mono text-slate-400">0x3a9c...77e1</td>
+                            <td class="py-4 px-3 text-slate-400">3 days ago</td>
+                            <td class="py-4 px-3 text-right"><span class="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 font-bold">Completed</span></td>
+                        </tr>
+
+                        <!-- Trade 1 -->
+                        <tr class="hover:bg-slate-900/40" data-type="trade">
+                            <td class="py-4 px-3 font-semibold text-white flex items-center gap-2">
+                                <span class="p-1.5 rounded-lg bg-emerald-500/20 text-emerald-400"><i data-lucide="activity" class="w-4 h-4"></i></span>
+                                <div>
+                                    <span class="font-bold block text-white">Algorithmic Trade Win</span>
+                                    <span class="text-[10px] text-slate-500">BTC CALL (60s)</span>
+                                </div>
+                            </td>
+                            <td class="py-4 px-3 font-mono font-bold text-emerald-400">+$212.50</td>
+                            <td class="py-4 px-3 font-bold">USD</td>
+                            <td class="py-4 px-3 font-mono text-slate-400">OPT-BTC-85PCT</td>
+                            <td class="py-4 px-3 text-slate-400">4 days ago</td>
+                            <td class="py-4 px-3 text-right"><span class="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 font-bold">Settled</span></td>
+                        </tr>
+
+                        <!-- Deposit 2 -->
+                        <tr class="hover:bg-slate-900/40" data-type="deposit">
+                            <td class="py-4 px-3 font-semibold text-white flex items-center gap-2">
+                                <span class="p-1.5 rounded-lg bg-emerald-500/20 text-emerald-400"><i data-lucide="arrow-down-left" class="w-4 h-4"></i></span>
+                                <div>
+                                    <span class="font-bold block text-white">Deposit</span>
+                                    <span class="text-[10px] text-slate-500">Native SegWit</span>
+                                </div>
+                            </td>
+                            <td class="py-4 px-3 font-mono font-bold text-emerald-400">+$5,000.00</td>
+                            <td class="py-4 px-3 font-bold">BTC</td>
+                            <td class="py-4 px-3 font-mono text-slate-400">0x1e2f...99d4</td>
+                            <td class="py-4 px-3 text-slate-400">10 days ago</td>
+                            <td class="py-4 px-3 text-right"><span class="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 font-bold">Confirmed</span></td>
+                        </tr>
+
+                        <!-- Withdrawal 2 -->
+                        <tr class="hover:bg-slate-900/40" data-type="withdrawal">
+                            <td class="py-4 px-3 font-semibold text-white flex items-center gap-2">
+                                <span class="p-1.5 rounded-lg bg-amber-500/20 text-amber-400"><i data-lucide="arrow-up-right" class="w-4 h-4"></i></span>
+                                <div>
+                                    <span class="font-bold block text-white">Payout Withdrawal</span>
+                                    <span class="text-[10px] text-slate-500">TRC20 Transfer</span>
+                                </div>
+                            </td>
+                            <td class="py-4 px-3 font-mono font-bold text-red-400">-$1,950.00</td>
+                            <td class="py-4 px-3 font-bold">USDT</td>
+                            <td class="py-4 px-3 font-mono text-slate-400">T9yD...Wwb</td>
+                            <td class="py-4 px-3 text-slate-400">14 days ago</td>
+                            <td class="py-4 px-3 text-right"><span class="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 font-bold">Completed</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Universal Footer -->
+    <footer id="app-footer"></footer>
+
+    <!-- Scripts -->
+    <script src="/assets/js/app-core.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            AppCore.init('transactions');
+        });
+
+        function filterType(type, btn) {
+            document.querySelectorAll('.tx-filter-btn').forEach(b => {
+                b.className = 'tx-filter-btn px-3.5 py-1.5 rounded-xl bg-slate-800 text-slate-400 hover:text-white text-xs font-bold';
+            });
+            btn.className = 'tx-filter-btn px-3.5 py-1.5 rounded-xl bg-brand-primary text-white text-xs font-bold';
+
+            const rows = document.querySelectorAll('#ledger-tbody tr');
+            rows.forEach(r => {
+                if (type === 'all' || r.getAttribute('data-type') === type) {
+                    r.style.display = '';
+                } else {
+                    r.style.display = 'none';
+                }
+            });
+        }
+
+        function searchLedger(query) {
+            const q = query.toLowerCase();
+            const rows = document.querySelectorAll('#ledger-tbody tr');
+            rows.forEach(r => {
+                const text = r.textContent.toLowerCase();
+                r.style.display = text.includes(q) ? '' : 'none';
+            });
+        }
+
+        function exportCSV() {
+            let csv = 'Type,Amount,Asset,Reference,Date,Status\n';
+            const rows = document.querySelectorAll('#ledger-tbody tr');
+            rows.forEach(r => {
+                const cols = r.querySelectorAll('td');
+                if (cols.length >= 6) {
+                    const type = cols[0].querySelector('.font-bold')?.textContent || '';
+                    const amt = cols[1].textContent.trim();
+                    const asset = cols[2].textContent.trim();
+                    const ref = cols[3].textContent.trim();
+                    const date = cols[4].textContent.trim();
+                    const status = cols[5].textContent.trim();
+                    csv += `"${type}","${amt}","${asset}","${ref}","${date}","${status}"\n`;
+                }
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `emporium-ledger-${Date.now()}.csv`;
+            a.click();
+            AppCore.showToast('CSV Exported', 'Full transaction ledger downloaded.');
+        }
+    </script>
+</body>
+</html>

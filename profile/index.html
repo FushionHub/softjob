@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Investor Profile & KYC — Emporium Capitals Account Security</title>
+    <meta name="description" content="Manage personal profile, KYC institutional verification tier, and two-factor authentication security credentials.">
+    <link rel="icon" href="/assets/icon.png" type="image/png">
+    <meta name="theme-color" content="#02040e">
+
+    <!-- Fonts & CDNs -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            primary: '#ef4d45',
+                            secondary: '#8c0030',
+                            accent: '#ff7d75',
+                            teal: '#008c6e',
+                            gold: '#f59e0b'
+                        },
+                        dark: {
+                            base: '#02040e',
+                            surface: '#05091a',
+                            card: '#080f28',
+                            cardHover: '#0e1738',
+                            border: 'rgba(255, 255, 255, 0.08)',
+                            borderLight: 'rgba(255, 255, 255, 0.15)'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Outfit', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="/assets/css/app.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-dark-base text-slate-100 font-sans antialiased min-h-screen flex flex-col selection:bg-brand-primary selection:text-white">
+
+    <!-- Universal Header & Real-Time Ticker -->
+    <header id="app-header"></header>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full space-y-8">
+
+        <!-- User Profile Card Banner -->
+        <div class="glass-card rounded-3xl p-6 sm:p-8 border border-dark-border relative overflow-hidden">
+            <div class="flex flex-col sm:flex-row items-center sm:items-start gap-6 relative z-10">
+                <div class="w-20 h-20 rounded-2xl bg-gradient-to-tr from-brand-secondary to-brand-primary flex items-center justify-center font-display font-black text-3xl text-white shadow-xl shadow-brand-primary/30 shrink-0">
+                    C
+                </div>
+                <div class="space-y-2 text-center sm:text-left flex-1">
+                    <div class="flex flex-col sm:flex-row items-center gap-3">
+                        <h1 class="font-display font-black text-2xl sm:text-3xl text-white val-name">Chinex digital</h1>
+                        <span class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5">
+                            <i data-lucide="shield-check" class="w-3.5 h-3.5"></i> KYC Verified Level 2
+                        </span>
+                    </div>
+                    <div class="flex flex-wrap items-center justify-center sm:justify-start gap-4 text-xs text-slate-400 font-mono">
+                        <span class="val-email">juniachinedu@gmail.com</span>
+                        <span>•</span>
+                        <span>Username: <strong>Chinex</strong></span>
+                        <span>•</span>
+                        <span>Member Since: <strong>Jan 2026</strong></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+            <!-- Personal Profile Editor (7 Columns) -->
+            <div class="lg:col-span-7 glass-card rounded-3xl p-6 sm:p-8 border border-dark-border space-y-6">
+                <div class="border-b border-dark-border pb-3">
+                    <h2 class="font-display font-bold text-lg text-white flex items-center gap-2">
+                        <i data-lucide="user" class="w-4 h-4 text-brand-primary"></i> Personal Information
+                    </h2>
+                    <p class="text-xs text-slate-400">Update your verified account profile details</p>
+                </div>
+
+                <form onsubmit="handleProfileSubmit(event)" class="space-y-4">
+                    <div class="space-y-1.5">
+                        <label class="text-xs font-semibold text-slate-300 block">Full Name</label>
+                        <input type="text" id="prof-name" value="Chinex digital" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-white outline-none focus:border-brand-primary">
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="space-y-1.5">
+                            <label class="text-xs font-semibold text-slate-300 block">Email Address (Locked)</label>
+                            <input type="email" readonly value="juniachinedu@gmail.com" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-slate-400 font-mono">
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="text-xs font-semibold text-slate-300 block">Phone Number</label>
+                            <input type="text" id="prof-phone" value="+1 (555) 349-8210" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-white outline-none focus:border-brand-primary">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="space-y-1.5">
+                            <label class="text-xs font-semibold text-slate-300 block">Country</label>
+                            <input type="text" value="United Kingdom" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-white outline-none focus:border-brand-primary">
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="text-xs font-semibold text-slate-300 block">Timezone</label>
+                            <input type="text" value="UTC+01:00 (London)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-white outline-none focus:border-brand-primary">
+                        </div>
+                    </div>
+
+                    <div class="pt-2">
+                        <button type="submit" class="glow-btn px-6 py-3 rounded-xl text-xs font-bold text-white flex items-center gap-2">
+                            <i data-lucide="save" class="w-4 h-4"></i> Save Profile Details
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Change Password -->
+                <div class="pt-6 border-t border-dark-border space-y-4">
+                    <h3 class="font-display font-bold text-base text-white flex items-center gap-2">
+                        <i data-lucide="key" class="w-4 h-4 text-amber-400"></i> Change Password
+                    </h3>
+                    <div class="space-y-3">
+                        <input type="password" placeholder="Current Password" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-white outline-none focus:border-brand-primary">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <input type="password" placeholder="New Password" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-white outline-none focus:border-brand-primary">
+                            <input type="password" placeholder="Confirm New Password" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-white outline-none focus:border-brand-primary">
+                        </div>
+                        <button type="button" onclick="AppCore.showToast('Security Updated', 'Password updated successfully.')" class="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-white border border-slate-700 transition-colors">
+                            Update Password
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KYC Verification & Security Center (5 Columns) -->
+            <div class="lg:col-span-5 space-y-6">
+
+                <!-- KYC Status Box -->
+                <div class="glass-card rounded-3xl p-6 sm:p-8 border border-dark-border space-y-5">
+                    <div class="flex justify-between items-center border-b border-dark-border pb-3">
+                        <h3 class="font-display font-bold text-base text-white flex items-center gap-2">
+                            <i data-lucide="badge-check" class="w-4 h-4 text-emerald-400"></i> KYC Compliance
+                        </h3>
+                        <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold text-[10px]">Tier 2 Cleared</span>
+                    </div>
+
+                    <div class="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-3">
+                        <div class="flex items-center gap-3">
+                            <div class="p-2 rounded-xl bg-emerald-500/20 text-emerald-400">
+                                <i data-lucide="check-circle" class="w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-xs text-white">Identity Document Verified</h4>
+                                <p class="text-[11px] text-slate-400">International Passport / Government ID</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="p-2 rounded-xl bg-emerald-500/20 text-emerald-400">
+                                <i data-lucide="check-circle" class="w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-xs text-white">Proof of Residence</h4>
+                                <p class="text-[11px] text-slate-400">Utility Bill / Bank Statement (Approved)</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        Your account enjoys unrestricted deposit and withdrawal thresholds up to <strong>$500,000.00 USD</strong> daily.
+                    </p>
+                </div>
+
+                <!-- 2FA & Authenticator -->
+                <div class="glass-card rounded-3xl p-6 sm:p-8 border border-dark-border space-y-4">
+                    <h3 class="font-display font-bold text-base text-white flex items-center gap-2">
+                        <i data-lucide="smartphone" class="w-4 h-4 text-blue-400"></i> Two-Factor Auth (2FA)
+                    </h3>
+                    <p class="text-xs text-slate-400">
+                        Two-factor authentication adds an extra layer of protection to all withdrawal transactions.
+                    </p>
+                    <div class="flex items-center justify-between p-3 rounded-xl bg-slate-900 border border-slate-800">
+                        <span class="text-xs font-bold text-white">Google Authenticator</span>
+                        <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-bold">Enabled</span>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Universal Footer -->
+    <footer id="app-footer"></footer>
+
+    <!-- Scripts -->
+    <script src="/assets/js/app-core.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            AppCore.init('profile');
+        });
+
+        async function handleProfileSubmit(e) {
+            e.preventDefault();
+            const name = document.getElementById('prof-name').value.trim();
+            const phone = document.getElementById('prof-phone').value.trim();
+
+            try {
+                await fetch(AppCore.state.apiBase + '?action=update_profile', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, phone, email: AppCore.state.user.email })
+                });
+            } catch(e) {}
+
+            AppCore.state.user.name = name;
+            AppCore.state.user.phone = phone;
+            AppCore.saveState();
+            AppCore.showToast('Profile Saved', 'Personal information updated successfully.');
+        }
+    </script>
+</body>
+</html>

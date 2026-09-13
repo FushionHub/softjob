@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Emporium Capitals — Institutional Wealth & Liquidity Engine</title>
+    <meta name="description" content="Learn about Emporium Capitals, a licensed algorithmic liquidity and crypto investment manager running on high-speed infrastructure.">
+    <link rel="icon" href="/assets/icon.png" type="image/png">
+    <meta name="theme-color" content="#02040e">
+
+    <!-- Fonts & CDNs -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            primary: '#ef4d45',
+                            secondary: '#8c0030',
+                            accent: '#ff7d75',
+                            teal: '#008c6e',
+                            gold: '#f59e0b'
+                        },
+                        dark: {
+                            base: '#02040e',
+                            surface: '#05091a',
+                            card: '#080f28',
+                            cardHover: '#0e1738',
+                            border: 'rgba(255, 255, 255, 0.08)',
+                            borderLight: 'rgba(255, 255, 255, 0.15)'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Outfit', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="/assets/css/app.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-dark-base text-slate-100 font-sans antialiased min-h-screen flex flex-col selection:bg-brand-primary selection:text-white">
+
+    <!-- Universal Header & Real-Time Ticker -->
+    <header id="app-header"></header>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full space-y-12">
+
+        <!-- Hero -->
+        <div class="text-center space-y-4 max-w-3xl mx-auto">
+            <span class="px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-brand-primary/10 text-brand-primary border border-brand-primary/20 inline-block">
+                Institutional Overview
+            </span>
+            <h1 class="font-display font-black text-3xl sm:text-5xl text-white tracking-tight">
+                Pioneering Algorithmic Liquidity & Crypto Yield
+            </h1>
+            <p class="text-sm sm:text-base text-slate-400 leading-relaxed">
+                Emporium Capitals was established to bridge institutional-grade automated trading strategies with private wealth vaults, delivering consistent daily returns and uncompromising asset security.
+            </p>
+        </div>
+
+        <!-- 3 Pillars Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="glass-card rounded-3xl p-6 border border-dark-border space-y-3">
+                <div class="p-3 rounded-2xl bg-brand-primary/20 text-brand-primary w-fit">
+                    <i data-lucide="cpu" class="w-6 h-6"></i>
+                </div>
+                <h3 class="font-display font-bold text-lg text-white">Algorithmic Precision</h3>
+                <p class="text-xs text-slate-400 leading-relaxed">
+                    Our high-frequency proprietary bots capitalize on micro-arbitrage across global exchanges including Binance, OKX, and Coinbase.
+                </p>
+            </div>
+
+            <div class="glass-card rounded-3xl p-6 border border-dark-border space-y-3">
+                <div class="p-3 rounded-2xl bg-emerald-500/20 text-emerald-400 w-fit">
+                    <i data-lucide="shield-check" class="w-6 h-6"></i>
+                </div>
+                <h3 class="font-display font-bold text-lg text-white">Cold Storage Custody</h3>
+                <p class="text-xs text-slate-400 leading-relaxed">
+                    95% of all client capital is held in air-gapped, multi-signature hardware cold vaults with institutional insurance coverage.
+                </p>
+            </div>
+
+            <div class="glass-card rounded-3xl p-6 border border-dark-border space-y-3">
+                <div class="p-3 rounded-2xl bg-amber-500/20 text-amber-400 w-fit">
+                    <i data-lucide="zap" class="w-6 h-6"></i>
+                </div>
+                <h3 class="font-display font-bold text-lg text-white">Universal Architecture</h3>
+                <p class="text-xs text-slate-400 leading-relaxed">
+                    Engineered to run on high-performance LiteSpeed and Apache servers using lightweight CDN assets without runtime Node.js bottlenecks.
+                </p>
+            </div>
+        </div>
+
+        <!-- Corporate Facts -->
+        <div class="glass-card rounded-3xl p-8 border border-dark-border grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+            <div>
+                <div class="font-display font-black text-3xl sm:text-4xl text-brand-primary">$45M+</div>
+                <span class="text-xs text-slate-400 block mt-1">Managed Volume</span>
+            </div>
+            <div>
+                <div class="font-display font-black text-3xl sm:text-4xl text-emerald-400">99.98%</div>
+                <span class="text-xs text-slate-400 block mt-1">Platform Uptime</span>
+            </div>
+            <div>
+                <div class="font-display font-black text-3xl sm:text-4xl text-white">12,400+</div>
+                <span class="text-xs text-slate-400 block mt-1">Global Investors</span>
+            </div>
+            <div>
+                <div class="font-display font-black text-3xl sm:text-4xl text-amber-400">5-15m</div>
+                <span class="text-xs text-slate-400 block mt-1">Average Payout</span>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Universal Footer -->
+    <footer id="app-footer"></footer>
+
+    <!-- Scripts -->
+    <script src="/assets/js/app-core.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            AppCore.init('about');
+        });
+    </script>
+</body>
+</html>

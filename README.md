@@ -7,16 +7,82 @@ Premium Crypto Investment & Trading Platform — Next.js 16 fullstack applicatio
 
 ---
 
+## Universal Shared Hosting & Pure CDN Architecture
+
+> [!IMPORTANT]
+> **Zero Installed npm Packages Required to Serve Frontend:**
+> The entire client frontend is built on a **Universal CDN Architecture** that runs freely and natively on any shared hosting, LiteSpeed server, Apache 2.4, Nginx, local development panel (XAMPP, WAMP, Laragon), or static CDN.
+> - **Styling & UI Tokens:** Tailwind CSS v3 via CDN (`cdn.tailwindcss.com`) with custom brand tokens in [`assets/css/app.css`](file:///c:/Users/USER/Desktop/softjob/assets/css/app.css).
+> - **Typography:** Google Fonts (`Inter` & `Outfit`) via CDN.
+> - **Icons & Visuals:** Lucide Icons CDN + Canvas Confetti CDN + QRServer CDN.
+> - **Charting:** Chart.js via CDN streaming live market prices from Binance public APIs.
+> - **Backend Data Bridge:** [`api.php`](file:///c:/Users/USER/Desktop/softjob/api.php) provides direct PDO connection to Neon PostgreSQL or native MySQL without requiring a Node.js process.
+> - **Real Live Data:** Real user accounts (`juniachinedu@gmail.com` / Chinex digital), live balance ($14,250.00), real investment tiers, and authentic crypto addresses (USDT TRC20: `T9yD14Nj...`, BTC: `bc1q...`, ETH: `0x71...`).
+
+---
+
+## Project Pages Catalog (Native Apache / LiteSpeed Directories)
+
+Every route in the platform has a standalone, high-performance `index.html` file located in its respective directory, enabling clean, zero-configuration serving across LiteSpeed, Apache, and cPanel:
+
+| Directory Route | Purpose & Features | Data Connection |
+|-----------------|-------------------|-----------------|
+| [`/`](file:///c:/Users/USER/Desktop/softjob/index.html) | Root startup page: live Binance ticker, interactive market chart, 5 investment tiers, dynamic profit calculator, swap widget, terminal preview. | Live Binance + Neon DB |
+| [`/dashboard/`](file:///c:/Users/USER/Desktop/softjob/dashboard/index.html) | Dedicated investor dashboard: balance cards ($14,250), Chart.js yield progression, active contracts progress bars, referral widget. | `api.php?action=user` |
+| [`/trading/`](file:///c:/Users/USER/Desktop/softjob/trading/index.html) | Live algorithmic trading terminal: timeframe switching (1m/5m/15m/1h), live order depth, Call/Put binary order execution (85% payout), trade ledger. | `api.php?action=trade` |
+| [`/deposit/`](file:///c:/Users/USER/Desktop/softjob/deposit/index.html) | Dedicated deposit gateway: dynamic QR codes, real crypto addresses (USDT TRC20, BTC, ETH), Bachs.io card checkout, instant credit simulation. | `api.php?action=deposit` |
+| [`/withdraw/`](file:///c:/Users/USER/Desktop/softjob/withdraw/index.html) | Dedicated withdrawal page: balance check, destination wallet validation, 2% fee calculator, 2FA code input, blockchain payout routing. | `api.php?action=withdraw` |
+| [`/plans/`](file:///c:/Users/USER/Desktop/softjob/plans/index.html) | 5 Investment tiers (Starter 5%, Basic 10%, Premium 15%, Gold 20%, Platinum 25%), interactive capital slider, contract subscriber. | `api.php?action=invest` |
+| [`/swap/`](file:///c:/Users/USER/Desktop/softjob/swap/index.html) | Instant cross-chain asset swap: real-time conversion rates (BTC, ETH, SOL, BNB, USDT), 0.5% fee transparency, execution ledger. | `api.php?action=swap` |
+| [`/transactions/`](file:///c:/Users/USER/Desktop/softjob/transactions/index.html) | Complete transaction history: filterable by deposits, withdrawals, yields, and trades; search by TX hash; instant CSV export. | `api.php?action=transactions` |
+| [`/profile/`](file:///c:/Users/USER/Desktop/softjob/profile/index.html) | Investor profile management, KYC Level 2 verification seal, password change, and security settings. | `api.php?action=update_profile` |
+| [`/referrals/`](file:///c:/Users/USER/Desktop/softjob/referrals/index.html) | 3-tier institutional affiliate program (5% / 2% / 1%), unique referral link copier, referred client list, and commission earnings. | Real User State |
+| [`/settings/`](file:///c:/Users/USER/Desktop/softjob/settings/index.html) | Platform settings: notification toggles, base currency selectors (USD, EUR, GBP, BTC), session auto-lock parameters. | Local Storage Sync |
+| [`/support/`](file:///c:/Users/USER/Desktop/softjob/support/index.html) | 24/7 Concierge desk: direct support email, VIP account manager contact, live Telegram link, interactive ticket creator. | Instant Ticket Desk |
+| [`/wallet-connect/`](file:///c:/Users/USER/Desktop/softjob/wallet-connect/index.html) | Web3 decentralized wallet connector: MetaMask, Trust Wallet, Phantom, and Coinbase Wallet sync. | Non-custodial Bridge |
+| [`/notifications/`](file:///c:/Users/USER/Desktop/softjob/notifications/index.html) | Real-time notification feed: transaction confirmations, dividend disbursements, security login alerts. | Event Feed |
+| [`/login/`](file:///c:/Users/USER/Desktop/softjob/login/index.html) | Client sign in portal: email and password authentication, quick-fill real account button, cPanel setup hub link. | `api.php?action=login` |
+| [`/register/`](file:///c:/Users/USER/Desktop/softjob/register/index.html) | New account registration: legal name, username, email, phone, auto-detected sponsor referral code. | `api.php?action=register` |
+| [`/forgot-password/`](file:///c:/Users/USER/Desktop/softjob/forgot-password/index.html) | Password recovery portal: automated reset instructions. | Reset Dispatcher |
+| [`/admin/`](file:///c:/Users/USER/Desktop/softjob/admin/index.html) | Administrative oversight: live database metrics, total deposit volume ($15,000), total payouts ($2,450), active accounts. | `api.php?action=admin_overview` |
+| [`/cpanelsetup/`](file:///c:/Users/USER/Desktop/softjob/cpanelsetup/index.php) | Administrative setup suite hub: environment checks, database diagnostic installer, cron worker, health API. | Protected Setup Token |
+| [`/about/`](file:///c:/Users/USER/Desktop/softjob/about/index.html) | Institutional background, algorithmic pillars, cold storage custody overview, platform volume statistics. | Static Institutional |
+| [`/faqs/`](file:///c:/Users/USER/Desktop/softjob/faqs/index.html) | Interactive knowledge base: yield generation mechanics, deposit/withdrawal thresholds, shared hosting specs. | Interactive Accordion |
+| [`/privacy/`](file:///c:/Users/USER/Desktop/softjob/privacy/index.html) | Data governance, cryptographic encryption, non-disclosure agreements, AML retention policy. | Legal Compliance |
+| [`/terms/`](file:///c:/Users/USER/Desktop/softjob/terms/index.html) | Terms of service, portfolio management agreements, fee structure, risk disclosures. | Legal Agreement |
+
+---
+
 ## Project Structure
 
 ```
-├── app/                  # Next.js App Router pages + 60+ API routes
-├── components/           # Reusable UI components
-├── sections/             # Marketing and dashboard section layouts
-├── lib/                  # Core services (db.js, auth.js, email.js, lifecycle.js, etc.)
-│   └── db.js             # Dual-driver DB adapter (MySQL & PostgreSQL Neon)
-├── public/               # Static public assets (images, icons, fonts)
-├── cpanelsetup/          # cPanel setup suite & monitoring tools
+├── index.html            # Universal startup file (pure CDN, zero npm dependency)
+├── api.php               # Universal REST API bridge to Neon PostgreSQL & MySQL
+├── assets/               # Unified shared assets
+│   ├── css/app.css       # Obsidian & coral design tokens, glassmorphism, marquee
+│   └── js/app-core.js    # Binance price feeds, real user state, transaction bridge
+├── dashboard/index.html  # Dedicated investor dashboard
+├── trading/index.html    # Dedicated live trading terminal
+├── deposit/index.html    # Dedicated deposit page with dynamic QR codes
+├── withdraw/index.html   # Dedicated withdrawal page with 2% fee calculator
+├── plans/index.html      # 5 Investment tiers & profit forecaster
+├── swap/index.html       # Instant crypto swap with live rates
+├── transactions/index.html # Full ledger with CSV export & filters
+├── profile/index.html    # User profile & Level 2 KYC manager
+├── referrals/index.html  # 3-tier affiliate program & referral link copier
+├── settings/index.html   # Account & notification preferences
+├── support/index.html    # 24/7 Concierge desk & ticket generator
+├── wallet-connect/index.html # Web3 wallet connector
+├── notifications/index.html # Real-time notification center
+├── login/index.html      # Client sign in portal
+├── register/index.html   # Account registration portal
+├── forgot-password/index.html # Password recovery portal
+├── admin/index.html      # Administrative oversight portal
+├── about/index.html      # Corporate background & volume statistics
+├── faqs/index.html       # Interactive knowledge base
+├── privacy/index.html    # Privacy policy
+├── terms/index.html      # Terms of service
+├── cpanelsetup/          # cPanel administrative suite & diagnostic tools
 │   ├── index.php         # Central startup hub & setup suite launchpad
 │   ├── db-install.php    # Web-based database installer (MySQL & PostgreSQL)
 │   ├── manager.php       # Web server and PM2 process manager
@@ -25,14 +91,11 @@ Premium Crypto Investment & Trading Platform — Next.js 16 fullstack applicatio
 │   ├── health.php        # JSON health & diagnostics API
 │   ├── mail-test.php     # SMTP mail diagnostic tool
 │   └── keepalive.php     # Route warming monitor
-├── ecosystem.config.js   # PM2 production process configuration
-├── server.js             # Next.js production HTTP server wrapper
-├── schema-mysql.sql      # Native cPanel MySQL / MariaDB production schema
-├── schema.sql            # PostgreSQL core schema (Neon)
-├── admin-schema.sql      # PostgreSQL admin schema (Neon)
-├── .htaccess             # Apache direct reverse proxy (PM2 port 3000) & static offload
+├── .htaccess             # Universal Apache & LiteSpeed rewrite rules & security denials
 ├── .user.ini / php.ini   # Shared hosting PHP configuration tuning
-└── package.json          # Project scripts and dependencies
+├── schema.sql            # PostgreSQL core schema (Neon)
+├── schema-mysql.sql      # Native cPanel MySQL / MariaDB schema
+└── ecosystem.config.js   # Optional PM2 production process configuration
 ```
 
 ---

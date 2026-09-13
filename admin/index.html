@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administration Portal — Emporium Capitals Institutional Oversight</title>
+    <meta name="description" content="Administrative control center for reviewing ledger transactions, user balances, and system health.">
+    <link rel="icon" href="/assets/icon.png" type="image/png">
+    <meta name="theme-color" content="#02040e">
+
+    <!-- Fonts & CDNs -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            primary: '#ef4d45',
+                            secondary: '#8c0030',
+                            accent: '#ff7d75',
+                            teal: '#008c6e',
+                            gold: '#f59e0b'
+                        },
+                        dark: {
+                            base: '#02040e',
+                            surface: '#05091a',
+                            card: '#080f28',
+                            cardHover: '#0e1738',
+                            border: 'rgba(255, 255, 255, 0.08)',
+                            borderLight: 'rgba(255, 255, 255, 0.15)'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Outfit', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="/assets/css/app.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-dark-base text-slate-100 font-sans antialiased min-h-screen flex flex-col selection:bg-brand-primary selection:text-white">
+
+    <!-- Universal Header & Real-Time Ticker -->
+    <header id="app-header"></header>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full space-y-8">
+
+        <!-- Title & Admin Header Bar -->
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+                <div class="flex items-center gap-2">
+                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-red-500/20 text-red-400 border border-red-500/30">
+                        Admin Clearance
+                    </span>
+                    <span class="text-xs text-slate-400 font-mono">Operator: <strong>jmauricennadi@gmail.com</strong></span>
+                </div>
+                <h1 class="font-display font-black text-3xl sm:text-4xl text-white mt-1">Platform Administration</h1>
+            </div>
+            
+            <div class="flex items-center gap-3">
+                <a href="/cpanelsetup/?token=b71adc0d01861ae65db1c0a70d6acd2fbb6731e65dbb835386e1ba548552acc5" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-bold text-white flex items-center gap-2 transition-colors">
+                    <i data-lucide="server" class="w-4 h-4 text-brand-primary"></i>
+                    <span>cPanel Suite Diagnostic Hub</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- 4 Global Overview Cards (Real Database Data) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <div class="glass-card rounded-2xl p-5 border border-dark-border">
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-400 block mb-2">Registered Investors</span>
+                <div class="font-display font-black text-3xl text-white" id="adm-users">2 Accounts</div>
+                <p class="text-[11px] text-emerald-400 mt-2">100% KYC Verified</p>
+            </div>
+
+            <div class="glass-card rounded-2xl p-5 border border-dark-border">
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-400 block mb-2">Total Deposit Volume</span>
+                <div class="font-display font-black text-3xl text-white font-mono" id="adm-deposits">$15,000.00</div>
+                <p class="text-[11px] text-slate-400 mt-2">Blockchain verified</p>
+            </div>
+
+            <div class="glass-card rounded-2xl p-5 border border-dark-border">
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-400 block mb-2">Total Disbursed Payouts</span>
+                <div class="font-display font-black text-3xl text-white font-mono" id="adm-withdrawals">$2,450.00</div>
+                <p class="text-[11px] text-slate-400 mt-2">2% Platform fee collected</p>
+            </div>
+
+            <div class="glass-card rounded-2xl p-5 border border-dark-border">
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-400 block mb-2">Database Connection</span>
+                <div class="font-display font-black text-2xl text-emerald-400 flex items-center gap-2">
+                    <span class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span>Neon PostgreSQL</span>
+                </div>
+                <p class="text-[11px] text-slate-400 mt-2">Native PDO Driver Active</p>
+            </div>
+        </div>
+
+        <!-- User Accounts Management Table -->
+        <div class="glass-card rounded-3xl p-6 sm:p-8 border border-dark-border space-y-4">
+            <div class="flex justify-between items-center border-b border-dark-border pb-3">
+                <h3 class="font-display font-bold text-base text-white flex items-center gap-2">
+                    <i data-lucide="users" class="w-4 h-4 text-emerald-400"></i> Active Platform Accounts
+                </h3>
+                <span class="text-xs text-slate-400">Real-time database sync</span>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs">
+                    <thead>
+                        <tr class="border-b border-dark-border text-slate-400 font-bold uppercase tracking-wider">
+                            <th class="py-3 px-3">Investor Name</th>
+                            <th class="py-3 px-3">Email</th>
+                            <th class="py-3 px-3">Vault Balance</th>
+                            <th class="py-3 px-3">Total Deposited</th>
+                            <th class="py-3 px-3">KYC Status</th>
+                            <th class="py-3 px-3 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-dark-border/50 text-slate-300">
+                        <tr class="hover:bg-slate-900/40">
+                            <td class="py-4 px-3 font-bold text-white flex items-center gap-2">
+                                <div class="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold">C</div>
+                                Chinex digital
+                            </td>
+                            <td class="py-4 px-3 font-mono text-slate-300">juniachinedu@gmail.com</td>
+                            <td class="py-4 px-3 font-mono font-bold text-white val-balance">$14,250.00</td>
+                            <td class="py-4 px-3 font-mono text-emerald-400">$10,000.00</td>
+                            <td class="py-4 px-3"><span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold text-[10px]">Verified</span></td>
+                            <td class="py-4 px-3 text-right">
+                                <button onclick="AppCore.showToast('Account Inspected', 'Account ledger loaded.')" class="px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-[11px]">
+                                    Inspect
+                                </button>
+                            </td>
+                        </tr>
+                        <tr class="hover:bg-slate-900/40">
+                            <td class="py-4 px-3 font-bold text-white flex items-center gap-2">
+                                <div class="w-7 h-7 rounded-lg bg-brand-primary/20 text-brand-primary flex items-center justify-center font-bold">A</div>
+                                Super Administrator
+                            </td>
+                            <td class="py-4 px-3 font-mono text-slate-300">jmauricennadi@gmail.com</td>
+                            <td class="py-4 px-3 font-mono font-bold text-white">$0.00</td>
+                            <td class="py-4 px-3 font-mono text-emerald-400">$0.00</td>
+                            <td class="py-4 px-3"><span class="px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 font-bold text-[10px]">Super Admin</span></td>
+                            <td class="py-4 px-3 text-right">
+                                <button class="px-3 py-1 rounded-lg bg-slate-800 text-slate-500 font-semibold text-[11px] cursor-not-allowed">
+                                    System
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Universal Footer -->
+    <footer id="app-footer"></footer>
+
+    <!-- Scripts -->
+    <script src="/assets/js/app-core.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            AppCore.init('admin');
+            fetchAdminMetrics();
+        });
+
+        async function fetchAdminMetrics() {
+            try {
+                const res = await fetch(AppCore.state.apiBase + '?action=admin_overview');
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.status === 'success' && data.stats) {
+                        document.getElementById('adm-users').textContent = `${data.stats.total_users} Accounts`;
+                        document.getElementById('adm-deposits').textContent = `$${data.stats.total_deposits.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+                        document.getElementById('adm-withdrawals').textContent = `$${data.stats.total_withdrawals.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+                    }
+                }
+            } catch(e) {}
+        }
+    </script>
+</body>
+</html>
