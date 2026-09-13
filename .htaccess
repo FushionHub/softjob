@@ -6,7 +6,6 @@
 # ==============================================================================
 
 Options -Indexes
-DirectoryIndex index.html index.php
 
 # ------------------------------------------------------------------------------
 # 1. Security Denials: Secrets, Source Code & Hidden Files
@@ -65,35 +64,34 @@ RedirectMatch 404 ^/\.next/(server|cache|types|BUILD_ID|export-marker\.json)(/|$
 </IfModule>
 
 # ------------------------------------------------------------------------------
-# 5. Universal Routing & LiteSpeed / Apache cPanel Compatibility
+# 5. Direct Reverse Proxy to PM2 Node.js (Port 3000)
 # ------------------------------------------------------------------------------
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    # 1. Direct access to cPanel setup & administration suite
+    # Optional HTTPS Enforcement (Uncomment if SSL is active)
+    # RewriteCond %{HTTPS} off
+    # RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+    # Direct access to cPanel management and setup suite in cpanelsetup/
     RewriteCond %{REQUEST_URI} ^/(cpanelsetup|cpanel)(/|$) [NC]
     RewriteRule ^ - [L]
 
-    # 2. Directly serve public directory assets (favicons, logos, icons)
+    # Directly serve Next.js static build chunks (_next/static/* -> .next/static/*)
+    RewriteCond %{DOCUMENT_ROOT}/.next/static/$1 -f
+    RewriteRule ^_next/static/(.*)$ .next/static/$1 [L]
+
+    # Directly serve public directory assets (favicons, public images, icons)
     RewriteCond %{DOCUMENT_ROOT}/public/$1 -f
     RewriteRule ^(.*)$ public/$1 [L]
 
-    # 3. Directly serve existing files and directories
-    RewriteCond %{REQUEST_FILENAME} -f [OR]
-    RewriteCond %{REQUEST_FILENAME} -d
-    RewriteRule ^ - [L]
-
-    # 4. Primary root startup file (universal index.html using CDN packages)
-    RewriteRule ^$ index.html [L]
-
-    # 5. SPA Client-Side Routing Fallback to index.html (Works on LiteSpeed, Apache, Nginx)
+    # Direct Reverse Proxy to PM2 Node.js application running on port 3000
+    RewriteRule ^$ http://127.0.0.1:3000/ [P,L]
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteCond %{REQUEST_URI} !^/(cpanelsetup|cpanel) [NC]
-    RewriteRule ^(.*)$ index.html [L]
+    RewriteRule ^(.*)$ http://127.0.0.1:3000/$1 [P,L]
 </IfModule>
 
 <IfModule mod_proxy.c>
-    # Optional reverse proxy header handling
     ProxyPassReverse / http://127.0.0.1:3000/
 </IfModule>
