@@ -1177,7 +1177,7 @@
                 profit: 0.00,
                 activeInvestments: 0.00,
                 withdrawn: 0.00,
-                refCode: 'CHINU1UM822'
+                refCode: ''
             },
             prices: {
                 BTC: 64820.50,
@@ -1512,7 +1512,7 @@
                         appState.user.balance = parseFloat(data.user.balance) || 0;
                         appState.user.profit = parseFloat(data.user.total_profit) || 0;
                         appState.user.withdrawn = parseFloat(data.user.total_withdrawal) || 0;
-                        appState.user.refCode = data.user.referral_code || 'CHINU1UM822';
+                        appState.user.refCode = data.user.referral_code || '';
                         updateDashboardUI();
                     }
                 }
@@ -1619,7 +1619,7 @@
             if (withBalEl) withBalEl.textContent = formattedBal;
             if (refLinkInput) {
                 const origin = window.location.origin || '';
-                refLinkInput.value = `${origin}/register/?ref=${appState.user.refCode || 'CHINU1UM822'}`;
+                refLinkInput.value = appState.user.refCode ? `${origin}/register/?ref=${appState.user.refCode}` : `${origin}/register/`;
             }
         }
 

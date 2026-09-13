@@ -22,7 +22,7 @@ const AppCore = (function () {
             total_deposit: 0.00,
             total_withdrawal: 0.00,
             kyc_status: 'verified',
-            referral_code: 'CHINU1UM822'
+            referral_code: ''
         },
         prices: {
             BTC: 0,
@@ -703,7 +703,7 @@ const AppCore = (function () {
                 }
             }
         } catch (e) {}
-        return { status: 'success', referral_code: state.user.referral_code || 'CHINU1UM822', total_referrals: 0, total_commission: 0, referrals: [] };
+        return { status: 'success', referral_code: state.user.referral_code || '', total_referrals: 0, total_commission: 0, referrals: [] };
     }
 
     // Fetch user profit history from real database
@@ -720,6 +720,14 @@ const AppCore = (function () {
         return [];
     }
 
+    function copyRefLink() {
+        const base = window.location.origin || '';
+        const code = state.user.referral_code || '';
+        const link = code ? `${base}/register/?ref=${code}` : `${base}/register/`;
+        navigator.clipboard.writeText(link);
+        showToast('Referral Link Copied', 'Your institutional 5% commission referral link is copied to clipboard.');
+    }
+
     function updateUI() {
         document.querySelectorAll('.val-balance').forEach(el => el.textContent = `$${state.user.balance.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`);
         document.querySelectorAll('.val-profit').forEach(el => el.textContent = `$${state.user.total_profit.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`);
@@ -729,12 +737,14 @@ const AppCore = (function () {
         document.querySelectorAll('.val-email').forEach(el => el.textContent = state.user.email);
         document.querySelectorAll('.val-phone').forEach(el => el.textContent = state.user.phone || 'Not set');
         document.querySelectorAll('.val-ref').forEach(el => {
-            if (el.tagName === 'INPUT') el.value = state.user.referral_code || 'CHINU1UM822';
-            else el.textContent = state.user.referral_code || 'CHINU1UM822';
+            const code = state.user.referral_code || '';
+            if (el.tagName === 'INPUT') el.value = code;
+            else el.textContent = code || 'N/A';
         });
         document.querySelectorAll('.val-reflink').forEach(el => {
             const base = window.location.origin || '';
-            const link = `${base}/register/?ref=${state.user.referral_code || 'CHINU1UM822'}`;
+            const code = state.user.referral_code || '';
+            const link = code ? `${base}/register/?ref=${code}` : `${base}/register/`;
             if (el.tagName === 'INPUT') el.value = link;
             else el.textContent = link;
         });
@@ -753,6 +763,7 @@ const AppCore = (function () {
         closeModal,
         changeDepositCurrency,
         copyAddress,
+        copyRefLink,
         executeDeposit,
         executeWithdrawal,
         executeInvest,

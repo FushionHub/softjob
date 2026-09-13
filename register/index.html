@@ -115,7 +115,7 @@
 
                 <div class="space-y-1.5">
                     <label class="text-xs font-semibold text-slate-300 block">Sponsor / Referral Code</label>
-                    <input type="text" id="reg-ref" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-emerald-400 font-mono outline-none focus:border-brand-primary" value="CHINU1UM822">
+                    <input type="text" id="reg-ref" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-emerald-400 font-mono outline-none focus:border-brand-primary" value="" placeholder="Referral Code (Optional)">
                 </div>
 
                 <div class="flex items-center gap-2 text-xs text-slate-400">
@@ -143,11 +143,11 @@
         document.addEventListener('DOMContentLoaded', () => {
             if (window.lucide) lucide.createIcons();
 
-            // Auto-detect referral query parameter (?ref=...)
+            // Auto-detect referral query parameter (?ref=... or ?r=...)
             const urlParams = new URLSearchParams(window.location.search);
-            const ref = urlParams.get('ref');
+            const ref = urlParams.get('ref') || urlParams.get('r');
             if (ref) {
-                document.getElementById('reg-ref').value = ref.toUpperCase();
+                document.getElementById('reg-ref').value = ref.toUpperCase().trim();
             }
         });
 

@@ -89,15 +89,28 @@ function getDbConnection($env) {
 $action = $_GET['action'] ?? '';
 $pdo = getDbConnection($env);
 
+// Helper to generate generic, unique referral code
+function generateGenericReferralCode($username = '', $seed = '') {
+    $prefix = 'REF';
+    if (!empty($username)) {
+        $clean = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', $username));
+        if (strlen($clean) >= 3) {
+            $prefix = substr($clean, 0, 4);
+        }
+    }
+    $rand = strtoupper(substr(bin2hex(random_bytes(4)), 0, 5));
+    return $prefix . $rand;
+}
+
 // Helper to look up user by email or ID
 function findUser($pdo, $identifier) {
     if (!$pdo || empty($identifier)) return null;
     try {
         if (is_numeric($identifier)) {
-            $stmt = $pdo->prepare("SELECT id, name, email, username, phone, balance, total_profit, total_deposit, total_withdrawal, kyc_status, referral_code, created_at FROM users WHERE id = ? LIMIT 1");
+            $stmt = $pdo->prepare("SELECT id, name, email, username, phone, balance, total_profit, total_bonus, total_deposit, total_withdrawal, kyc_status, referral_code, referrer, created_at FROM users WHERE id = ? LIMIT 1");
             $stmt->execute(array((int)$identifier));
         } else {
-            $stmt = $pdo->prepare("SELECT id, name, email, username, phone, balance, total_profit, total_deposit, total_withdrawal, kyc_status, referral_code, created_at FROM users WHERE LOWER(email) = LOWER(?) LIMIT 1");
+            $stmt = $pdo->prepare("SELECT id, name, email, username, phone, balance, total_profit, total_bonus, total_deposit, total_withdrawal, kyc_status, referral_code, referrer, created_at FROM users WHERE LOWER(email) = LOWER(?) LIMIT 1");
             $stmt->execute(array(trim($identifier)));
         }
         $u = $stmt->fetch();
@@ -105,8 +118,19 @@ function findUser($pdo, $identifier) {
             $u['id'] = (int)$u['id'];
             $u['balance'] = (float)$u['balance'];
             $u['total_profit'] = (float)$u['total_profit'];
+            $u['total_bonus'] = (float)($u['total_bonus'] ?? 0);
             $u['total_deposit'] = (float)$u['total_deposit'];
             $u['total_withdrawal'] = (float)$u['total_withdrawal'];
+            // If user has no referral code assigned, generate generic code and persist
+            if (empty($u['referral_code'])) {
+                $genCode = generateGenericReferralCode($u['username'], $u['id']);
+                try {
+                    $pdo->prepare("UPDATE users SET referral_code = ? WHERE id = ?")->execute(array($genCode, $u['id']));
+                    $u['referral_code'] = $genCode;
+                } catch (Exception $e) {
+                    $u['referral_code'] = $genCode;
+                }
+            }
             return $u;
         }
     } catch (Exception $e) {}
@@ -178,19 +202,21 @@ if ($action === 'user') {
     $user = findUser($pdo, $email);
 
     if (!$user) {
+        $username = strstr($email, '@', true) ?: 'user';
         // Return default empty state for unregistered address
         $user = array(
             'id' => 0,
             'name' => 'Investor',
             'email' => $email,
-            'username' => strstr($email, '@', true) ?: 'user',
+            'username' => $username,
             'phone' => '',
             'balance' => 0.00,
             'total_profit' => 0.00,
+            'total_bonus' => 0.00,
             'total_deposit' => 0.00,
             'total_withdrawal' => 0.00,
             'kyc_status' => 'none',
-            'referral_code' => 'INV' . strtoupper(substr(md5($email), 0, 6))
+            'referral_code' => generateGenericReferralCode($username, $email)
         );
     }
 
@@ -392,14 +418,100 @@ if ($action === 'deposit' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($pdo) {
         try {
-            $dStmt = $pdo->prepare("INSERT INTO deposits (user_id, amount, currency, tx_hash, status, created_at, updated_at) VALUES (?, ?, ?, ?, 'confirmed', NOW(), NOW())");
-            $dStmt->execute(array($user['id'], $amount, $currency, $txHash));
+            $dStmt = $pdo->prepare("INSERT INTO deposits (user_id, amount, payment, reference, currency, tx_hash, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, 'confirmed', NOW(), NOW())");
+            $dStmt->execute(array($user['id'], $amount, $currency, $txHash, $currency, $txHash));
 
             $upStmt = $pdo->prepare("UPDATE users SET balance = balance + ?, total_deposit = total_deposit + ?, updated_at = NOW() WHERE id = ?");
             $upStmt->execute(array($amount, $amount, $user['id']));
 
             $nStmt = $pdo->prepare("INSERT INTO notifications (user_id, title, message, type, is_read, created_at) VALUES (?, 'Deposit Confirmed', ?, 'deposit', false, NOW())");
             $nStmt->execute(array($user['id'], "+$" . number_format($amount, 2) . " {$currency} has been confirmed and credited to your vault."));
+
+            // --- REAL-TIME 3-TIER MULTI-LEVEL AFFILIATE SETTLEMENT ---
+            try {
+                // Resolve direct Tier 1 Referrer
+                $t1ReferrerId = null;
+                $rStmt = $pdo->prepare("SELECT referrer_id FROM referrals WHERE referred_id = ? LIMIT 1");
+                $rStmt->execute(array($user['id']));
+                $t1Row = $rStmt->fetch();
+                if ($t1Row && !empty($t1Row['referrer_id'])) {
+                    $t1ReferrerId = (int)$t1Row['referrer_id'];
+                } elseif (!empty($user['referrer'])) {
+                    $refLookup = $pdo->prepare("SELECT id FROM users WHERE UPPER(referral_code) = UPPER(?) OR LOWER(username) = LOWER(?) OR LOWER(email) = LOWER(?) LIMIT 1");
+                    $refLookup->execute(array($user['referrer'], $user['referrer'], $user['referrer']));
+                    $refUser = $refLookup->fetch();
+                    if ($refUser && (int)$refUser['id'] !== (int)$user['id']) {
+                        $t1ReferrerId = (int)$refUser['id'];
+                        try {
+                            $pdo->prepare("INSERT INTO referrals (referrer_id, referred_id, bonus_amount, status, created_at) VALUES (?, ?, 0.00, 'active', NOW())")->execute(array($t1ReferrerId, $user['id']));
+                        } catch (Exception $re) {}
+                    }
+                }
+
+                if ($t1ReferrerId && $t1ReferrerId !== (int)$user['id']) {
+                    // Tier 1 Direct Commission: 5.0%
+                    $t1Bonus = round($amount * 0.05, 2);
+                    if ($t1Bonus > 0) {
+                        $pdo->prepare("UPDATE users SET balance = balance + ?, total_profit = total_profit + ?, total_bonus = total_bonus + ?, updated_at = NOW() WHERE id = ?")->execute(array($t1Bonus, $t1Bonus, $t1Bonus, $t1ReferrerId));
+                        $pdo->prepare("UPDATE referrals SET bonus_amount = bonus_amount + ?, status = 'active' WHERE referrer_id = ? AND referred_id = ?")->execute(array($t1Bonus, $t1ReferrerId, $user['id']));
+                        $pdo->prepare("INSERT INTO profit_history (user_id, amount, type, description, created_at) VALUES (?, ?, 'referral_commission', ?, NOW())")->execute(array(
+                            $t1ReferrerId,
+                            $t1Bonus,
+                            "Tier 1 Affiliate Commission (5%) from {$user['name']} deposit of $" . number_format($amount, 2)
+                        ));
+                        $pdo->prepare("INSERT INTO notifications (user_id, title, message, type, is_read, created_at) VALUES (?, 'Affiliate Dividend Credited', ?, 'referral', false, NOW())")->execute(array(
+                            $t1ReferrerId,
+                            "+$" . number_format($t1Bonus, 2) . " USD (5% Tier 1) credited to your vault from {$user['name']}'s deposit."
+                        ));
+                    }
+
+                    // Tier 2 Sub-Affiliate Commission: 2.0%
+                    $t2Stmt = $pdo->prepare("SELECT referrer_id FROM referrals WHERE referred_id = ? LIMIT 1");
+                    $t2Stmt->execute(array($t1ReferrerId));
+                    $t2Row = $t2Stmt->fetch();
+                    $t2ReferrerId = ($t2Row && !empty($t2Row['referrer_id'])) ? (int)$t2Row['referrer_id'] : null;
+
+                    if ($t2ReferrerId && $t2ReferrerId !== (int)$user['id'] && $t2ReferrerId !== $t1ReferrerId) {
+                        $t2Bonus = round($amount * 0.02, 2);
+                        if ($t2Bonus > 0) {
+                            $pdo->prepare("UPDATE users SET balance = balance + ?, total_profit = total_profit + ?, total_bonus = total_bonus + ?, updated_at = NOW() WHERE id = ?")->execute(array($t2Bonus, $t2Bonus, $t2Bonus, $t2ReferrerId));
+                            $pdo->prepare("INSERT INTO profit_history (user_id, amount, type, description, created_at) VALUES (?, ?, 'referral_commission', ?, NOW())")->execute(array(
+                                $t2ReferrerId,
+                                $t2Bonus,
+                                "Tier 2 Sub-Affiliate Commission (2%) from {$user['name']} deposit of $" . number_format($amount, 2)
+                            ));
+                            $pdo->prepare("INSERT INTO notifications (user_id, title, message, type, is_read, created_at) VALUES (?, 'Tier 2 Affiliate Commission', ?, 'referral', false, NOW())")->execute(array(
+                                $t2ReferrerId,
+                                "+$" . number_format($t2Bonus, 2) . " USD (2% Tier 2) credited to your vault from extended network deposit."
+                            ));
+                        }
+
+                        // Tier 3 Extended Network Commission: 1.0%
+                        $t3Stmt = $pdo->prepare("SELECT referrer_id FROM referrals WHERE referred_id = ? LIMIT 1");
+                        $t3Stmt->execute(array($t2ReferrerId));
+                        $t3Row = $t3Stmt->fetch();
+                        $t3ReferrerId = ($t3Row && !empty($t3Row['referrer_id'])) ? (int)$t3Row['referrer_id'] : null;
+
+                        if ($t3ReferrerId && $t3ReferrerId !== (int)$user['id'] && $t3ReferrerId !== $t1ReferrerId && $t3ReferrerId !== $t2ReferrerId) {
+                            $t3Bonus = round($amount * 0.01, 2);
+                            if ($t3Bonus > 0) {
+                                $pdo->prepare("UPDATE users SET balance = balance + ?, total_profit = total_profit + ?, total_bonus = total_bonus + ?, updated_at = NOW() WHERE id = ?")->execute(array($t3Bonus, $t3Bonus, $t3Bonus, $t3ReferrerId));
+                                $pdo->prepare("INSERT INTO profit_history (user_id, amount, type, description, created_at) VALUES (?, ?, 'referral_commission', ?, NOW())")->execute(array(
+                                    $t3ReferrerId,
+                                    $t3Bonus,
+                                    "Tier 3 Extended Network Commission (1%) from {$user['name']} deposit of $" . number_format($amount, 2)
+                                ));
+                                $pdo->prepare("INSERT INTO notifications (user_id, title, message, type, is_read, created_at) VALUES (?, 'Tier 3 Affiliate Commission', ?, 'referral', false, NOW())")->execute(array(
+                                    $t3ReferrerId,
+                                    "+$" . number_format($t3Bonus, 2) . " USD (1% Tier 3) credited to your vault from extended network deposit."
+                                ));
+                            }
+                        }
+                    }
+                }
+            } catch (Exception $affEx) {
+                error_log('Affiliate processing error in api.php: ' . $affEx->getMessage());
+            }
         } catch (Exception $e) {
             http_response_code(500);
             echo json_encode(array('status' => 'error', 'message' => 'Database error recording deposit: ' . $e->getMessage()));
@@ -648,9 +760,47 @@ if ($action === 'register' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($pdo) {
         try {
             $hashed = password_hash($password, PASSWORD_BCRYPT);
-            $genRef = 'INV' . strtoupper(substr(md5(uniqid()), 0, 7));
-            $stmt = $pdo->prepare("INSERT INTO users (name, email, username, phone, password, referral_code, balance, total_profit, total_deposit, total_withdrawal, kyc_status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, 0.00, 0.00, 0.00, 0.00, 'verified', NOW(), NOW())");
-            $stmt->execute(array($name, $email, $username, $phone, $hashed, $genRef));
+            $genRef = generateGenericReferralCode($username, $email);
+
+            // Lookup referrer if refCode was provided
+            $referrerId = null;
+            $referrerUser = null;
+            $referrerStoredCode = null;
+            if (!empty($refCode)) {
+                $refCheck = $pdo->prepare("SELECT id, name, username, email, referral_code FROM users WHERE UPPER(referral_code) = UPPER(?) OR LOWER(username) = LOWER(?) OR LOWER(email) = LOWER(?) LIMIT 1");
+                $refCheck->execute(array($refCode, $refCode, $refCode));
+                $referrerUser = $refCheck->fetch();
+                if ($referrerUser) {
+                    $referrerId = (int)$referrerUser['id'];
+                    $referrerStoredCode = $referrerUser['referral_code'] ?: $referrerUser['username'];
+                }
+            }
+
+            $stmt = $pdo->prepare("INSERT INTO users (name, email, username, phone, password, referrer, referral_code, balance, total_profit, total_bonus, total_deposit, total_withdrawal, kyc_status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, 0.00, 0.00, 0.00, 0.00, 0.00, 'verified', NOW(), NOW())");
+            $stmt->execute(array($name, $email, $username, $phone, $hashed, $referrerStoredCode, $genRef));
+
+            $newUserId = (int)$pdo->lastInsertId();
+            if (!$newUserId) {
+                $createdLookup = $pdo->prepare("SELECT id FROM users WHERE LOWER(email) = LOWER(?) LIMIT 1");
+                $createdLookup->execute(array($email));
+                $newUserId = (int)($createdLookup->fetch()['id'] ?? 0);
+            }
+
+            // Real-Time Affiliate Linking & Notifications
+            if ($referrerId && $newUserId && $referrerId !== $newUserId) {
+                try {
+                    $refInsert = $pdo->prepare("INSERT INTO referrals (referrer_id, referred_id, bonus_amount, status, created_at) VALUES (?, ?, 0.00, 'active', NOW())");
+                    $refInsert->execute(array($referrerId, $newUserId));
+                } catch (Exception $re) {}
+
+                try {
+                    $notifStmt = $pdo->prepare("INSERT INTO notifications (user_id, title, message, type, is_read, created_at) VALUES (?, 'New Referral Registered', ?, 'referral', false, NOW())");
+                    $notifStmt->execute(array($referrerId, "{$name} (@{$username}) has joined via your referral link. You will earn 5% instantly on all their deposits."));
+
+                    $welcomeNotif = $pdo->prepare("INSERT INTO notifications (user_id, title, message, type, is_read, created_at) VALUES (?, 'Welcome to Emporium Capitals', ?, 'referral', false, NOW())");
+                    $welcomeNotif->execute(array($newUserId, "Welcome! You joined via partner @{$referrerUser['username']}. Deposit to start investing and generating yields."));
+                } catch (Exception $ne) {}
+            }
         } catch (Exception $e) {
             http_response_code(500);
             echo json_encode(array('status' => 'error', 'message' => 'Error creating account: ' . $e->getMessage()));
@@ -721,11 +871,13 @@ if ($action === 'referrals') {
     $user = findUser($pdo, $email);
     $referrals = array();
     $totalCommission = 0.0;
+    $activeCount = 0;
     
     if ($pdo && $user) {
         try {
             $stmt = $pdo->prepare("
-                SELECT r.id, u.name, u.username, u.email, r.bonus_amount, r.status, r.created_at
+                SELECT r.id, u.id AS referred_user_id, u.name, u.username, u.email, r.bonus_amount, r.status, r.created_at,
+                       COALESCE((SELECT SUM(d.amount) FROM deposits d WHERE d.user_id = u.id AND d.status = 'confirmed'), 0) AS total_deposited
                 FROM referrals r
                 JOIN users u ON r.referred_id = u.id
                 WHERE r.referrer_id = ?
@@ -735,25 +887,35 @@ if ($action === 'referrals') {
             $rows = $stmt->fetchAll();
             foreach ($rows as $r) {
                 $comm = (float)($r['bonus_amount'] ?? 0);
+                $dep = (float)($r['total_deposited'] ?? 0);
                 $totalCommission += $comm;
+                $isAct = ($dep > 0 || $comm > 0 || ($r['status'] ?? '') === 'active');
+                if ($isAct) $activeCount++;
                 $referrals[] = array(
                     'id' => (int)$r['id'],
                     'name' => $r['name'],
                     'username' => $r['username'],
                     'tier' => 'Tier 1 (5%)',
+                    'deposit' => $dep,
                     'commission' => $comm,
-                    'status' => $r['status'] ?: 'active',
+                    'status' => $isAct ? 'active' : 'registered',
                     'created_at' => $r['created_at']
                 );
             }
         } catch (Exception $e) {}
     }
 
+    $userBonus = (float)($user['total_bonus'] ?? 0);
+    $finalCommission = max($totalCommission, $userBonus);
+    $refCode = $user['referral_code'] ?? generateGenericReferralCode($user['username'] ?? 'USER', $email);
+
     echo json_encode(array(
         'status' => 'success',
-        'referral_code' => $user['referral_code'] ?? 'CHINU1UM822',
+        'referral_code' => $refCode,
+        'referral_link' => '/register/?ref=' . $refCode,
         'total_referrals' => count($referrals),
-        'total_commission' => $totalCommission,
+        'active_referrals' => $activeCount,
+        'total_commission' => $finalCommission,
         'referrals' => $referrals
     ));
     exit;

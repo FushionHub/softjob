@@ -194,11 +194,23 @@
         async function loadReferralsData() {
             const data = await AppCore.getRealReferrals();
             const countEl = document.getElementById('ref-count-val');
+            const activeEl = document.getElementById('ref-active-val');
             const commEl = document.getElementById('ref-comm-val');
+            const linkInput = document.getElementById('page-reflink');
             const tbody = document.getElementById('referrals-tbody');
 
+            if (data.referral_code) {
+                AppCore.state.user.referral_code = data.referral_code;
+                AppCore.updateUI();
+            }
+
             if (countEl) countEl.textContent = `${data.total_referrals || 0} Investors`;
+            if (activeEl) activeEl.textContent = `${data.active_referrals || 0} Active Depositors`;
             if (commEl) commEl.textContent = `$${(data.total_commission || 0).toFixed(2)}`;
+            if (linkInput && data.referral_code) {
+                const base = window.location.origin || '';
+                linkInput.value = `${base}/register/?ref=${data.referral_code}`;
+            }
 
             if (!tbody) return;
 
@@ -210,11 +222,11 @@
             tbody.innerHTML = data.referrals.map(r => `
                 <tr class="hover:bg-slate-900/40">
                     <td class="py-3.5 px-3 font-bold text-white">${r.name || r.username || 'Investor'} (${r.username || 'user'})</td>
-                    <td class="py-3.5 px-3 text-brand-primary font-bold">${r.tier || 'Tier 1'}</td>
+                    <td class="py-3.5 px-3 text-brand-primary font-bold">${r.tier || 'Tier 1 (5%)'}</td>
                     <td class="py-3.5 px-3 font-mono text-white">$${(r.deposit || 0).toFixed(2)}</td>
                     <td class="py-3.5 px-3 font-mono font-bold text-emerald-400">+$${(r.commission || 0).toFixed(2)}</td>
                     <td class="py-3.5 px-3 text-slate-400">${r.created_at ? new Date(r.created_at).toLocaleDateString() : 'Active'}</td>
-                    <td class="py-3.5 px-3 text-right"><span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold capitalize">${r.status || 'Active'}</span></td>
+                    <td class="py-3.5 px-3 text-right"><span class="px-2 py-0.5 rounded-full ${r.status === 'active' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-500/20 text-slate-400'} font-bold capitalize">${r.status || 'Active'}</span></td>
                 </tr>
             `).join('');
             if (window.lucide) lucide.createIcons();
@@ -222,7 +234,7 @@
         window.reloadPageData = loadReferralsData;
 
         function copyPageRefLink() {
-            const link = document.getElementById('page-reflink').value;
+            const link = document.getElementById('page-reflink').value || `${window.location.origin}/register/?ref=${AppCore.state.user.referral_code || ''}`;
             navigator.clipboard.writeText(link);
             AppCore.showToast('Referral Link Copied', 'Your 5% commission referral link is copied to clipboard.');
         }
