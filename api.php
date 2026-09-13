@@ -89,6 +89,12 @@ function getDbConnection($env) {
 $action = $_GET['action'] ?? '';
 $pdo = getDbConnection($env);
 
+// Default Primary Identity from .env
+$defaultEmail = trim($env['DEFAULT_USER_EMAIL'] ?? 'juniachinedu@gmail.com');
+$defaultName = trim($env['DEFAULT_USER_NAME'] ?? 'Chinex digital');
+$defaultUsername = trim($env['DEFAULT_USER_USERNAME'] ?? 'Chinex');
+$defaultPhone = trim($env['DEFAULT_USER_PHONE'] ?? '08100167556');
+
 // Helper to generate generic, unique referral code
 function generateGenericReferralCode($username = '', $seed = '') {
     $prefix = 'REF';
@@ -137,23 +143,26 @@ function findUser($pdo, $identifier) {
     return null;
 }
 
-// 1. CONFIG & SYSTEM SETTINGS
+// 1. CONFIG & SYSTEM SETTINGS (Driven dynamically by .env)
 if ($action === 'config') {
     $settings = array(
-        'site_name' => 'Emporium Capitals',
-        'site_tagline' => 'Institutional Algorithmic Liquidity & Crypto Portfolios',
-        'support_email' => 'support@emporiumcapitals.com',
-        'min_deposit' => 50.0,
-        'max_deposit' => 500000.0,
-        'min_withdrawal' => 50.0,
-        'max_withdrawal' => 100000.0,
-        'withdrawal_fee' => 2.0,
-        'swap_fee' => 0.5,
-        'referral_bonus' => 5.0,
+        'site_name' => $env['SITE_NAME'] ?? 'Emporium Capitals',
+        'site_tagline' => $env['SITE_TAGLINE'] ?? 'Institutional Algorithmic Liquidity & Crypto Portfolios',
+        'support_email' => $env['SUPPORT_EMAIL'] ?? 'support@emporiumcapitals.com',
+        'min_deposit' => (float)($env['MIN_DEPOSIT'] ?? 50.0),
+        'max_deposit' => (float)($env['MAX_DEPOSIT'] ?? 500000.0),
+        'min_withdrawal' => (float)($env['MIN_WITHDRAWAL'] ?? 50.0),
+        'max_withdrawal' => (float)($env['MAX_WITHDRAWAL'] ?? 100000.0),
+        'withdrawal_fee' => (float)($env['WITHDRAWAL_FEE'] ?? 2.0),
+        'swap_fee' => (float)($env['SWAP_FEE'] ?? 0.5),
+        'referral_bonus' => (float)($env['REFERRAL_BONUS_TIER1'] ?? 5.0),
+        'referral_bonus_tier1' => (float)($env['REFERRAL_BONUS_TIER1'] ?? 5.0),
+        'referral_bonus_tier2' => (float)($env['REFERRAL_BONUS_TIER2'] ?? 2.0),
+        'referral_bonus_tier3' => (float)($env['REFERRAL_BONUS_TIER3'] ?? 1.0),
         'deposit_addresses' => array(
-            'USDT' => 'T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb',
-            'BTC'  => 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
-            'ETH'  => '0x71C836eB3F3d44F6bF0Fe331d279148d4b3bEAc2'
+            'USDT' => $env['USDT_DEPOSIT_ADDRESS'] ?? 'T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb',
+            'BTC'  => $env['BTC_DEPOSIT_ADDRESS'] ?? 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
+            'ETH'  => $env['ETH_DEPOSIT_ADDRESS'] ?? '0x71C836eB3F3d44F6bF0Fe331d279148d4b3bEAc2'
         ),
         'bachs_active' => !empty($env['BACHS_API_KEY']),
         'database_connected' => ($pdo !== null)
@@ -198,18 +207,20 @@ if ($action === 'plans') {
 
 // 3. USER DETAILS & BALANCES (Real Database Query)
 if ($action === 'user') {
-    $email = $_GET['email'] ?? 'juniachinedu@gmail.com';
+    $email = trim($_GET['email'] ?? $defaultEmail);
     $user = findUser($pdo, $email);
 
     if (!$user) {
-        $username = strstr($email, '@', true) ?: 'user';
+        $username = ($email === $defaultEmail) ? $defaultUsername : (strstr($email, '@', true) ?: 'user');
+        $name = ($email === $defaultEmail) ? $defaultName : 'Investor';
+        $phone = ($email === $defaultEmail) ? $defaultPhone : '';
         // Return default empty state for unregistered address
         $user = array(
             'id' => 0,
-            'name' => 'Investor',
+            'name' => $name,
             'email' => $email,
             'username' => $username,
-            'phone' => '',
+            'phone' => $phone,
             'balance' => 0.00,
             'total_profit' => 0.00,
             'total_bonus' => 0.00,
@@ -226,7 +237,7 @@ if ($action === 'user') {
 
 // 4. TRANSACTIONS (Real Unified Database Ledger)
 if ($action === 'transactions') {
-    $email = $_GET['email'] ?? 'juniachinedu@gmail.com';
+    $email = trim($_GET['email'] ?? $defaultEmail);
     $user = findUser($pdo, $email);
     $txs = array();
 
@@ -270,7 +281,7 @@ if ($action === 'transactions') {
 
 // 5. ACTIVE USER INVESTMENTS
 if ($action === 'investments') {
-    $email = $_GET['email'] ?? 'juniachinedu@gmail.com';
+    $email = trim($_GET['email'] ?? $defaultEmail);
     $user = findUser($pdo, $email);
     $investments = array();
 
@@ -306,7 +317,7 @@ if ($action === 'investments') {
 
 // 6. USER TRADES HISTORY
 if ($action === 'trades') {
-    $email = $_GET['email'] ?? 'juniachinedu@gmail.com';
+    $email = trim($_GET['email'] ?? $defaultEmail);
     $user = findUser($pdo, $email);
     $trades = array();
 
@@ -338,7 +349,7 @@ if ($action === 'trades') {
 
 // 7. USER SWAPS HISTORY
 if ($action === 'swaps') {
-    $email = $_GET['email'] ?? 'juniachinedu@gmail.com';
+    $email = trim($_GET['email'] ?? $defaultEmail);
     $user = findUser($pdo, $email);
     $swaps = array();
 
@@ -369,7 +380,7 @@ if ($action === 'swaps') {
 
 // 8. USER NOTIFICATIONS
 if ($action === 'notifications') {
-    $email = $_GET['email'] ?? 'juniachinedu@gmail.com';
+    $email = trim($_GET['email'] ?? $defaultEmail);
     $user = findUser($pdo, $email);
     $notifs = array();
 
@@ -401,11 +412,12 @@ if ($action === 'deposit' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $amount = (float)($input['amount'] ?? 0);
     $currency = trim($input['currency'] ?? 'USDT');
     $txHash = trim($input['tx_hash'] ?? ('TX-' . strtoupper(substr(md5(uniqid()), 0, 12))));
-    $email = trim($input['email'] ?? 'juniachinedu@gmail.com');
+    $email = trim($input['email'] ?? $defaultEmail);
+    $minDep = (float)($env['MIN_DEPOSIT'] ?? 10.0);
 
-    if ($amount < 10) {
+    if ($amount < $minDep) {
         http_response_code(400);
-        echo json_encode(array('status' => 'error', 'message' => 'Minimum deposit amount is $10.00 USD.'));
+        echo json_encode(array('status' => 'error', 'message' => "Minimum deposit amount is \${$minDep} USD."));
         exit;
     }
 
@@ -449,61 +461,64 @@ if ($action === 'deposit' && $_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
 
                 if ($t1ReferrerId && $t1ReferrerId !== (int)$user['id']) {
-                    // Tier 1 Direct Commission: 5.0%
-                    $t1Bonus = round($amount * 0.05, 2);
+                    // Tier 1 Direct Commission: Driven by .env REFERRAL_BONUS_TIER1
+                    $t1Rate = ((float)($env['REFERRAL_BONUS_TIER1'] ?? 5.0)) / 100.0;
+                    $t1Bonus = round($amount * $t1Rate, 2);
                     if ($t1Bonus > 0) {
                         $pdo->prepare("UPDATE users SET balance = balance + ?, total_profit = total_profit + ?, total_bonus = total_bonus + ?, updated_at = NOW() WHERE id = ?")->execute(array($t1Bonus, $t1Bonus, $t1Bonus, $t1ReferrerId));
                         $pdo->prepare("UPDATE referrals SET bonus_amount = bonus_amount + ?, status = 'active' WHERE referrer_id = ? AND referred_id = ?")->execute(array($t1Bonus, $t1ReferrerId, $user['id']));
                         $pdo->prepare("INSERT INTO profit_history (user_id, amount, type, description, created_at) VALUES (?, ?, 'referral_commission', ?, NOW())")->execute(array(
                             $t1ReferrerId,
                             $t1Bonus,
-                            "Tier 1 Affiliate Commission (5%) from {$user['name']} deposit of $" . number_format($amount, 2)
+                            "Tier 1 Affiliate Commission (" . ($t1Rate * 100) . "%) from {$user['name']} deposit of $" . number_format($amount, 2)
                         ));
                         $pdo->prepare("INSERT INTO notifications (user_id, title, message, type, is_read, created_at) VALUES (?, 'Affiliate Dividend Credited', ?, 'referral', false, NOW())")->execute(array(
                             $t1ReferrerId,
-                            "+$" . number_format($t1Bonus, 2) . " USD (5% Tier 1) credited to your vault from {$user['name']}'s deposit."
+                            "+$" . number_format($t1Bonus, 2) . " USD (" . ($t1Rate * 100) . "% Tier 1) credited to your vault from {$user['name']}'s deposit."
                         ));
                     }
 
-                    // Tier 2 Sub-Affiliate Commission: 2.0%
+                    // Tier 2 Sub-Affiliate Commission: Driven by .env REFERRAL_BONUS_TIER2
                     $t2Stmt = $pdo->prepare("SELECT referrer_id FROM referrals WHERE referred_id = ? LIMIT 1");
                     $t2Stmt->execute(array($t1ReferrerId));
                     $t2Row = $t2Stmt->fetch();
                     $t2ReferrerId = ($t2Row && !empty($t2Row['referrer_id'])) ? (int)$t2Row['referrer_id'] : null;
 
                     if ($t2ReferrerId && $t2ReferrerId !== (int)$user['id'] && $t2ReferrerId !== $t1ReferrerId) {
-                        $t2Bonus = round($amount * 0.02, 2);
+                        $t2Rate = ((float)($env['REFERRAL_BONUS_TIER2'] ?? 2.0)) / 100.0;
+                        $t2Bonus = round($amount * $t2Rate, 2);
                         if ($t2Bonus > 0) {
                             $pdo->prepare("UPDATE users SET balance = balance + ?, total_profit = total_profit + ?, total_bonus = total_bonus + ?, updated_at = NOW() WHERE id = ?")->execute(array($t2Bonus, $t2Bonus, $t2Bonus, $t2ReferrerId));
                             $pdo->prepare("INSERT INTO profit_history (user_id, amount, type, description, created_at) VALUES (?, ?, 'referral_commission', ?, NOW())")->execute(array(
                                 $t2ReferrerId,
                                 $t2Bonus,
-                                "Tier 2 Sub-Affiliate Commission (2%) from {$user['name']} deposit of $" . number_format($amount, 2)
+                                "Tier 2 Sub-Affiliate Commission (" . ($t2Rate * 100) . "%) from {$user['name']} deposit of $" . number_format($amount, 2)
                             ));
                             $pdo->prepare("INSERT INTO notifications (user_id, title, message, type, is_read, created_at) VALUES (?, 'Tier 2 Affiliate Commission', ?, 'referral', false, NOW())")->execute(array(
                                 $t2ReferrerId,
-                                "+$" . number_format($t2Bonus, 2) . " USD (2% Tier 2) credited to your vault from extended network deposit."
+                                "+$" . number_format($t2Bonus, 2) . " USD (" . ($t2Rate * 100) . "% Tier 2) credited to your vault from extended network deposit."
                             ));
                         }
 
-                        // Tier 3 Extended Network Commission: 1.0%
+                        // Tier 3 Extended Network Commission: Driven by .env REFERRAL_BONUS_TIER3
                         $t3Stmt = $pdo->prepare("SELECT referrer_id FROM referrals WHERE referred_id = ? LIMIT 1");
                         $t3Stmt->execute(array($t2ReferrerId));
                         $t3Row = $t3Stmt->fetch();
                         $t3ReferrerId = ($t3Row && !empty($t3Row['referrer_id'])) ? (int)$t3Row['referrer_id'] : null;
 
                         if ($t3ReferrerId && $t3ReferrerId !== (int)$user['id'] && $t3ReferrerId !== $t1ReferrerId && $t3ReferrerId !== $t2ReferrerId) {
-                            $t3Bonus = round($amount * 0.01, 2);
+                            $t3Rate = ((float)($env['REFERRAL_BONUS_TIER3'] ?? 1.0)) / 100.0;
+                            $t3Bonus = round($amount * $t3Rate, 2);
                             if ($t3Bonus > 0) {
                                 $pdo->prepare("UPDATE users SET balance = balance + ?, total_profit = total_profit + ?, total_bonus = total_bonus + ?, updated_at = NOW() WHERE id = ?")->execute(array($t3Bonus, $t3Bonus, $t3Bonus, $t3ReferrerId));
                                 $pdo->prepare("INSERT INTO profit_history (user_id, amount, type, description, created_at) VALUES (?, ?, 'referral_commission', ?, NOW())")->execute(array(
                                     $t3ReferrerId,
                                     $t3Bonus,
-                                    "Tier 3 Extended Network Commission (1%) from {$user['name']} deposit of $" . number_format($amount, 2)
+                                    "Tier 3 Extended Network Commission (" . ($t3Rate * 100) . "%) from {$user['name']} deposit of $" . number_format($amount, 2)
                                 ));
                                 $pdo->prepare("INSERT INTO notifications (user_id, title, message, type, is_read, created_at) VALUES (?, 'Tier 3 Affiliate Commission', ?, 'referral', false, NOW())")->execute(array(
                                     $t3ReferrerId,
-                                    "+$" . number_format($t3Bonus, 2) . " USD (1% Tier 3) credited to your vault from extended network deposit."
+                                    "+$" . number_format($t3Bonus, 2) . " USD (" . ($t3Rate * 100) . "% Tier 3) credited to your vault from extended network deposit."
                                 ));
                             }
                         }
@@ -529,17 +544,102 @@ if ($action === 'deposit' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     exit;
 }
 
+// 9b. BACHS.IO ALTERNATIVE PAYMENT CHECKOUT
+if ($action === 'bachs_checkout' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $input = json_decode(file_get_contents('php://input'), true);
+    $amount = (float)($input['amount'] ?? 100.0);
+    $email = trim($input['email'] ?? $defaultEmail);
+    $paymentMethod = trim($input['payment_method'] ?? 'bachs-hosted');
+
+    if ($amount < 10.0) {
+        http_response_code(400);
+        echo json_encode(array('status' => 'error', 'message' => 'Minimum deposit is $10.00 USD.'));
+        exit;
+    }
+
+    $bachsKey = $env['BACHS_API_KEY'] ?? '';
+    $bachsBase = $env['BACHS_API_BASE'] ?? 'https://api.bachs.io';
+    $reference = 'BACHS-' . strtoupper(substr(bin2hex(random_bytes(6)), 0, 12));
+
+    $user = findUser($pdo, $email);
+    $userId = $user ? $user['id'] : 1;
+    $userName = $user['name'] ?? $defaultName;
+
+    // Record pending deposit in database
+    if ($pdo) {
+        try {
+            $stmt = $pdo->prepare("INSERT INTO deposits (user_id, amount, type, payment, reference, status, created_at) VALUES (?, ?, 'deposit', ?, ?, 'pending', NOW())");
+            $stmt->execute(array($userId, $amount, $paymentMethod, $reference));
+
+            $notifStmt = $pdo->prepare("INSERT INTO notifications (user_id, title, message, type, is_read, created_at) VALUES (?, 'Deposit Checkout Created', ?, 'info', false, NOW())");
+            $notifStmt->execute(array($userId, "Your $" . number_format($amount, 2) . " deposit checkout ({$reference}) via Bachs.io alternative payment is open."));
+        } catch (Exception $e) {}
+    }
+
+    $checkoutUrl = "https://bachs.io";
+    if (!empty($bachsKey) && function_exists('curl_init')) {
+        $ch = curl_init("{$bachsBase}/v1/checkout-sessions");
+        $payload = json_encode(array(
+            'pricing' => array(
+                'amount' => number_format($amount, 2, '.', ''),
+                'currency' => 'USD',
+                'price_type' => 'fixed'
+            ),
+            'customer' => array(
+                'email' => $email,
+                'name' => $userName
+            ),
+            'reference' => $reference,
+            'metadata' => array(
+                'user_id' => (string)$userId,
+                'payment_method' => $paymentMethod
+            ),
+            'expires_in_minutes' => 60
+        ));
+        curl_setopt_array($ch, array(
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => $payload,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HTTPHEADER => array(
+                "Authorization: Bearer {$bachsKey}",
+                "Content-Type: application/json"
+            ),
+            CURLOPT_TIMEOUT => 10
+        ));
+        $resp = curl_exec($ch);
+        if ($resp) {
+            $json = json_decode($resp, true);
+            if (!empty($json['checkout_url'])) {
+                $checkoutUrl = $json['checkout_url'];
+            } elseif (!empty($json['url'])) {
+                $checkoutUrl = $json['url'];
+            }
+        }
+        curl_close($ch);
+    }
+
+    echo json_encode(array(
+        'status' => 'success',
+        'checkout_url' => $checkoutUrl,
+        'reference' => $reference,
+        'amount' => $amount,
+        'message' => 'Bachs.io alternative payment session created.'
+    ));
+    exit;
+}
+
 // 10. PROCESS WITHDRAWAL (Real Balance Check & Real Database Insert)
 if ($action === 'withdraw' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $input = json_decode(file_get_contents('php://input'), true);
     $amount = (float)($input['amount'] ?? 0);
     $address = trim($input['address'] ?? '');
     $currency = trim($input['currency'] ?? 'USDT');
-    $email = trim($input['email'] ?? 'juniachinedu@gmail.com');
+    $email = trim($input['email'] ?? $defaultEmail);
+    $minWith = (float)($env['MIN_WITHDRAWAL'] ?? 10.0);
 
-    if ($amount < 10) {
+    if ($amount < $minWith) {
         http_response_code(400);
-        echo json_encode(array('status' => 'error', 'message' => 'Minimum withdrawal amount is $10.00 USD.'));
+        echo json_encode(array('status' => 'error', 'message' => "Minimum withdrawal amount is \${$minWith} USD."));
         exit;
     }
     if (empty($address)) {
@@ -592,7 +692,7 @@ if ($action === 'invest' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $input = json_decode(file_get_contents('php://input'), true);
     $planId = (int)($input['plan_id'] ?? 1);
     $amount = (float)($input['amount'] ?? 100);
-    $email = trim($input['email'] ?? 'juniachinedu@gmail.com');
+    $email = trim($input['email'] ?? $defaultEmail);
 
     $user = findUser($pdo, $email);
     if (!$user) {
@@ -641,7 +741,7 @@ if ($action === 'trade' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $amount = (float)($input['amount'] ?? 100);
     $entryPrice = (float)($input['entry_price'] ?? 64820.0);
     $exitPrice = (float)($input['exit_price'] ?? ($entryPrice * ($type === 'CALL' ? 1.002 : 0.998)));
-    $email = trim($input['email'] ?? 'juniachinedu@gmail.com');
+    $email = trim($input['email'] ?? $defaultEmail);
 
     $profit = round($amount * 0.85, 2);
     $user = findUser($pdo, $email);
@@ -682,8 +782,8 @@ if ($action === 'swap' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $fromAmount = (float)($input['from_amount'] ?? 100);
     $toAmount = (float)($input['to_amount'] ?? 0.0015);
     $rate = (float)($input['rate'] ?? ($toAmount / ($fromAmount ?: 1)));
-    $fee = round($fromAmount * 0.005, 4);
-    $email = trim($input['email'] ?? 'juniachinedu@gmail.com');
+    $fee = round($fromAmount * ((float)($env['SWAP_FEE'] ?? 0.5)) / 100.0, 4);
+    $email = trim($input['email'] ?? $defaultEmail);
 
     $user = findUser($pdo, $email);
     if ($pdo && $user) {
@@ -823,7 +923,7 @@ if ($action === 'update_profile' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $input = json_decode(file_get_contents('php://input'), true);
     $name = trim($input['name'] ?? '');
     $phone = trim($input['phone'] ?? '');
-    $email = trim($input['email'] ?? 'juniachinedu@gmail.com');
+    $email = trim($input['email'] ?? $defaultEmail);
 
     if ($pdo && !empty($name)) {
         try {
@@ -867,7 +967,7 @@ if ($action === 'admin_overview') {
 
 // 18. USER REFERRALS
 if ($action === 'referrals') {
-    $email = $_GET['email'] ?? 'juniachinedu@gmail.com';
+    $email = trim($_GET['email'] ?? $defaultEmail);
     $user = findUser($pdo, $email);
     $referrals = array();
     $totalCommission = 0.0;
@@ -923,7 +1023,7 @@ if ($action === 'referrals') {
 
 // 19. PROFIT HISTORY
 if ($action === 'profit_history') {
-    $email = $_GET['email'] ?? 'juniachinedu@gmail.com';
+    $email = trim($_GET['email'] ?? $defaultEmail);
     $user = findUser($pdo, $email);
     $profits = array();
 

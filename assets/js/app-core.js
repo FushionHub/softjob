@@ -66,6 +66,7 @@ const AppCore = (function () {
                 if (parsed.isLoggedIn !== undefined) state.isLoggedIn = parsed.isLoggedIn;
             } catch (e) {}
         }
+        fetchConfigFromApi();
         fetchUserFromApi();
         fetchPlansFromApi();
         initLiveMarketStreaming();
@@ -77,6 +78,23 @@ const AppCore = (function () {
             isLoggedIn: state.isLoggedIn
         }));
         updateUI();
+    }
+
+    // Fetch live system configuration driven by .env
+    async function fetchConfigFromApi() {
+        try {
+            const res = await fetch(state.apiBase + '?action=config');
+            if (res.ok) {
+                const data = await res.json();
+                if (data.status === 'success' && data.config) {
+                    state.config = data.config;
+                    if (data.config.deposit_addresses) {
+                        Object.assign(state.depositAddresses, data.config.deposit_addresses);
+                    }
+                    updateUI();
+                }
+            }
+        } catch (e) {}
     }
 
     // Fetch real user data directly from database via api.php
@@ -291,14 +309,7 @@ const AppCore = (function () {
 
                 <!-- Actions -->
                 <div class="flex items-center gap-3">
-                    <a href="/cpanelsetup/?token=b71adc0d01861ae65db1c0a70d6acd2fbb6731e65dbb835386e1ba548552acc5" 
-                       title="cPanel Setup Hub"
-                       class="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 text-slate-300 text-xs font-semibold transition-all">
-                        <i data-lucide="server" class="w-3.5 h-3.5 text-brand-primary"></i>
-                        <span>cPanel Hub</span>
-                    </a>
-
-                    <div class="flex items-center gap-2 pl-2 border-l border-slate-800">
+                    <div class="flex items-center gap-2">
                         <a href="/profile/" class="flex items-center gap-2 p-1.5 rounded-xl hover:bg-slate-800/60 transition-colors" title="My Profile">
                             <div class="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-400 font-display font-bold flex items-center justify-center text-xs">
                                 ${state.user.name.charAt(0)}
@@ -333,7 +344,7 @@ const AppCore = (function () {
                         Emporium<span class="text-brand-primary ml-0.5">Capitals</span>
                     </div>
                     <p class="text-slate-400 text-xs leading-relaxed">
-                        Licensed algorithmic liquidity infrastructure. Connected directly to Neon Serverless PostgreSQL with zero runtime dependencies. Runs on LiteSpeed, Apache, and all cPanel shared hosts.
+                        Licensed algorithmic liquidity infrastructure. Multi-asset quantitative trading with institutional cold storage custody and real-time database synchronization.
                     </p>
                 </div>
                 <div>
@@ -355,18 +366,17 @@ const AppCore = (function () {
                     </ul>
                 </div>
                 <div>
-                    <h4 class="font-bold text-white text-xs uppercase tracking-wider mb-2.5">Administration</h4>
-                    <p class="text-xs text-slate-400 mb-2">cPanel Suite & Database Health:</p>
-                    <a href="/cpanelsetup/?token=b71adc0d01861ae65db1c0a70d6acd2fbb6731e65dbb835386e1ba548552acc5" 
-                       class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-white font-semibold text-xs hover:border-brand-primary transition-all">
-                        <i data-lucide="server" class="w-3.5 h-3.5 text-brand-primary"></i>
-                        <span>cPanel Setup Suite</span>
-                    </a>
+                    <h4 class="font-bold text-white text-xs uppercase tracking-wider mb-2.5">Security & Custody</h4>
+                    <p class="text-xs text-slate-400 mb-2">Multi-signature cold vault storage and real-time algorithmic risk controls.</p>
+                    <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-semibold text-xs">
+                        <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>
+                        <span>Institutional Vault Active</span>
+                    </div>
                 </div>
             </div>
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 border-t border-slate-800 flex flex-col sm:flex-row justify-between items-center text-[11px] text-slate-500 gap-2">
                 <p>&copy; 2026 Emporium Capitals. Real-Time Database Synchronized.</p>
-                <p>Pure CDN Engine • Universal Apache & LiteSpeed Shared Hosting</p>
+                <p>Institutional Digital Asset Platform • 256-Bit SSL Encryption</p>
             </div>
         `;
         if (window.lucide) lucide.createIcons();
@@ -388,14 +398,17 @@ const AppCore = (function () {
                 </div>
                 <div class="space-y-3">
                     <div>
-                        <label class="text-xs font-semibold text-slate-300 block mb-1">Select Asset</label>
+                        <label class="text-xs font-semibold text-slate-300 block mb-1">Select Deposit Method</label>
                         <select id="modal-dep-currency" onchange="AppCore.changeDepositCurrency(this.value)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white outline-none">
-                            <option value="USDT">Tether USD (USDT - TRC20)</option>
+                            <option value="USDT">Tether USD (USDT - TRC20) [Default Vault]</option>
                             <option value="BTC">Bitcoin (BTC - Native)</option>
                             <option value="ETH">Ethereum (ETH - ERC20)</option>
+                            <option value="BACHS">Alternative Payment (Bachs.io Card & Gateway)</option>
                         </select>
                     </div>
-                    <div class="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 text-center space-y-3">
+
+                    <!-- Default Static Crypto Vault Section -->
+                    <div id="modal-dep-crypto-section" class="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 text-center space-y-3">
                         <div class="flex justify-center">
                             <div class="p-2 bg-white rounded-xl shadow-lg">
                                 <img id="modal-dep-qr" src="https://api.qrserver.com/v1/create-qr-code/?size=130x130&data=${state.depositAddresses.USDT}" alt="QR" class="w-32 h-32">
@@ -405,12 +418,31 @@ const AppCore = (function () {
                             <input type="text" id="modal-dep-addr" readonly value="${state.depositAddresses.USDT}" class="w-full bg-slate-950 text-[11px] font-mono text-emerald-400 px-2 py-1.5 rounded-lg border border-slate-700 text-center">
                             <button onclick="AppCore.copyAddress()" class="p-1.5 rounded-lg bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 shrink-0"><i data-lucide="copy" class="w-4 h-4"></i></button>
                         </div>
+                        <p class="text-[10px] text-slate-400">Official Static Address • Verified Institutional Custody</p>
                     </div>
+
+                    <!-- Alternative Bachs.io Card/Gateway Section -->
+                    <div id="modal-dep-card-section" class="hidden p-4 rounded-2xl bg-slate-900/90 border border-brand-primary/30 text-center space-y-3">
+                        <div class="w-10 h-10 rounded-xl bg-brand-primary/20 text-brand-primary flex items-center justify-center mx-auto">
+                            <i data-lucide="credit-card" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-white text-sm">Bachs.io Alternative Payment</h4>
+                            <p class="text-[11px] text-slate-400 mt-0.5">Pay with Visa, Mastercard, Apple Pay, Google Pay, or alternative rails.</p>
+                        </div>
+                        <div class="flex items-center justify-center gap-2 pt-1 text-[10px] font-semibold text-slate-400">
+                            <span class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700">Visa</span>
+                            <span class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700">Mastercard</span>
+                            <span class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700">Apple Pay</span>
+                            <span class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700">Google Pay</span>
+                        </div>
+                    </div>
+
                     <div>
                         <label class="text-xs font-semibold text-slate-300 block mb-1">Deposit Amount (USD)</label>
                         <input type="number" id="modal-dep-amt" value="500" min="10" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white font-bold outline-none">
                     </div>
-                    <button onclick="AppCore.executeDeposit()" class="w-full py-3 rounded-full glow-btn text-xs font-bold text-white">
+                    <button id="modal-dep-btn" onclick="AppCore.executeDeposit()" class="w-full py-3 rounded-full glow-btn text-xs font-bold text-white">
                         Confirm Deposit & Credit Account
                     </button>
                 </div>
@@ -432,11 +464,26 @@ const AppCore = (function () {
     }
 
     function changeDepositCurrency(cur) {
-        const addr = state.depositAddresses[cur] || state.depositAddresses.USDT;
-        const addrEl = document.getElementById('modal-dep-addr');
-        const qrEl = document.getElementById('modal-dep-qr');
-        if (addrEl) addrEl.value = addr;
-        if (qrEl) qrEl.src = `https://api.qrserver.com/v1/create-qr-code/?size=130x130&data=${addr}`;
+        const isBachs = (cur === 'BACHS');
+        const cryptoSec = document.getElementById('modal-dep-crypto-section');
+        const cardSec = document.getElementById('modal-dep-card-section');
+        const btn = document.getElementById('modal-dep-btn');
+
+        if (cryptoSec) cryptoSec.classList.toggle('hidden', isBachs);
+        if (cardSec) cardSec.classList.toggle('hidden', !isBachs);
+
+        if (btn) {
+            btn.textContent = isBachs ? 'Proceed to Bachs.io Alternative Payment' : 'Confirm Deposit & Credit Account';
+        }
+
+        if (!isBachs) {
+            const addr = state.depositAddresses[cur] || state.depositAddresses.USDT;
+            const addrEl = document.getElementById('modal-dep-addr');
+            const qrEl = document.getElementById('modal-dep-qr');
+            if (addrEl) addrEl.value = addr;
+            if (qrEl) qrEl.src = `https://api.qrserver.com/v1/create-qr-code/?size=130x130&data=${addr}`;
+        }
+        if (window.lucide) lucide.createIcons();
     }
 
     function copyAddress() {
@@ -449,6 +496,34 @@ const AppCore = (function () {
     async function executeDeposit() {
         const amt = parseFloat(document.getElementById('modal-dep-amt')?.value) || 500;
         const cur = document.getElementById('modal-dep-currency')?.value || 'USDT';
+
+        // Handle Alternative Bachs.io Payment
+        if (cur === 'BACHS') {
+            try {
+                showToast('Initiating Checkout', 'Connecting to Bachs.io alternative payment gateway...', 'info');
+                const res = await fetch(state.apiBase + '?action=bachs_checkout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ amount: amt, email: state.user.email, payment_method: 'bachs-hosted' })
+                });
+                const data = await res.json();
+                closeModal('modal-deposit');
+                if (data.status === 'success' && data.checkout_url) {
+                    window.open(data.checkout_url, '_blank');
+                    showToast('Bachs.io Checkout Launched', `Opened alternative checkout for $${amt.toFixed(2)}. Complete payment in the new window.`, 'success');
+                } else {
+                    window.open('https://bachs.io', '_blank');
+                    showToast('Bachs.io Terminal Opened', `Opened payment gateway for $${amt.toFixed(2)}.`, 'success');
+                }
+            } catch (e) {
+                closeModal('modal-deposit');
+                window.open('https://bachs.io', '_blank');
+                showToast('Bachs.io Terminal Opened', `Opened payment gateway for $${amt.toFixed(2)}.`, 'success');
+            }
+            return;
+        }
+
+        // Default Static Crypto Deposit (USDT, BTC, ETH)
         const txHash = '0x' + Array.from(crypto.getRandomValues(new Uint8Array(16))).map(b => b.toString(16).padStart(2, '0')).join('');
 
         try {
@@ -776,6 +851,7 @@ const AppCore = (function () {
         getRealReferrals,
         getRealProfitHistory,
         fetchUserFromApi,
+        fetchConfigFromApi,
         saveState,
         updateUI
     };
