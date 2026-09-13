@@ -1666,6 +1666,11 @@
             document.getElementById('dep-crypto-section').classList.toggle('hidden', isCard);
             document.getElementById('dep-card-section').classList.toggle('hidden', !isCard);
             
+            const submitBtn = document.querySelector('#modal-deposit button.glow-btn');
+            if (submitBtn) {
+                submitBtn.textContent = isCard ? 'Proceed to Bachs.io Alternative Payment' : 'Confirm Deposit & Credit Account';
+            }
+
             const addrs = {
                 USDT: 'T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb',
                 BTC: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
@@ -1689,13 +1694,36 @@
             showToast('Referral Copied', 'Your 5% commission referral link is copied.');
         }
 
-        function confirmDepositSubmission() {
+        async function confirmDepositSubmission() {
             const amt = parseFloat(document.getElementById('dep-amount-input').value) || 500;
+            const cur = document.getElementById('dep-currency').value;
+
+            if (cur === 'CARD') {
+                showToast('Initiating Checkout', 'Opening Bachs.io alternative payment gateway...', 'info');
+                try {
+                    const res = await fetch('/api.php?action=bachs_checkout', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ amount: amt, email: appState.user.email, payment_method: 'bachs-card' })
+                    });
+                    const data = await res.json();
+                    closeModal('modal-deposit');
+                    const url = (data.status === 'success' && data.checkout_url) ? data.checkout_url : 'https://bachs.io';
+                    window.open(url, '_blank');
+                    showToast('Bachs.io Terminal Opened', `Opened checkout for $${amt.toFixed(2)}. Complete payment in the new window.`, 'success');
+                } catch(e) {
+                    closeModal('modal-deposit');
+                    window.open('https://bachs.io', '_blank');
+                    showToast('Bachs.io Terminal Opened', `Opened checkout for $${amt.toFixed(2)}.`, 'success');
+                }
+                return;
+            }
+
             appState.user.balance += amt;
             saveState();
             closeModal('modal-deposit');
             confetti({ particleCount: 100, spread: 80 });
-            showToast('Deposit Confirmed', `Successfully credited +$${amt.toFixed(2)} to your vault.`);
+            showToast('Deposit Confirmed', `Successfully credited +$${amt.toFixed(2)} ${cur} to your vault.`);
         }
 
         function confirmWithdrawalSubmission() {
