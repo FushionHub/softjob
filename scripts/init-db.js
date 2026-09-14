@@ -5,13 +5,10 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Load env files
-const envLocal = path.join(__dirname, '..', '.env.local');
-const envDefault = path.join(__dirname, '..', '.env');
-if (fs.existsSync(envLocal)) {
-    process.loadEnvFile?.(envLocal);
-} else if (fs.existsSync(envDefault)) {
-    process.loadEnvFile?.(envDefault);
+// Load env file
+const envFile = path.join(__dirname, '..', '.env');
+if (fs.existsSync(envFile)) {
+    process.loadEnvFile?.(envFile);
 }
 
 import { query, getDb, ensureSchema } from '../lib/db.js';

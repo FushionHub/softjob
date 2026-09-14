@@ -1,6 +1,6 @@
 # cPanel Shared Hosting — Enterprise Deployment Guide (PM2 & Node.js)
 
-This guide details how to deploy Emporium Capitals on cPanel shared hosting using **PM2** and `ecosystem.config.js`.
+This guide details how to deploy Emporium Capitals on cPanel shared hosting using **PM2** and `ecosystem.config.js`. Compatible with **LiteSpeed** and **Apache** web servers.
 
 ---
 
@@ -11,7 +11,7 @@ This guide details how to deploy Emporium Capitals on cPanel shared hosting usin
 │                   Incoming HTTP / HTTPS Traffic                        │
 └───────────────────────────────────┬────────────────────────────────────┘
                                     │
-                         Apache / LiteSpeed Web Server
+                    Apache / LiteSpeed Web Server
                                     │
        ┌────────────────────────────┴─────────────────────────────┐
        ▼                                                          ▼
@@ -22,71 +22,53 @@ This guide details how to deploy Emporium Capitals on cPanel shared hosting usin
 - Brotli & Gzip Compression                                       │
        │                                                          │
        ▼                                                          ▼
-Served Directly by Apache                         Apache Reverse Proxy (mod_proxy)
-(0 Node.js RAM/CPU used)                          ProxyPass / -> http://127.0.0.1:3000/
-                                                                  │
-                                                                  ▼
-                                                      PM2 Process Manager
-                                                    (ecosystem.config.js)
-                                                                  │
-                                                                  ▼
-                                                      server.js (Node.js 20)
-                                                       rico-investimentos
+Served Directly by LiteSpeed/Apache            Apache Reverse Proxy (mod_proxy)
+(0 Node.js RAM/CPU used)                      ProxyPass / -> http://127.0.0.1:3000/
+                                                                   │
+                                                                   ▼
+                                                       PM2 Process Manager
+                                                     (ecosystem.config.js)
+                                                                   │
+                                                                   ▼
+                                                       server.js (Node.js 20)
+                                                        rico-investimentos
 ```
 
 ---
 
-## 2. PM2 Configuration (`ecosystem.config.js`)
+## 2. Prerequisites
 
-The project includes `ecosystem.config.js`:
-
-```javascript
-module.exports = {
-  apps: [
-    {
-      name: "rico-investimentos",
-      script: "server.js",
-      instances: 1,
-      autorestart: true,
-      watch: false,
-      max_memory_restart: "500M",
-      env: {
-        NODE_ENV: "production",
-        PORT: 3000
-      }
-    }
-  ]
-};
-```
+| Requirement | Details |
+|---|---|
+| **cPanel account** | With Terminal, File Manager, MySQL Databases, Cron Jobs |
+| **Node.js 20+** | Installed via NVM (see Step 3 below) |
+| **npm 10+** | Installed automatically with Node.js |
+| **PM2** | Global process manager (`npm install -g pm2`) |
+| **MySQL or PostgreSQL** | Via cPanel MySQL Databases or Neon cloud |
 
 ---
 
-## 3. Terminal Setup: Installing Node.js, npm & PM2 on cPanel
+## 3. Terminal Setup: Installing Node.js & npm on cPanel
 
-If you are a developer setting up on cPanel for the first time, you might not know what needs to be installed or how to install Node.js without `root` / `sudo` access. Follow these exact steps:
+If you are a developer setting up on cPanel for the first time, follow these exact steps.
 
 ### What Needs to Be Installed
-1. **Node.js 20.x (LTS)** — Required runtime for Next.js 16.
-2. **npm 10.x+** — Package manager (installed automatically with Node.js).
-3. **PM2** — Production process manager to keep the application running 24/7.
-
----
+1. **Node.js 20.x (LTS)** — Required runtime for Next.js 16
+2. **npm 10.x+** — Package manager (installed automatically with Node.js)
+3. **PM2** — Production process manager to keep the app running 24/7
 
 ### Step A: Check if Node.js is already installed
-Open **cPanel &rarr; Terminal** (under the "Advanced" or "Software" category) and type:
+Open **cPanel → Terminal** and type:
 ```bash
 node -v
 npm -v
 ```
-- If it returns `v20.x.x` (or 18+), you already have Node.js! Skip to **Step C**.
-- If it returns `command not found: node` or an old version, proceed to **Step B**.
+- If it returns `v20.x.x` (or 18+), skip to **Step C**
+- If it returns `command not found` or an old version, proceed to **Step B**
 
----
+### Step B: Install Node.js 20 via NVM (No Root Needed)
 
-### Step B: How to Install Node.js 20 & npm via NVM (No Root Needed)
-On shared hosting, you cannot run `sudo apt` or `yum`. Instead, you install **NVM (Node Version Manager)** inside your user account. It takes 30 seconds:
-
-Copy and paste this block into your cPanel Terminal:
+Copy and paste this entire block into your cPanel Terminal:
 
 ```bash
 # 1. Download and install NVM
@@ -96,7 +78,7 @@ curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
-source ~/.bashrc
+source ~/.bashrc 2>/dev/null || true
 
 # 3. Install Node.js 20 (npm is installed automatically)
 nvm install 20
@@ -110,84 +92,110 @@ node -v   # Output: v20.x.x
 npm -v    # Output: 10.x.x
 ```
 
-> **Alternative: If your host has cPanel EasyApache Node.js installed**
+> **Alternative: If your host has cPanel EasyApache Node.js installed:**
 > ```bash
 > echo 'export PATH=/opt/cpanel/ea-nodejs20/bin:$PATH' >> ~/.bashrc
 > source ~/.bashrc
 > ```
 
----
-
 ### Step C: Install PM2 Globally
-Once npm is working, install PM2:
 ```bash
 npm install -g pm2
-
-# Verify PM2 is ready
-pm2 -v
+pm2 -v   # Should show a version number
 ```
 
 ---
 
-## 4. Step-by-Step Project Deployment Procedure
+## 4. Step-by-Step Deployment
 
 ### Step 1: Upload Files
 Upload all files to your cPanel document root (e.g. `/home/USERNAME/public_html`), **excluding** `node_modules/` and `.git/`.
 - Tip: Zip your files locally, upload via cPanel File Manager, and click "Extract".
 
-### Step 2: Database Setup (1 Minute)
-1. Create a MySQL database and user in **cPanel &rarr; MySQL Databases**.
-2. Open in your browser:
-   ```
-   https://yourdomain.com/cpanel/db-install.php?token=change-me-to-a-long-random-string
-   ```
-3. Enter your database details and click **Run Installation & Migrations**.
-4. Default admin: `admin@emporiumcapitals.com` / `admin123`.
-
-### Step 3: Run with PM2 in cPanel Terminal
-Open cPanel **Terminal** and run:
-
+### Step 2: Configure Environment Variables
+Edit `.env` in File Manager with your live values:
 ```bash
-# 1. Navigate to your project folder
+DATABASE_URL=mysql://user:password@127.0.0.1:3306/dbname
+JWT_SECRET=your-generated-secret
+SMTP_HOST=mail.yourdomain.com
+NEXT_PUBLIC_APP_URL=https://yourdomain.com
+```
+
+Generate secure secrets:
+```bash
+node -e "console.log(require('crypto').randomBytes(64).toString('base64'))"
+```
+
+### Step 3: Install Dependencies & Build
+```bash
 cd ~/public_html
-
-# 2. Install dependencies
 npm install
-
-# 3. Build the Next.js production bundle
 npm run build
-
-# 4. Start the application using PM2 and ecosystem.config.js
-pm2 start ecosystem.config.js
-
-# 5. Save the process so PM2 restarts automatically if the server reboots
-pm2 save
 ```
 
-### Step 4: Verify
-- Visit `https://yourdomain.com/` &rarr; Homepage loads immediately with 0 cold start screen!
-- Check PM2 status: `pm2 status`
-- View live application logs: `pm2 logs rico-investimentos`
+### Step 4: Setup Database
+1. Create MySQL database and user in **cPanel → MySQL Databases**
+2. Visit: `https://yourdomain.com/cpanelsetup/db-install.php?token=YOUR_TOKEN`
+3. Enter credentials and click **Run Installation & Migrations**
 
----
-
-## 4. Setup Automated Watchdog / Trade Processor (Cron)
-
-In **cPanel &rarr; Cron Jobs**, add a cron job every 10 minutes (`*/10 * * * *`):
-
+### Step 5: Start with PM2
 ```bash
-php /home/USERNAME/public_html/cpanel/cron-worker.php >/dev/null 2>&1
+cd ~/public_html
+pm2 start ecosystem.config.js
+pm2 save
+pm2 status
 ```
 
-This processes scheduled crypto trade settlements and mature investment returns in the background.
+### Step 6: Setup Cron Job
+In **cPanel → Cron Jobs**, add every 10 minutes:
+```
+*/10 * * * * php /home/USERNAME/public_html/cpanelsetup/keepalive.php >/dev/null 2>&1
+```
+
+### Step 7: Verify
+- Visit `https://yourdomain.com/` → Homepage loads
+- Check `pm2 status` → Process is online
+- Check `https://yourdomain.com/api/health` → Returns `{"status":"ok"}`
 
 ---
 
-## 5. Troubleshooting
+## 5. LiteSpeed Specific Notes
+
+LiteSpeed on cPanel shared hosting works identically to Apache for this project:
+
+- `.htaccess` rules are natively supported (LiteSpeed reads Apache `.htaccess`)
+- `mod_rewrite`, `mod_proxy`, `mod_headers`, `mod_expires` all work out of the box
+- `mod_deflate` and `mod_brotli` are automatically enabled on most LiteSpeed hosts
+- PHP runs as `lsapi` which is faster than Apache's `mod_php`
+
+No additional configuration is needed for LiteSpeed — the `.htaccess` file handles everything.
+
+---
+
+## 6. Web Administration & Diagnostic Tools
+
+| Tool | URL | Purpose |
+|---|---|---|
+| **Startup & Health** | `/cpanelsetup/index.php?token=...` | Check app status, start/stop/restart |
+| **Pre-Flight Checklist** | `/cpanelsetup/setup-check.php?token=...` | Verifies PHP, Node, PM2, build readiness |
+| **Server Manager** | `/cpanelsetup/manager.php?token=...` | Web control center for process, DB, logs |
+| **DB Installer** | `/cpanelsetup/db-install.php?token=...` | 1-click database installer |
+| **Cron Worker** | `/cpanelsetup/cron-worker.php` | Background trade settlement & investment processor |
+| **Health Check** | `/cpanelsetup/health.php` | JSON status endpoint for uptime monitors |
+| **Mail Test** | `/cpanelsetup/mail-test.php?token=...` | SMTP diagnostic tool |
+
+Tokens are configured via `CPANEL_SETUP_TOKEN`, `CPANEL_MANAGER_TOKEN`, `CPANEL_MAILTEST_TOKEN` in `.env`.
+
+---
+
+## 7. Troubleshooting
 
 | Issue | Cause | Solution |
 |---|---|---|
-| `502 Bad Gateway` | PM2 is stopped or crashed | Run `pm2 status` and `pm2 logs rico-investimentos` in cPanel terminal. Run `pm2 restart ecosystem.config.js`. |
-| `EADDRINUSE: 3000` | Port 3000 occupied by old process | Run `pm2 delete all` and `pm2 start ecosystem.config.js`. |
-| Memory limit restart | Process exceeded 500M | PM2 will automatically restart it cleanly due to `max_memory_restart: "500M"`. |
-| Static assets 404 | `.next` folder missing | Run `npm run build` in Terminal. |
+| `502 Bad Gateway` | PM2 is stopped or crashed | Run `pm2 status` and `pm2 restart ecosystem.config.js` |
+| `EADDRINUSE: 3000` | Port 3000 occupied | Run `pm2 delete all` and `pm2 start ecosystem.config.js` |
+| `command not found: node` | Node.js not installed | Follow Step 3 above to install via NVM |
+| Memory limit restart | Process exceeded 500M | PM2 auto-restarts due to `max_memory_restart: "500M"` |
+| Static assets 404 | `.next` folder missing | Run `npm run build` in Terminal |
+| MySQL connection error | Bad credentials in `.env` | Run `/cpanelsetup/db-install.php` and test connection |
+| Emails not delivering | Incorrect SMTP details | Verify `SMTP_*` values in `.env` |

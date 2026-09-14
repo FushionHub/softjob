@@ -12,11 +12,22 @@
 // Token gate: this page pre-fills SMTP/admin addresses from .env and can
 // send mail + probe ports, so it must never be public. Set the token, pass
 // ?token=... in the URL (carried into the form below), delete when done.
-define('MAILTEST_TOKEN', 'change-me-to-a-long-random-string');
+define('MAILTEST_TOKEN_DEFAULT', 'change-me-to-a-long-random-string');
+$mailToken = MAILTEST_TOKEN_DEFAULT;
+
+// Load token from .env if available
+$__envPath = dirname(__DIR__) . '/.env';
+if (is_file($__envPath)) {
+    $__envContent = file_get_contents($__envPath);
+    if (preg_match('/^CPANEL_MAILTEST_TOKEN\s*=\s*["\']?([^"\'\r\n]+)/m', $__envContent, $__m)) {
+        $mailToken = trim($__m[1]);
+    }
+}
+
 $__mailToken = isset($_GET['token']) ? $_GET['token'] : (isset($_POST['token']) ? $_POST['token'] : '');
-if (!hash_equals(MAILTEST_TOKEN, $__mailToken) || MAILTEST_TOKEN === 'change-me-to-a-long-random-string') {
+if (!hash_equals($mailToken, $__mailToken) || $mailToken === MAILTEST_TOKEN_DEFAULT) {
     http_response_code(403);
-    exit('Forbidden. Set MAILTEST_TOKEN in cpanel/mail-test.php and pass ?token=...');
+    exit('Forbidden. Set CPANEL_MAILTEST_TOKEN in .env and pass ?token=...');
 }
 
 $appRoot = dirname(__DIR__);

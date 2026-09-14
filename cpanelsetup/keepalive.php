@@ -6,26 +6,32 @@
  * waits through a cold start. Point a cPanel Cron Job at this script every
  * 15 minutes to keep the app warm:
  *
- *   php /home/USERNAME/emporiumcapitals/cpanel/keepalive.php
+ *   php /home/USERNAME/emporiumcapitals/cpanelsetup/keepalive.php
  *
  * Configuration: APP_BASE_URL is read from NEXT_PUBLIC_APP_URL in the root
  * .env automatically (override by editing the fallback below, no trailing slash).
  */
 define('APP_BASE_URL_FALLBACK', 'https://yourdomain.com');
-define('CRON_TOKEN', 'change-me-to-a-random-string');
+define('CRON_TOKEN_DEFAULT', 'change-me-to-a-random-string');
 
+$__cronToken = CRON_TOKEN_DEFAULT;
 $__appBase = APP_BASE_URL_FALLBACK;
 $__envPath = dirname(__DIR__) . '/.env';
-if (is_file($__envPath)
-    && preg_match('/^NEXT_PUBLIC_APP_URL\s*=\s*["\']?([^"\'\r\n]+)/m', file_get_contents($__envPath), $__m)) {
-    $__appBase = rtrim(trim($__m[1]), '/');
+if (is_file($__envPath)) {
+    $__envContent = file_get_contents($__envPath);
+    if (preg_match('/^NEXT_PUBLIC_APP_URL\s*=\s*["\']?([^"\'\r\n]+)/m', $__envContent, $__m)) {
+        $__appBase = rtrim(trim($__m[1]), '/');
+    }
+    if (preg_match('/^CPANEL_SETUP_TOKEN\s*=\s*["\']?([^"\'\r\n]+)/m', $__envContent, $__m)) {
+        $__cronToken = trim($__m[1]);
+    }
 }
 define('APP_BASE_URL', $__appBase);
 
 $isCli = (php_sapi_name() === 'cli');
 if (!$isCli) {
     $given = isset($_GET['token']) ? $_GET['token'] : '';
-    if (!hash_equals(CRON_TOKEN, $given) || CRON_TOKEN === 'change-me-to-a-random-string') {
+    if (!hash_equals($__cronToken, $given) || $__cronToken === CRON_TOKEN_DEFAULT) {
         http_response_code(403);
         echo "Forbidden.\n";
         exit(1);

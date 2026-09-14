@@ -23,7 +23,7 @@ export default function Newsletter() {
                             Invest in Crypto with <span className="text-brand-primary">Confidence</span>
                         </h2>
                         <p className="text-sm md:text-base text-text-muted leading-relaxed max-w-lg mx-auto">
-                            Join over 450,000+ smart investors worldwide. Register your account in less than 2 minutes and select a package that fits your objectives.
+                            Join investors worldwide. Register your account in less than 2 minutes and select a package that fits your objectives.
                         </p>
                         
                         <div className="flex flex-wrap justify-center gap-4 pt-4">
