@@ -69,16 +69,16 @@ export default function HeroSection() {
                         {/* Stats mini grid */}
                         <div className="grid grid-cols-3 gap-6 pt-10 border-t border-border-subtle">
                             <div>
-                                <p className="text-2xl font-bold text-text-main">$42M+</p>
-                                <p className="text-xs text-text-muted">AUM Managed</p>
-                            </div>
-                            <div>
                                 <p className="text-2xl font-bold text-text-main">99.8%</p>
-                                <p className="text-xs text-text-muted">Uptime Security</p>
+                                <p className="text-xs text-text-muted">Platform Uptime</p>
                             </div>
                             <div>
-                                <p className="text-2xl font-bold text-text-main">450K+</p>
-                                <p className="text-xs text-text-muted">Global Investors</p>
+                                <p className="text-2xl font-bold text-text-main">24/7</p>
+                                <p className="text-xs text-text-muted">Live Trading</p>
+                            </div>
+                            <div>
+                                <p className="text-2xl font-bold text-text-main">Instant</p>
+                                <p className="text-xs text-text-muted">Withdrawals</p>
                             </div>
                         </div>
                     </div>
@@ -109,7 +109,7 @@ export default function HeroSection() {
                                             <span>Active Deposit</span>
                                             <Wallet className="size-3.5 text-brand-primary" />
                                         </div>
-                                        <p className="text-2xl font-bold tracking-tight text-white">$14,250.00</p>
+                                        <p className="text-2xl font-bold tracking-tight text-white">$0.00</p>
                                         <div className="flex items-center gap-1.5 text-emerald-400 text-[10px]">
                                             <TrendingUp className="size-3" />
                                             <span>+12.4% this week</span>
@@ -140,11 +140,11 @@ export default function HeroSection() {
                                             <DollarSign className="size-4" />
                                         </div>
                                         <div>
-                                            <p className="text-[10px] text-gray-400">Lucas P. just withdrew</p>
-                                            <p className="text-xs font-bold text-white">+$1,450.00</p>
+                                            <p className="text-[10px] text-gray-400">Portfolio Growth</p>
+                                            <p className="text-xs font-bold text-white">Live Profit Tracking</p>
                                         </div>
                                     </div>
-                                    <span className="text-[9px] text-gray-500">2 min ago</span>
+                                    <span className="text-[9px] text-gray-500">Real-time</span>
                                 </div>
                             </div>
                         </div>
