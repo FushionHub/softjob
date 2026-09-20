@@ -141,7 +141,7 @@ export default function WhatWeDoSection() {
                             poster="/assets/icon.png"
                             suppressHydrationWarning
                         >
-                            <source src="/assets/emporiumcapitals.mp4" type="video/mp4" />
+                            <source src="/assets/emporiumcapitals.mp4" type="video/mp4" suppressHydrationWarning />
                             Your browser does not support the video tag.
                         </video>
                     </div>
