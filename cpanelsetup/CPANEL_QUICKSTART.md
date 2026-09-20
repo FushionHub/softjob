@@ -23,7 +23,7 @@ node -v && npm -v && pm2 -v
 
 ### 2. Configure Database
 - cPanel &rarr; **MySQL Databases** &rarr; Create database & user.
-- Open `https://yourdomain.com/cpanel/db-install.php?token=change-me-to-a-long-random-string`
+- Open `https://yourdomain.com/cpanelsetup/db-install.php?token=change-me-to-a-long-random-string`
 - Enter credentials &rarr; Click **Run Installation & Migrations**.
 
 ### 3. Build & Run with PM2 in cPanel Terminal
@@ -52,6 +52,6 @@ pm2 save
 ### 5. Automated Watchdog / Cron (Every 10 min)
 - cPanel &rarr; **Cron Jobs** &rarr; Every 10 min:
   ```bash
-  php /home/USERNAME/public_html/cpanel/cron-worker.php >/dev/null 2>&1
+  php /home/USERNAME/public_html/cpanelsetup/cron-worker.php >/dev/null 2>&1
   ```
   *(Processes crypto trades and investment payouts)*.
