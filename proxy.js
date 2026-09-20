@@ -47,6 +47,38 @@ async function verifyTokenEdge(token, secret) {
   }
 }
 
+function createSafeRedirectUrl(targetPath, req) {
+  const url = req.nextUrl.clone()
+  url.pathname = targetPath
+  url.search = ''
+
+  const fHost = req.headers.get('x-forwarded-host')
+  const fProto = req.headers.get('x-forwarded-proto') || 'https'
+  if (fHost) {
+    const [h, p] = fHost.split(':')
+    url.hostname = h
+    url.port = p || ''
+    url.protocol = fProto.endsWith(':') ? fProto : `${fProto}:`
+  } else if (process.env.NEXT_PUBLIC_APP_URL && (url.hostname === '127.0.0.1' || url.hostname === 'localhost')) {
+    try {
+      const parsed = new URL(process.env.NEXT_PUBLIC_APP_URL)
+      url.hostname = parsed.hostname
+      url.port = parsed.port || ''
+      url.protocol = parsed.protocol
+    } catch {}
+  }
+
+  return url
+}
+
+function createLoginRedirectUrl(targetPath, req) {
+  const url = createSafeRedirectUrl('/login', req)
+  if (targetPath && targetPath !== '/' && targetPath !== '/dashboard' && !targetPath.includes('login')) {
+    url.searchParams.set('redirect', targetPath)
+  }
+  return url
+}
+
 export default async function proxy(req) {
   const { pathname } = req.nextUrl
   const token = req.cookies.get('auth_token')?.value
@@ -62,7 +94,7 @@ export default async function proxy(req) {
       if (adminToken) {
         const decoded = await verifyTokenEdge(adminToken, adminSecret)
         if (decoded?.isAdmin) {
-          return NextResponse.redirect(new URL('/admin', req.url))
+          return NextResponse.redirect(createSafeRedirectUrl('/admin', req))
         }
       }
       return NextResponse.next()
@@ -70,11 +102,11 @@ export default async function proxy(req) {
 
     // All other /admin routes require admin auth
     if (!adminToken) {
-      return NextResponse.redirect(new URL('/admin/login', req.url))
+      return NextResponse.redirect(createSafeRedirectUrl('/admin/login', req))
     }
     const decoded = await verifyTokenEdge(adminToken, adminSecret)
     if (!decoded?.isAdmin) {
-      return NextResponse.redirect(new URL('/admin/login', req.url))
+      return NextResponse.redirect(createSafeRedirectUrl('/admin/login', req))
     }
 
     const res = NextResponse.next()
@@ -94,23 +126,19 @@ export default async function proxy(req) {
 
   if (isProtectedRoute) {
     if (!token) {
-      const loginUrl = new URL('/login', req.url)
-      loginUrl.searchParams.set('redirect', pathname)
-      return NextResponse.redirect(loginUrl)
+      return NextResponse.redirect(createLoginRedirectUrl(pathname, req))
     }
 
     const decoded = await verifyTokenEdge(token, userSecret)
     if (!decoded) {
-      const loginUrl = new URL('/login', req.url)
-      loginUrl.searchParams.set('redirect', pathname)
-      return NextResponse.redirect(loginUrl)
+      return NextResponse.redirect(createLoginRedirectUrl(pathname, req))
     }
   }
 
   if ((pathname === '/login' || pathname === '/register') && token) {
     const decoded = await verifyTokenEdge(token, userSecret)
     if (decoded) {
-      return NextResponse.redirect(new URL('/dashboard', req.url))
+      return NextResponse.redirect(createSafeRedirectUrl('/dashboard', req))
     }
   }
 

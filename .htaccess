@@ -93,5 +93,7 @@ RedirectMatch 404 ^/\.next/(server|cache|types|BUILD_ID|export-marker\.json)(/|$
 </IfModule>
 
 <IfModule mod_proxy.c>
+    ProxyPreserveHost On
     ProxyPassReverse / http://127.0.0.1:3000/
+    ProxyPassReverse / http://localhost:3000/
 </IfModule>

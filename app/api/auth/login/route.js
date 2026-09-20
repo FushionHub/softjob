@@ -37,8 +37,35 @@ async function ensureUserSchema() {
   }
 }
 
+function getPublicBaseUrl(request) {
+  const forwardedHost = request.headers.get('x-forwarded-host');
+  const forwardedProto = request.headers.get('x-forwarded-proto') || 'https';
+  if (forwardedHost) {
+    return `${forwardedProto}://${forwardedHost}`;
+  }
+  const host = request.headers.get('host');
+  if (host && !host.includes('localhost') && !host.includes('127.0.0.1')) {
+    const proto = request.headers.get('x-forwarded-proto') || 'https';
+    return `${proto}://${host}`;
+  }
+  if (process.env.NEXT_PUBLIC_APP_URL) {
+    return process.env.NEXT_PUBLIC_APP_URL.replace(/\/$/, '');
+  }
+  return request.url;
+}
+
+function sanitizeRedirect(target) {
+  if (!target || typeof target !== 'string') return '/dashboard';
+  const t = target.trim();
+  if (t.startsWith('//') || t.includes('localhost') || t.includes('127.0.0.1') || !t.startsWith('/') || t.startsWith('/login') || t.includes('n/dashboard') || t.includes('=')) {
+    return '/dashboard';
+  }
+  return t;
+}
+
 function failRedirect(request, code) {
-  const url = new URL('/login', request.url);
+  const base = getPublicBaseUrl(request);
+  const url = new URL('/login', base);
   url.searchParams.set('error', code);
   return NextResponse.redirect(url);
 }
@@ -95,11 +122,13 @@ export async function POST(request) {
     } catch (e) {}
 
     const token = await signToken({ userId: user.id });
-    const destination = redirectTo || '/dashboard';
+    const destination = sanitizeRedirect(redirectTo);
 
     if (contentType.includes('application/json')) {
       const response = NextResponse.json({
+        success: true,
         message: 'Login successful',
+        redirect: destination,
         user: {
           id: user.id,
           name: user.name,
@@ -118,7 +147,8 @@ export async function POST(request) {
       return response;
     }
 
-    const redirectUrl = new URL(destination, request.url);
+    const base = getPublicBaseUrl(request);
+    const redirectUrl = new URL(destination, base);
     const response = NextResponse.redirect(redirectUrl, 302);
     response.cookies.set('auth_token', token, {
       httpOnly: true,
@@ -133,7 +163,8 @@ export async function POST(request) {
     if (request.headers.get('content-type')?.includes('application/json')) {
       return NextResponse.json({ error: 'Login failed. Please try again.' }, { status: 500 });
     }
-    const url = new URL('/login', request.url);
+    const base = getPublicBaseUrl(request);
+    const url = new URL('/login', base);
     url.searchParams.set('error', 'server_error');
     return NextResponse.redirect(url);
   }
