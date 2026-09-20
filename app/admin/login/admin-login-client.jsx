@@ -31,7 +31,7 @@ export default function AdminLoginClient() {
         return;
       }
 
-      router.push('/admin');
+      window.location.href = '/admin';
     } catch (err) {
       setError('An error occurred. Please try again.');
     } finally {

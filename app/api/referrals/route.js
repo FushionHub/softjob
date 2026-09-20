@@ -2,7 +2,38 @@ import { NextResponse } from 'next/server';
 import { query } from '@/lib/db';
 import { getSessionUser } from '@/lib/auth';
 
-export async function GET() {
+function getPublicBaseUrl(request) {
+  if (!request) return '';
+  const forwardedHost = request.headers.get('x-forwarded-host');
+  const forwardedProto = request.headers.get('x-forwarded-proto') || 'https';
+  if (forwardedHost && !forwardedHost.includes('localhost') && !forwardedHost.includes('127.0.0.1')) {
+    const proto = forwardedProto.split(',')[0].trim();
+    const host = forwardedHost.split(',')[0].trim();
+    return `${proto}://${host}`;
+  }
+  const host = request.headers.get('host');
+  if (host && !host.includes('localhost') && !host.includes('127.0.0.1')) {
+    const proto = forwardedProto.split(',')[0].trim();
+    return `${proto}://${host}`;
+  }
+  if (process.env.NEXT_PUBLIC_APP_URL) {
+    try {
+      const parsed = new URL(process.env.NEXT_PUBLIC_APP_URL);
+      if (parsed.hostname && !parsed.hostname.includes('localhost') && !parsed.hostname.includes('127.0.0.1')) {
+        return process.env.NEXT_PUBLIC_APP_URL.replace(/\/$/, '');
+      }
+    } catch {}
+  }
+  try {
+    const reqUrl = new URL(request.url);
+    if (reqUrl.hostname && !reqUrl.hostname.includes('localhost') && !reqUrl.hostname.includes('127.0.0.1')) {
+      return reqUrl.origin;
+    }
+  } catch {}
+  return '';
+}
+
+export async function GET(request) {
   try {
     const session = await getSessionUser();
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -35,8 +66,8 @@ export async function GET() {
       active_count: Number(rawStats[0]?.active_count || 0),
     }];
 
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-    const link = `${baseUrl}/register?ref=${referralCode}`;
+    const publicBase = getPublicBaseUrl(request);
+    const link = publicBase ? `${publicBase}/register?ref=${referralCode}` : `/register?ref=${referralCode}`;
 
     return NextResponse.json({
       referralCode,

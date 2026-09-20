@@ -32,6 +32,11 @@ RedirectMatch 404 ^/\.next/(server|cache|types|BUILD_ID|export-marker\.json)(/|$
     Header always set X-Frame-Options "SAMEORIGIN"
     Header always set X-XSS-Protection "1; mode=block"
     Header always set Referrer-Policy "strict-origin-when-cross-origin"
+
+    # Forward client host and protocol to internal PM2 Node.js process
+    RequestHeader set X-Forwarded-Proto "https" env=HTTPS
+    RequestHeader set X-Forwarded-Proto "http" env=!HTTPS
+    RequestHeader set X-Forwarded-Host "%{HTTP_HOST}e" env=HTTP_HOST
 </IfModule>
 
 # ------------------------------------------------------------------------------
