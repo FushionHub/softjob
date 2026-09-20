@@ -47,36 +47,77 @@ async function verifyTokenEdge(token, secret) {
   }
 }
 
-function createSafeRedirectUrl(targetPath, req) {
-  const url = req.nextUrl.clone()
-  url.pathname = targetPath
-  url.search = ''
-
-  const fHost = req.headers.get('x-forwarded-host')
-  const fProto = req.headers.get('x-forwarded-proto') || 'https'
-  if (fHost) {
-    const [h, p] = fHost.split(':')
-    url.hostname = h
-    url.port = p || ''
-    url.protocol = fProto.endsWith(':') ? fProto : `${fProto}:`
-  } else if (process.env.NEXT_PUBLIC_APP_URL && (url.hostname === '127.0.0.1' || url.hostname === 'localhost')) {
+function getPublicHost(req) {
+  const fHost = req.headers.get('x-forwarded-host');
+  if (fHost && !fHost.includes('localhost') && !fHost.includes('127.0.0.1')) {
+    return fHost.split(',')[0].trim();
+  }
+  const host = req.headers.get('host');
+  if (host && !host.includes('localhost') && !host.includes('127.0.0.1')) {
+    return host;
+  }
+  if (process.env.NEXT_PUBLIC_APP_URL) {
     try {
-      const parsed = new URL(process.env.NEXT_PUBLIC_APP_URL)
-      url.hostname = parsed.hostname
-      url.port = parsed.port || ''
-      url.protocol = parsed.protocol
+      const parsed = new URL(process.env.NEXT_PUBLIC_APP_URL);
+      if (parsed.hostname && !parsed.hostname.includes('localhost') && !parsed.hostname.includes('127.0.0.1')) {
+        return parsed.host;
+      }
     } catch {}
   }
+  return (fHost || host || req.nextUrl.host || 'localhost:3000').split(',')[0].trim();
+}
 
-  return url
+function getPublicProto(req) {
+  const fProto = req.headers.get('x-forwarded-proto');
+  if (fProto) return fProto.split(',')[0].trim();
+  if (process.env.NEXT_PUBLIC_APP_URL?.startsWith('https://')) return 'https';
+  const proto = req.nextUrl.protocol ? req.nextUrl.protocol.replace(':', '') : 'https';
+  return proto;
+}
+
+function createSafeRedirectUrl(targetPath, req) {
+  let cleanPath = String(targetPath || '/dashboard').trim();
+  if (!cleanPath.startsWith('/')) cleanPath = '/' + cleanPath;
+  if (
+    cleanPath.startsWith('//') ||
+    cleanPath.includes('localhost') ||
+    cleanPath.includes('127.0.0.1') ||
+    cleanPath.startsWith('/login') ||
+    cleanPath.includes('n/dashboard') ||
+    cleanPath.includes('?=') ||
+    cleanPath.includes('?error=')
+  ) {
+    cleanPath = '/dashboard';
+  }
+
+  const host = getPublicHost(req);
+  const proto = getPublicProto(req);
+  return new URL(cleanPath, `${proto}://${host}`);
 }
 
 function createLoginRedirectUrl(targetPath, req) {
-  const url = createSafeRedirectUrl('/login', req)
-  if (targetPath && targetPath !== '/' && targetPath !== '/dashboard' && !targetPath.includes('login')) {
-    url.searchParams.set('redirect', targetPath)
+  let cleanTarget = '';
+  if (targetPath && typeof targetPath === 'string') {
+    const t = targetPath.trim();
+    if (
+      t.startsWith('/') &&
+      !t.startsWith('//') &&
+      t !== '/' &&
+      t !== '/dashboard' &&
+      !t.startsWith('/login') &&
+      !t.includes('n/dashboard') &&
+      !t.includes('?=') &&
+      !t.includes('?error=')
+    ) {
+      cleanTarget = t;
+    }
   }
-  return url
+
+  const url = createSafeRedirectUrl('/login', req);
+  if (cleanTarget) {
+    url.searchParams.set('redirect', cleanTarget);
+  }
+  return url;
 }
 
 export default async function proxy(req) {

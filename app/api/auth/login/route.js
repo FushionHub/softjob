@@ -40,24 +40,57 @@ async function ensureUserSchema() {
 function getPublicBaseUrl(request) {
   const forwardedHost = request.headers.get('x-forwarded-host');
   const forwardedProto = request.headers.get('x-forwarded-proto') || 'https';
-  if (forwardedHost) {
-    return `${forwardedProto}://${forwardedHost}`;
+  if (forwardedHost && !forwardedHost.includes('localhost') && !forwardedHost.includes('127.0.0.1')) {
+    const proto = forwardedProto.split(',')[0].trim();
+    const host = forwardedHost.split(',')[0].trim();
+    return `${proto}://${host}`;
   }
   const host = request.headers.get('host');
   if (host && !host.includes('localhost') && !host.includes('127.0.0.1')) {
-    const proto = request.headers.get('x-forwarded-proto') || 'https';
+    const proto = forwardedProto.split(',')[0].trim();
     return `${proto}://${host}`;
   }
   if (process.env.NEXT_PUBLIC_APP_URL) {
-    return process.env.NEXT_PUBLIC_APP_URL.replace(/\/$/, '');
+    try {
+      const parsed = new URL(process.env.NEXT_PUBLIC_APP_URL);
+      if (parsed.hostname && !parsed.hostname.includes('localhost') && !parsed.hostname.includes('127.0.0.1')) {
+        return process.env.NEXT_PUBLIC_APP_URL.replace(/\/$/, '');
+      }
+    } catch {}
   }
-  return request.url;
+  try {
+    const reqUrl = new URL(request.url);
+    if (reqUrl.hostname && !reqUrl.hostname.includes('localhost') && !reqUrl.hostname.includes('127.0.0.1')) {
+      return reqUrl.origin;
+    }
+  } catch {}
+  return `${forwardedProto}://${forwardedHost || host || 'localhost:3000'}`;
 }
 
 function sanitizeRedirect(target) {
   if (!target || typeof target !== 'string') return '/dashboard';
-  const t = target.trim();
-  if (t.startsWith('//') || t.includes('localhost') || t.includes('127.0.0.1') || !t.startsWith('/') || t.startsWith('/login') || t.includes('n/dashboard') || t.includes('=')) {
+  let t = target.trim();
+  if (t.startsWith('http://') || t.startsWith('https://')) {
+    try {
+      const parsed = new URL(t);
+      t = parsed.pathname + parsed.search;
+    } catch {
+      return '/dashboard';
+    }
+  }
+  if (!t.startsWith('/')) {
+    t = '/' + t;
+  }
+  if (
+    t.startsWith('//') ||
+    t.includes('localhost') ||
+    t.includes('127.0.0.1') ||
+    t.startsWith('/login') ||
+    t.includes('n/dashboard') ||
+    t.includes('?=') ||
+    t.includes('?error=') ||
+    t === '/'
+  ) {
     return '/dashboard';
   }
   return t;

@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Eye, EyeOff, AlertCircle, Check, ShieldCheck } from 'lucide-react';
 import GoogleLoginButton from '@/components/google-login-button';
@@ -9,17 +9,47 @@ import GoogleLoginButton from '@/components/google-login-button';
 export default function LoginClient() {
     const searchParams = useSearchParams();
     const router = useRouter();
+
     // Sanitize redirect to always guarantee a clean local route
     const sanitizeRedirect = (target) => {
         if (!target || typeof target !== 'string') return '/dashboard';
-        const t = target.trim();
-        if (t.startsWith('//') || t.includes('localhost') || t.includes('127.0.0.1') || !t.startsWith('/') || t.startsWith('/login') || t.includes('n/dashboard') || t.includes('=')) {
+        let t = target.trim();
+        if (t.startsWith('http://') || t.startsWith('https://')) {
+            try {
+                const parsed = new URL(t);
+                t = parsed.pathname + parsed.search;
+            } catch {
+                return '/dashboard';
+            }
+        }
+        if (!t.startsWith('/')) {
+            t = '/' + t;
+        }
+        if (
+            t.startsWith('//') ||
+            t.includes('localhost') ||
+            t.includes('127.0.0.1') ||
+            t.startsWith('/login') ||
+            t.includes('n/dashboard') ||
+            t.includes('?=') ||
+            t.includes('?error=') ||
+            t === '/'
+        ) {
             return '/dashboard';
         }
         return t;
     };
 
     const redirectTo = sanitizeRedirect(searchParams.get('redirect'));
+
+    useEffect(() => {
+        if (typeof window !== 'undefined' && window.location.search) {
+            const s = window.location.search;
+            if (s.includes('?=error') || s.includes('n/dashboard') || s.includes('?=')) {
+                window.history.replaceState({}, '', window.location.pathname);
+            }
+        }
+    }, []);
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
