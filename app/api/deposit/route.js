@@ -22,7 +22,7 @@ export async function POST(req) {
                 { status: 400 }
             );
         }
-        const { amount, paymentMethod, planId, idempotencyKey } = parsed.data;
+        const { amount, paymentMethod, planId, idempotencyKey, proof_url, tx_hash, notes } = parsed.data;
 
         const reference = crypto.randomBytes(16).toString('hex').toUpperCase();
         const userId = session.userId;
@@ -45,9 +45,12 @@ export async function POST(req) {
 
         const idemKey = idempotencyKey || `dep_${userId}_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
 
-        // Ensure plan_id column exists
+        // Ensure plan_id, proof_url, tx_hash, notes columns exist
         try {
             await query('ALTER TABLE deposits ADD COLUMN IF NOT EXISTS plan_id INTEGER DEFAULT NULL');
+            await query('ALTER TABLE deposits ADD COLUMN IF NOT EXISTS proof_url TEXT DEFAULT NULL');
+            await query('ALTER TABLE deposits ADD COLUMN IF NOT EXISTS tx_hash VARCHAR(255) DEFAULT NULL');
+            await query('ALTER TABLE deposits ADD COLUMN IF NOT EXISTS notes TEXT DEFAULT NULL');
         } catch {}
 
         // Handle reinvest from balance (real-time deduction) with atomic SQL check
@@ -155,8 +158,8 @@ export async function POST(req) {
         // Create pending deposit record with plan_id saved for activation upon confirmation
         try {
             await query(
-                'INSERT INTO deposits (user_id, amount, type, payment, reference, status, idempotency_key, plan_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
-                [userId, amt, 'deposit', paymentMethod, reference, 'pending', idemKey, planId || null]
+                'INSERT INTO deposits (user_id, amount, type, payment, reference, status, idempotency_key, plan_id, proof_url, tx_hash, notes) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)',
+                [userId, amt, 'deposit', paymentMethod, reference, 'pending', idemKey, planId || null, proof_url || null, tx_hash || null, notes || null]
             );
         } catch (e) {
             if (String(e.message).includes('duplicate') || String(e.message).includes('unique')) {

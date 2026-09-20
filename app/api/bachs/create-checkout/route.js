@@ -43,7 +43,30 @@ export async function POST(req) {
       return NextResponse.json({ error: 'Checkout unavailable — BACHS_API_KEY not configured. Set it in .env to enable deposits via Bachs.io.' }, { status: 503 });
     }
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+function getPublicBaseUrl(req) {
+  const forwardedHost = req.headers.get('x-forwarded-host');
+  const forwardedProto = req.headers.get('x-forwarded-proto') || 'https';
+  if (forwardedHost && !forwardedHost.includes('localhost') && !forwardedHost.includes('127.0.0.1')) {
+    const proto = forwardedProto.split(',')[0].trim();
+    const host = forwardedHost.split(',')[0].trim();
+    return `${proto}://${host}`;
+  }
+  const host = req.headers.get('host');
+  if (host && !host.includes('localhost') && !host.includes('127.0.0.1')) {
+    const proto = forwardedProto.split(',')[0].trim();
+    return `${proto}://${host}`;
+  }
+  if (process.env.APP_URL && !process.env.APP_URL.includes('localhost')) {
+    return process.env.APP_URL.replace(/\/$/, '');
+  }
+  if (process.env.NEXT_PUBLIC_APP_URL && !process.env.NEXT_PUBLIC_APP_URL.includes('localhost') && !process.env.NEXT_PUBLIC_APP_URL.includes('127.0.0.1')) {
+    return process.env.NEXT_PUBLIC_APP_URL.replace(/\/$/, '');
+  }
+  // Bachs API strictly forbids localhost/127.0.0.1 in success_url and cancel_url
+  return 'https://emporiumcapitals.com';
+}
+
+    const appUrl = getPublicBaseUrl(req);
     const successUrl = `${appUrl}/deposit?success=1`;
     const cancelUrl = `${appUrl}/deposit?canceled=1`;
 
