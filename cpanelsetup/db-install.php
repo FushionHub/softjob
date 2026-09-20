@@ -8,7 +8,7 @@
  *
  * Usage:
  *   1. Set CPANEL_SETUP_TOKEN (or CPANEL_MANAGER_TOKEN) in your .env file or use default.
- *   2. Visit https://yourdomain.com/cpanel/db-install.php?token=YOUR_TOKEN
+ *   2. Visit https://yourdomain.com/cpanelsetup/db-install.php?token=YOUR_TOKEN
  *   3. Choose your database type (MySQL or PostgreSQL), enter credentials, and click Install.
  *   4. Delete this script or lock it after deployment.
  */

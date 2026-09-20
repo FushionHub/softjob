@@ -6,12 +6,12 @@
  * 1. Warms up the Next.js application to prevent CloudLinux Passenger cold starts.
  * 2. Revives the Node.js server automatically if stopped on pure Apache hosts.
  * 3. Triggers automated crypto trade settlements and investment maturity processing.
- * 4. Rotates logs in cpanel/keepalive.log to prevent quota saturation.
+ * 4. Rotates logs in cpanelsetup/keepalive.log to prevent quota saturation.
  *
  * cPanel Cron Job Configuration (Every 10 minutes):
- *   php /home/USERNAME/public_html/cpanel/cron-worker.php
+ *   php /home/USERNAME/public_html/cpanelsetup/cron-worker.php
  * Or via web (token protected):
- *   https://yourdomain.com/cpanel/cron-worker.php?token=YOUR_TOKEN
+ *   https://yourdomain.com/cpanelsetup/cron-worker.php?token=YOUR_TOKEN
  */
 
 $appRoot = dirname(__DIR__);
