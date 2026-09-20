@@ -30,6 +30,10 @@ function detectNode($appRoot) {
         getenv('HOME') . '/nodevenv/' . basename($appRoot) . '/20/bin/node',
         getenv('HOME') . '/nodevenv/' . basename($appRoot) . '/18/bin/node',
     );
+    $nvmNodes = glob(getenv('HOME') . '/.nvm/versions/node/v*/bin/node');
+    if ($nvmNodes && is_array($nvmNodes)) {
+        $candidates = array_merge($candidates, $nvmNodes);
+    }
     foreach ($candidates as $bin) {
         if (@is_executable($bin)) return $bin;
     }
