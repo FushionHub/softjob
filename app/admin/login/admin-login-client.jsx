@@ -17,23 +17,33 @@ export default function AdminLoginClient() {
     setError('');
     setLoading(true);
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
+
     try {
       const res = await fetch('/api/admin/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email: email.trim(), password }),
+        signal: controller.signal,
       });
 
-      const data = await res.json();
+      clearTimeout(timeoutId);
+      const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
-        setError(data.error || 'Invalid credentials');
+        setError(data.error || 'Invalid email or password. Please try again.');
         return;
       }
 
-      router.push('/admin');
+      window.location.href = '/admin';
     } catch (err) {
-      setError('An error occurred. Please try again.');
+      clearTimeout(timeoutId);
+      if (err.name === 'AbortError') {
+        setError('Connection timed out. The server database may be waking up. Please try again in a moment.');
+      } else {
+        setError('Network connection issue. Please check your internet connection and try again.');
+      }
     } finally {
       setLoading(false);
     }

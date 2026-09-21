@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
 import { getAdminSession, logAdminAction } from '@/lib/admin-auth';
 import { query } from '@/lib/db';
+import { sendDepositEmail, safeSend } from '@/lib/email';
 
-export async function PUT(request, { params }) {
+async function handleDepositUpdate(request, { params }) {
   try {
     const admin = await getAdminSession();
     if (!admin) {
@@ -10,41 +11,55 @@ export async function PUT(request, { params }) {
     }
 
     const { id } = await params;
-    const { status, note } = await request.json();
+    const body = await request.json().catch(() => ({}));
+    const { status, note } = body;
 
-    if (!status || !['pending', 'confirmed', 'rejected'].includes(status)) {
+    const rawStatus = (status || '').toLowerCase().trim();
+    const validStatuses = ['pending', 'confirmed', 'approved', 'completed', 'rejected'];
+    if (!rawStatus || !validStatuses.includes(rawStatus)) {
       return NextResponse.json(
-        { error: 'Invalid status. Must be: pending, confirmed, or rejected' },
+        { error: 'Invalid status. Must be: pending, approved, confirmed, or rejected' },
         { status: 400 }
       );
     }
 
+    const isApprove = ['confirmed', 'approved', 'completed'].includes(rawStatus);
+    const newStatus = isApprove ? 'approved' : rawStatus;
+
     let depositResult;
     try {
       depositResult = await query(
-        'SELECT id, user_id, amount, status as current_status, plan_id FROM deposits WHERE id = $1',
+        'SELECT id, user_id, amount, payment, reference, status as current_status, plan_id FROM deposits WHERE id = $1',
         [id]
       );
     } catch {
       depositResult = await query(
-        'SELECT id, user_id, amount, status as current_status FROM deposits WHERE id = $1',
+        'SELECT id, user_id, amount, payment, reference, status as current_status FROM deposits WHERE id = $1',
         [id]
       );
     }
 
-    if (depositResult.length === 0) {
+    if (!depositResult || depositResult.length === 0) {
       return NextResponse.json({ error: 'Deposit not found' }, { status: 404 });
     }
 
     const deposit = depositResult[0];
     const previousStatus = deposit.current_status;
+    const isPreviouslyApproved = ['confirmed', 'approved', 'completed'].includes(previousStatus);
 
     await query(
-      'UPDATE deposits SET status = $1 WHERE id = $2',
-      [status, id]
+      'UPDATE deposits SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2',
+      [newStatus, id]
     );
 
-    if (status === 'confirmed' && previousStatus !== 'confirmed') {
+    // Fetch user details for notification and email
+    let userRecord = null;
+    try {
+      const uRows = await query('SELECT id, name, email, balance, total_deposit FROM users WHERE id = $1', [deposit.user_id]);
+      if (uRows.length) userRecord = uRows[0];
+    } catch {}
+
+    if (isApprove && !isPreviouslyApproved) {
       const depAmt = parseFloat(deposit.amount);
 
       if (deposit.plan_id) {
@@ -62,7 +77,6 @@ export async function PUT(request, { params }) {
             endDate.setDate(endDate.getDate() + days);
           }
 
-          // Total deposit increases, but balance is invested into user_investments
           await query(
             'UPDATE users SET total_deposit = COALESCE(total_deposit, 0) + $1 WHERE id = $2',
             [depAmt, deposit.user_id]
@@ -75,38 +89,49 @@ export async function PUT(request, { params }) {
 
           try {
             await query(
-              'INSERT INTO notifications (user_id, title, message, type) VALUES ($1, $2, $3, $4)',
-              [deposit.user_id, 'Deposit & Investment Confirmed', `Your deposit of $${depAmt.toFixed(2)} was confirmed and your ${planData.name} investment is now active.`, 'success']
+              'INSERT INTO notifications (user_id, title, message, type, link) VALUES ($1, $2, $3, $4, $5)',
+              [deposit.user_id, 'Deposit & Investment Confirmed', `Your deposit of $${depAmt.toFixed(2)} was approved and your ${planData.name} plan is now active.`, 'success', '/investment-history']
             );
           } catch {}
         } else {
-          // Fallback if plan no longer exists: credit to balance
           await query(
             'UPDATE users SET balance = balance + $1, total_deposit = COALESCE(total_deposit, 0) + $1 WHERE id = $2',
             [depAmt, deposit.user_id]
           );
           try {
             await query(
-              'INSERT INTO notifications (user_id, title, message, type) VALUES ($1, $2, $3, $4)',
-              [deposit.user_id, 'Deposit Confirmed', `Your deposit of $${depAmt.toFixed(2)} has been approved and credited to your balance.`, 'success']
+              'INSERT INTO notifications (user_id, title, message, type, link) VALUES ($1, $2, $3, $4, $5)',
+              [deposit.user_id, 'Deposit Confirmed', `Your deposit of $${depAmt.toFixed(2)} has been approved and credited to your balance.`, 'success', '/dashboard']
             );
           } catch {}
         }
       } else {
-        // Regular confirmed deposit: credit to balance and total_deposit
+        // Regular confirmed deposit: credit balance and total_deposit
         await query(
           'UPDATE users SET balance = balance + $1, total_deposit = COALESCE(total_deposit, 0) + $1 WHERE id = $2',
           [depAmt, deposit.user_id]
         );
         try {
           await query(
-            'INSERT INTO notifications (user_id, title, message, type) VALUES ($1, $2, $3, $4)',
-            [deposit.user_id, 'Deposit Confirmed', `Your deposit of $${depAmt.toFixed(2)} has been approved and credited to your account.`, 'success']
+            'INSERT INTO notifications (user_id, title, message, type, link) VALUES ($1, $2, $3, $4, $5)',
+            [deposit.user_id, 'Deposit Confirmed', `Your deposit of $${depAmt.toFixed(2)} has been approved and credited to your account.`, 'success', '/dashboard']
           );
         } catch {}
       }
 
-      // Award 5% referral bonus on confirmed deposit if user was referred
+      // Send confirmation email with security advisory
+      if (userRecord?.email) {
+        safeSend(sendDepositEmail({
+          to: userRecord.email,
+          name: userRecord.name || 'Trader',
+          amount: depAmt,
+          method: deposit.payment || 'Crypto Deposit',
+          reference: deposit.reference || `DEP-${id}`,
+          status: 'approved'
+        }));
+      }
+
+      // Award 5% referral bonus if referred
       try {
         const ref = await query('SELECT referrer_id FROM referrals WHERE referred_id = $1 LIMIT 1', [deposit.user_id]);
         if (ref.length) {
@@ -118,12 +143,12 @@ export async function PUT(request, { params }) {
           await query('INSERT INTO notifications (user_id, title, message, type) VALUES ($1, $2, $3, $4)', [referrerId, 'Referral Bonus Earned!', `You earned $${bonusAmt.toFixed(2)} (5%) from your referral's confirmed deposit of $${depAmt.toFixed(2)}.`, 'success']);
         }
       } catch (refErr) {
-        console.error('Admin deposit confirmation referral bonus error:', refErr);
+        console.error('Deposit confirmation referral bonus error:', refErr);
       }
     }
 
-    if (status === 'rejected') {
-      if (previousStatus === 'confirmed') {
+    if (newStatus === 'rejected') {
+      if (isPreviouslyApproved) {
         await query(
           'UPDATE users SET balance = GREATEST(0, balance - $1), total_deposit = GREATEST(0, total_deposit - $1) WHERE id = $2',
           [deposit.amount, deposit.user_id]
@@ -131,17 +156,28 @@ export async function PUT(request, { params }) {
       }
       try {
         await query(
-          'INSERT INTO notifications (user_id, title, message, type) VALUES ($1, $2, $3, $4)',
-          [deposit.user_id, 'Deposit Rejected', `Your deposit request of $${deposit.amount} was rejected.${note ? ' Reason: ' + note : ''}`, 'error']
+          'INSERT INTO notifications (user_id, title, message, type, link) VALUES ($1, $2, $3, $4, $5)',
+          [deposit.user_id, 'Deposit Rejected', `Your deposit request of $${Number(deposit.amount).toFixed(2)} was rejected.${note ? ' Reason: ' + note : ''}`, 'error', '/deposit']
         );
       } catch {}
+
+      if (userRecord?.email) {
+        safeSend(sendDepositEmail({
+          to: userRecord.email,
+          name: userRecord.name || 'Trader',
+          amount: deposit.amount,
+          method: deposit.payment || 'Crypto',
+          reference: deposit.reference || `DEP-${id}`,
+          status: 'rejected'
+        }));
+      }
     }
 
     await logAdminAction(admin.id, 'update_deposit', 'deposit', id, {
       user_id: deposit.user_id,
       amount: deposit.amount,
       previous_status: previousStatus,
-      new_status: status,
+      new_status: newStatus,
       note
     });
 
@@ -149,11 +185,19 @@ export async function PUT(request, { params }) {
       success: true,
       deposit_id: id,
       previous_status: previousStatus,
-      new_status: status,
+      new_status: newStatus,
       amount: deposit.amount
     });
   } catch (error) {
     console.error('Update deposit error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
+}
+
+export async function PUT(request, context) {
+  return handleDepositUpdate(request, context);
+}
+
+export async function PATCH(request, context) {
+  return handleDepositUpdate(request, context);
 }

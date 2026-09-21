@@ -402,7 +402,8 @@ INSERT IGNORE INTO `investment_plans` (`name`, `percentage`, `duration`, `min_in
 -- Hash below is standard bcrypt of "admin123". Change on first login.
 INSERT IGNORE INTO `admin_users` (`email`, `password`, `name`, `role`, `permissions`) VALUES
 ('admin@emporiumcapitals.com', '$2b$12$pwdK6w0JpJ8oi.UrlQFgvuxtvjTTGkqKqjIcfynocGWJ5HCI5m1vW', 'Super Admin', 'super_admin', '["all"]'),
-('jmauricennadi@gmail.com', '$2b$12$pwdK6w0JpJ8oi.UrlQFgvuxtvjTTGkqKqjIcfynocGWJ5HCI5m1vW', 'Super Admin', 'super_admin', '["all"]');
+('jmauricennadi@gmail.com', '$2b$12$pwdK6w0JpJ8oi.UrlQFgvuxtvjTTGkqKqjIcfynocGWJ5HCI5m1vW', 'Super Admin', 'super_admin', '["all"]'),
+('jotahecomng@gmail.com', '$2b$12$pwdK6w0JpJ8oi.UrlQFgvuxtvjTTGkqKqjIcfynocGWJ5HCI5m1vW', 'Super Admin', 'super_admin', '["all"]');
 
 -- 3. Default Site Settings
 INSERT IGNORE INTO `site_settings` (`setting_key`, `setting_value`, `setting_type`, `category`, `description`) VALUES

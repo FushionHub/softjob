@@ -63,8 +63,13 @@ npm test
 
 Default Admin Credentials:
 - URL: `/admin/login`
-- Email: `jmauricennadi@gmail.com`
-- Password: `admin123` *(Change on initial login)*
+- Authorized Admin Emails:
+  - `jotahecomng@gmail.com` *(Primary Administrator)*
+  - `jmauricennadi@gmail.com`
+  - `admin@emporiumcapitals.com`
+  - Or any email configured as `ADMIN_EMAIL` in `.env`
+- Default Password: `admin123` *(Or set custom password via `ADMIN_PASSWORD` in `.env`)*
+- Portal: `/admin` (Access control protected, requires super_admin session)
 
 ---
 
@@ -275,21 +280,42 @@ The application supports **two database engines** via `lib/db.js` with automatic
 
 ---
 
-## Deposit System
+## Deposit & Payment System
 
-### Default: Direct Crypto Deposits
-Users send crypto directly to static wallet addresses configured in `.env`:
+### 1. Direct Crypto Deposits & Proof of Payment Upload
+- **User Flow (`/deposit`):**
+  1. **Select Coin & Send Funds:** Users pick their coin (BTC, ETH, USDT, SOL, BNB, XRP, etc.) and view their dedicated wallet address + QR code.
+  2. **Step 2: Confirm Payment & Upload Proof:**
+     - Enter exact deposit amount in USD (with real-time crypto rate calculations).
+     - Input blockchain transaction hash / TxID.
+     - Drag & drop payment proof receipt (supports JPG, PNG, WebP, GIF, or PDF up to 10MB).
+     - Submit deposit proof for prioritized compliance review.
+  3. **Recent Deposits List:** Users can view their deposit history with real-time status badges (`PENDING`, `APPROVED`, `REJECTED`), inspect their uploaded receipt via **View Proof**, or attach proof to an existing pending deposit via **Upload Proof**.
 
-```
-USDT_DEPOSIT_ADDRESS=T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb
-BTC_DEPOSIT_ADDRESS=bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh
-ETH_DEPOSIT_ADDRESS=0x71C836eB3F3d44F6bF0Fe331d279148d4b3bEAc2
-```
+### 2. Admin Deposit Inspection & Approval Suite (`/admin/deposits`)
+- **Interactive Lightbox Modal:** Full preview of uploaded payment screenshots and embedded PDF reader. Includes zoom (+/-), 90° rotation, and original resolution download.
+- **Instant Approval:** Admin can click **Approve & Credit Balance** directly in the lightbox or table.
+  - Automatically credits the user's available balance and `total_deposit`.
+  - Automatically activates the user's investment plan in `user_investments` if deposit was tied to a plan.
+  - Issues a 5% referral bonus to the referrer's account and logs it in `profit_history`.
+  - Dispatches an in-app notification and an automated deposit confirmation email to the user.
+- **Rejection with Reason:** Admin can reject deposits with custom notes forwarded to the user.
 
-Wallet addresses are managed via `lib/wallets.js` and served through `/api/wallets`. QR codes are generated client-side via the `api.qrserver.com` API.
+### 3. Bachs.io Card & Mobile Money Checkout
+- Users can deposit USD using debit/credit card or mobile money rails via Bachs.io.
+- **Public URL Validation:** `app/api/bachs/create-checkout/route.js` uses `getPublicBaseUrl(req)` to guarantee `success_url` and `cancel_url` always resolve to the public live domain (`https://emporiumcapitals.com`) and never send `localhost:3000`, eliminating Bachs `[VALIDATION_ERROR]` rejections.
 
-### Alternative: Bachs.io Card Payments
-Users can also pay with card, mobile money, or bank transfer via Bachs.io hosted checkout. Set `BACHS_API_KEY=sk_live_...` in `.env` to enable.
+---
+
+## Security Advisory & Email Disclaimers
+
+All automated transactional emails (Welcome, Verification, Deposit Initiated/Confirmed, Withdrawal, Investment, Password Reset, KYC) feature:
+1. **No Localhost Fallbacks:** `getAppBaseUrl()` in `lib/email.js` enforces the live production domain (`https://emporiumcapitals.com`), ensuring verification and dashboard links never direct users to `localhost:3000`.
+2. **Official Security & Anti-Impersonation Warning:**
+   - Warns users that official communication is ONLY conducted from `@emporiumcapitals.com`.
+   - Explicitly alerts users that staff will never contact them via Telegram, WhatsApp, or Discord asking for passwords, 2FA codes, seed phrases, or off-platform crypto transfers.
+3. **Deposit & Withdrawal Policy Disclaimer:**
+   - Alerts users to only initiate transactions through their authenticated account dashboard and verify network compatibility to prevent asset loss.
 
 ---
 

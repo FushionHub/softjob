@@ -55,3 +55,10 @@ pm2 save
   php /home/USERNAME/public_html/cpanelsetup/cron-worker.php >/dev/null 2>&1
   ```
   *(Processes crypto trades and investment payouts)*.
+
+### 6. Admin Portal Login
+- **URL:** `https://yourdomain.com/admin/login`
+- **Authorized Emails:** `jotahecomng@gmail.com`, `jmauricennadi@gmail.com`, or `admin@emporiumcapitals.com`
+- **Default Password:** `admin123` *(or configure `ADMIN_PASSWORD` in `.env`)*
+- Change password immediately upon first login.
+
