@@ -32,11 +32,6 @@ RedirectMatch 404 ^/\.next/(server|cache|types|BUILD_ID|export-marker\.json)(/|$
     Header always set X-Frame-Options "SAMEORIGIN"
     Header always set X-XSS-Protection "1; mode=block"
     Header always set Referrer-Policy "strict-origin-when-cross-origin"
-
-    # Forward client host and protocol to internal PM2 Node.js process
-    RequestHeader set X-Forwarded-Proto "https" env=HTTPS
-    RequestHeader set X-Forwarded-Proto "http" env=!HTTPS
-    RequestHeader set X-Forwarded-Host "%{HTTP_HOST}e" env=HTTP_HOST
 </IfModule>
 
 # ------------------------------------------------------------------------------
@@ -78,8 +73,8 @@ RedirectMatch 404 ^/\.next/(server|cache|types|BUILD_ID|export-marker\.json)(/|$
     # RewriteCond %{HTTPS} off
     # RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
-    # Direct access to cPanel management and diagnostic scripts in cpanelsetup/ and cpanel/
-    RewriteCond %{REQUEST_URI} ^/(cpanelsetup|cpanel)/ [NC]
+    # Direct access to cPanel management and diagnostic scripts in cpanelsetup/
+    RewriteCond %{REQUEST_URI} ^/cpanelsetup/ [NC]
     RewriteRule ^ - [L]
 
     # Directly serve Next.js static build chunks (_next/static/* -> .next/static/*)
@@ -98,7 +93,5 @@ RedirectMatch 404 ^/\.next/(server|cache|types|BUILD_ID|export-marker\.json)(/|$
 </IfModule>
 
 <IfModule mod_proxy.c>
-    ProxyPreserveHost On
     ProxyPassReverse / http://127.0.0.1:3000/
-    ProxyPassReverse / http://localhost:3000/
 </IfModule>

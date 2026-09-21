@@ -55,7 +55,7 @@ export async function GET(request) {
 
     const depositsResult = await query(
       `SELECT d.id, d.user_id, d.amount, d.currency, d.status, d.tx_hash, d.payment, d.reference,
-              d.proof_url, d.notes, d.created_at, d.updated_at,
+              d.created_at, d.updated_at,
               u.name as user_name, u.email as user_email
        FROM deposits d
        LEFT JOIN users u ON d.user_id = u.id

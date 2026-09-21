@@ -1,33 +1,8 @@
 'use client';
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/dashboard-layout';
-import {
-  Check,
-  Loader2,
-  AlertTriangle,
-  Wallet,
-  CreditCard,
-  Coins,
-  TrendingUp,
-  TrendingDown,
-  Search,
-  Info,
-  ArrowRight,
-  RefreshCw,
-  Copy,
-  ExternalLink,
-  UploadCloud,
-  FileText,
-  Image as ImageIcon,
-  Eye,
-  X,
-  CheckCircle2,
-  FileCheck,
-  ZoomIn,
-  ZoomOut,
-  Download,
-} from 'lucide-react';
+import { Check, Loader2, AlertTriangle, Wallet, CreditCard, Coins, TrendingUp, TrendingDown, Search, Info, ArrowRight, RefreshCw, Copy, ExternalLink } from 'lucide-react';
 
 const AMOUNT_SUGGESTIONS = [100, 250, 500, 1000, 2500, 5000, 10000, 25000];
 
@@ -49,29 +24,6 @@ export default function DepositPage() {
   const [cryptoAmount, setCryptoAmount] = useState('');
   const [searchCoin, setSearchCoin] = useState('');
 
-  // Proof upload state for primary deposit
-  const [proofFile, setProofFile] = useState(null);
-  const [proofPreview, setProofPreview] = useState(null);
-  const [txHash, setTxHash] = useState('');
-  const [proofNotes, setProofNotes] = useState('');
-  const [submittingProof, setSubmittingProof] = useState(false);
-  const [dragOver, setDragOver] = useState(false);
-  const fileInputRef = useRef(null);
-
-  // Attach proof modal state for existing pending deposits
-  const [attachModalDeposit, setAttachModalDeposit] = useState(null);
-  const [attachFile, setAttachFile] = useState(null);
-  const [attachPreview, setAttachPreview] = useState(null);
-  const [attachTxHash, setAttachTxHash] = useState('');
-  const [attachNotes, setAttachNotes] = useState('');
-  const [submittingAttach, setSubmittingAttach] = useState(false);
-  const [attachDragOver, setAttachDragOver] = useState(false);
-  const attachFileInputRef = useRef(null);
-
-  // View proof lightbox modal state
-  const [viewProofModal, setViewProofModal] = useState(null);
-  const [viewZoom, setViewZoom] = useState(1);
-
   const fetchPrices = useCallback(async () => {
     try {
       const res = await fetch('/api/prices', { cache: 'no-store' });
@@ -81,16 +33,6 @@ export default function DepositPage() {
           setPrices(data.prices);
           setChanges(data.changes || {});
         }
-      }
-    } catch {}
-  }, []);
-
-  const refreshDeposits = useCallback(async () => {
-    try {
-      const res = await fetch('/api/deposit', { cache: 'no-store' });
-      if (res.ok) {
-        const data = await res.json();
-        setDeposits(data.deposits || []);
       }
     } catch {}
   }, []);
@@ -138,134 +80,6 @@ export default function DepositPage() {
     w.name.toLowerCase().includes(searchCoin.toLowerCase()) || w.id.toLowerCase().includes(searchCoin.toLowerCase())
   );
 
-  const processFile = (file, setF, setP) => {
-    if (!file) return;
-    if (file.size > 10 * 1024 * 1024) {
-      setMsg({ type: 'error', text: 'File is too large. Maximum size is 10MB.' });
-      return;
-    }
-    const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'application/pdf'];
-    if (!validTypes.includes(file.type)) {
-      setMsg({ type: 'error', text: 'Please upload an image (JPG, PNG, WebP) or PDF document.' });
-      return;
-    }
-    setF(file);
-    if (file.type.startsWith('image/')) {
-      const reader = new FileReader();
-      reader.onload = () => setP(reader.result);
-      reader.readAsDataURL(file);
-    } else {
-      setP('pdf');
-    }
-  };
-
-  const handleCryptoProofSubmit = async (e) => {
-    e.preventDefault();
-    if (!amount) {
-      setMsg({ type: 'error', text: 'Please enter the deposit amount.' });
-      return;
-    }
-    const numAmt = parseFloat(amount);
-    if (isNaN(numAmt) || numAmt < 10) {
-      setMsg({ type: 'error', text: 'Minimum deposit is $10.' });
-      return;
-    }
-    if (!proofFile && !txHash.trim()) {
-      setMsg({ type: 'error', text: 'Please upload a receipt screenshot or enter the transaction hash (TxID).' });
-      return;
-    }
-
-    setSubmittingProof(true);
-    setMsg({ type: '', text: '' });
-
-    try {
-      const formData = new FormData();
-      formData.append('amount', String(numAmt));
-      formData.append('paymentMethod', selectedCoin ? `${selectedCoin.id} (${selectedCoin.network})` : 'Crypto');
-      if (txHash.trim()) formData.append('tx_hash', txHash.trim());
-      if (proofNotes.trim()) formData.append('notes', proofNotes.trim());
-      if (proofFile) formData.append('file', proofFile);
-
-      const res = await fetch('/api/deposit/proof', {
-        method: 'POST',
-        body: formData,
-      });
-      const data = await res.json();
-
-      if (!res.ok) {
-        setMsg({ type: 'error', text: data.error || 'Failed to submit proof of payment.' });
-        return;
-      }
-
-      setMsg({
-        type: 'success',
-        text: `Proof of payment submitted! Deposit Ref: ${data.deposit?.reference || 'Pending'}. Our compliance team will review and credit your balance shortly.`,
-      });
-
-      // Clear inputs
-      setAmount('');
-      setProofFile(null);
-      setProofPreview(null);
-      setTxHash('');
-      setProofNotes('');
-      if (fileInputRef.current) fileInputRef.current.value = '';
-
-      // Refresh deposits list
-      await refreshDeposits();
-    } catch (err) {
-      setMsg({ type: 'error', text: 'Network error submitting proof. Please try again.' });
-    } finally {
-      setSubmittingProof(false);
-    }
-  };
-
-  const handleAttachProofSubmit = async (e) => {
-    e.preventDefault();
-    if (!attachModalDeposit) return;
-    if (!attachFile && !attachTxHash.trim()) {
-      setMsg({ type: 'error', text: 'Please upload a receipt screenshot or enter the transaction hash (TxID).' });
-      return;
-    }
-
-    setSubmittingAttach(true);
-    try {
-      const formData = new FormData();
-      formData.append('deposit_id', String(attachModalDeposit.id));
-      if (attachTxHash.trim()) formData.append('tx_hash', attachTxHash.trim());
-      if (attachNotes.trim()) formData.append('notes', attachNotes.trim());
-      if (attachFile) formData.append('file', attachFile);
-
-      const res = await fetch('/api/deposit/proof', {
-        method: 'POST',
-        body: formData,
-      });
-      const data = await res.json();
-
-      if (!res.ok) {
-        setMsg({ type: 'error', text: data.error || 'Failed to attach proof.' });
-        return;
-      }
-
-      setMsg({
-        type: 'success',
-        text: `Proof of payment attached to deposit ${attachModalDeposit.reference} successfully!`,
-      });
-
-      setAttachModalDeposit(null);
-      setAttachFile(null);
-      setAttachPreview(null);
-      setAttachTxHash('');
-      setAttachNotes('');
-      if (attachFileInputRef.current) attachFileInputRef.current.value = '';
-
-      await refreshDeposits();
-    } catch (err) {
-      setMsg({ type: 'error', text: 'Network error uploading proof.' });
-    } finally {
-      setSubmittingAttach(false);
-    }
-  };
-
   const handleBachsDeposit = async (e) => {
     e.preventDefault();
     if (!amount) { setMsg({ type: 'error', text: 'Enter an amount.' }); return; }
@@ -310,11 +124,10 @@ export default function DepositPage() {
               <span className="size-2 rounded-full bg-emerald-400 animate-pulse" /> Live Prices • Powered by Binance
               <span className={`ml-2 px-2 py-0.5 rounded-full text-[10px] font-black ${bachsCfg.configured ? 'bg-emerald-500 text-white' : 'bg-amber-500 text-white'}`}>{bachsCfg.configured ? 'Bachs LIVE ✓' : 'Bachs NOT CONFIGURED'}</span>
             </div>
-            <h1 className="text-3xl md:text-4xl font-black tracking-tight text-white leading-tight">Deposit <span className="bg-gradient-to-r from-[#ef4d45] to-[#ff8a5b] bg-clip-text text-transparent">Crypto</span> & Upload Proof</h1>
-            <p className="text-sm text-white/60 max-w-2xl">Send crypto directly to your wallet address below and upload your payment proof (receipt screenshot or TxID). Your deposit is verified and credited promptly. You can also pay with card via Bachs.io.</p>
+            <h1 className="text-3xl md:text-4xl font-black tracking-tight text-white leading-tight">Deposit <span className="bg-gradient-to-r from-[#ef4d45] to-[#ff8a5b] bg-clip-text text-transparent">Crypto</span> Instantly</h1>
+            <p className="text-sm text-white/60 max-w-2xl">Send crypto directly to your wallet address below. Once we detect your deposit on the blockchain, your balance is credited in real time. You can also pay with card via Bachs.io.</p>
             <div className="flex flex-wrap gap-2 pt-2">
               <span className="text-xs bg-white/5 border border-white/10 rounded-full px-3 py-1.5 text-white/70 flex items-center gap-2"><Wallet className="size-3.5"/> Direct Crypto Deposit</span>
-              <span className="text-xs bg-white/5 border border-white/10 rounded-full px-3 py-1.5 text-white/70 flex items-center gap-2"><UploadCloud className="size-3.5 text-[#ef4d45]"/> Proof Upload Enabled</span>
               <span className="text-xs bg-white/5 border border-white/10 rounded-full px-3 py-1.5 text-white/70 flex items-center gap-2"><CreditCard className="size-3.5"/> Card via Bachs.io</span>
             </div>
           </div>
@@ -323,7 +136,7 @@ export default function DepositPage() {
             <div>
               <p className="text-xs text-white/50">Available Balance</p>
               <p suppressHydrationWarning className="text-3xl font-black text-white">${Number(user?.balance||0).toLocaleString(undefined,{minimumFractionDigits:2})}</p>
-              <p suppressHydrationWarning className="text-xs text-white/30 mt-1">Deposits pending: {deposits.filter(d=>d.status==='pending').length} • Approved: {deposits.filter(d=>d.status==='approved'||d.status==='completed').length}</p>
+              <p suppressHydrationWarning className="text-xs text-white/30 mt-1">Deposits pending: {deposits.filter(d=>d.status==='pending').length} • Approved: {deposits.filter(d=>d.status==='approved').length}</p>
             </div>
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div className="bg-white/5 rounded-xl p-3 border border-white/5"><p className="text-white/40 text-[11px] uppercase font-bold">Total Deposit</p><p className="text-white font-black">${Number(user?.total_deposit||0).toFixed(2)}</p></div>
@@ -336,15 +149,14 @@ export default function DepositPage() {
       {msg.text && (
         <div className={`p-4 rounded-2xl border text-xs font-bold flex items-start gap-3 ${msg.type==='success'?'bg-emerald-500/10 border-emerald-500/20 text-emerald-200': msg.type==='info'?'bg-blue-500/10 border-blue-500/20 text-blue-200':'bg-red-500/10 border-red-500/20 text-red-200'}`}>
           {msg.type==='success' ? <Check className="size-4 shrink-0 mt-0.5"/> : msg.type==='info' ? <Info className="size-4 shrink-0 mt-0.5"/> : <AlertTriangle className="size-4 shrink-0 mt-0.5"/>}
-          <span className="flex-1">{msg.text}</span>
-          <button onClick={() => setMsg({ type: '', text: '' })} className="opacity-60 hover:opacity-100"><X className="size-4" /></button>
+          <span>{msg.text}</span>
         </div>
       )}
 
       {/* Deposit mode tabs */}
       <div className="flex gap-2">
         <button onClick={() => setDepositMode('crypto')} className={`px-5 py-3 rounded-xl text-xs font-black border transition-all ${depositMode === 'crypto' ? 'bg-[#ef4d45] border-[#ef4d45] text-white shadow-lg shadow-[#ef4d45]/20' : 'bg-white/5 border-white/10 text-white/70 hover:border-[#ef4d45]/50'}`}>
-          <Wallet className="size-3.5 inline mr-2"/> Direct Crypto & Proof Upload
+          <Wallet className="size-3.5 inline mr-2"/> Direct Crypto
         </button>
         <button onClick={() => setDepositMode('bachs')} className={`px-5 py-3 rounded-xl text-xs font-black border transition-all ${depositMode === 'bachs' ? 'bg-[#ef4d45] border-[#ef4d45] text-white shadow-lg shadow-[#ef4d45]/20' : 'bg-white/5 border-white/10 text-white/70 hover:border-[#ef4d45]/50'}`}>
           <CreditCard className="size-3.5 inline mr-2"/> Card / Bachs.io
@@ -418,7 +230,7 @@ export default function DepositPage() {
                       <div className="flex-1 bg-[#05081c] border border-white/10 rounded-xl px-4 py-3 font-mono text-sm text-white break-all select-all">
                         {selectedCoin.address}
                       </div>
-                      <button onClick={() => copyAddress(selectedCoin.address)} className="shrink-0 size-10 rounded-xl bg-[#ef4d45] hover:bg-[#ff5a4a] flex items-center justify-center transition-colors" title="Copy Address">
+                      <button onClick={() => copyAddress(selectedCoin.address)} className="shrink-0 size-10 rounded-xl bg-[#ef4d45] hover:bg-[#ff5a4a] flex items-center justify-center transition-colors">
                         {copiedAddr === selectedCoin.address ? <Check className="size-4 text-white"/> : <Copy className="size-4 text-white"/>}
                       </button>
                     </div>
@@ -430,195 +242,51 @@ export default function DepositPage() {
                     <div className="bg-white p-3 rounded-2xl">
                       <img src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(selectedCoin.address)}`} alt={`${selectedCoin.id} QR Code`} width={200} height={200} className="rounded-lg" />
                     </div>
-                    <p className="text-[11px] text-white/40 text-center">Scan QR code with your wallet app to transfer</p>
+                    <p className="text-[11px] text-white/40 text-center">Scan QR code with your wallet app</p>
                   </div>
                 </div>
 
                 <div className="bg-[#0a0e2a] border border-amber-500/20 rounded-2xl p-4 flex gap-3">
                   <div className="size-8 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shrink-0"><AlertTriangle className="size-4 text-amber-400"/></div>
                   <div className="text-xs leading-relaxed text-white/60">
-                    <p className="font-black text-white text-sm">Step 1: Send Funds</p>
+                    <p className="font-black text-white text-sm">Important Instructions</p>
                     <ul className="mt-1 space-y-1 list-disc list-inside">
                       <li>Send <b className="text-white">only {selectedCoin.id}</b> ({selectedCoin.network}) to this address</li>
-                      <li>Sending any other asset may result in permanent loss</li>
+                      <li>Sending any other asset may result in <b className="text-white">permanent loss</b></li>
+                      <li>Deposits are credited after network confirmation (typically 1-15 minutes)</li>
                       <li>Minimum deposit: $10 equivalent</li>
-                      <li>After completing transfer in your wallet, complete Step 2 below to submit proof</li>
+                      <li>Your balance updates in real time once confirmed</li>
                     </ul>
+                    <p className="mt-2 text-[11px] text-white/40">Need help? <a href="/support" className="underline hover:text-white">Contact Support</a></p>
                   </div>
                 </div>
               </div>
             </div>
           )}
 
-          {/* STEP 2: Submit Deposit & Upload Proof of Payment Form */}
+          {/* Amount input for reference */}
           <div className="bg-[#05081c] border border-white/5 rounded-2xl p-6">
-            <form onSubmit={handleCryptoProofSubmit} className="bg-[#010214] border border-white/10 rounded-[1.5rem] p-6 space-y-6 shadow-2xl">
-              <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-white/10">
-                <div>
-                  <div className="inline-flex items-center gap-2 bg-[#ef4d45]/15 border border-[#ef4d45]/30 text-[#ff8a5b] rounded-full px-3 py-1 text-xs font-bold mb-2">
-                    <UploadCloud className="size-3.5" /> Step 2: Confirm Payment & Upload Proof
-                  </div>
-                  <h3 className="text-lg font-black text-white">Submit Deposit Proof</h3>
-                  <p className="text-xs text-white/50 mt-0.5">Upload your payment receipt screenshot or enter your blockchain transaction hash for immediate verification.</p>
-                </div>
-                {selectedCoin && (
-                  <div className="flex items-center gap-2 bg-white/5 border border-white/10 px-3 py-2 rounded-xl text-xs">
-                    <span className="size-6 rounded-md flex items-center justify-center font-black text-[10px]" style={{background: `${selectedCoin.color}20`, color: selectedCoin.color}}>{selectedCoin.icon}</span>
-                    <div>
-                      <p className="font-bold text-white leading-none">{selectedCoin.id}</p>
-                      <p className="text-[10px] text-white/40">{selectedCoin.network}</p>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Deposit Amount (USD) */}
+            <div className="bg-[#010214] border border-white/10 rounded-[1.5rem] p-6 space-y-5 shadow-2xl">
+              <h3 className="text-sm font-black text-white uppercase tracking-wider">Expected Deposit Amount (Optional)</h3>
               <div>
-                <label className="text-[11px] font-black text-white/50 uppercase tracking-wider">Deposit Amount (USD) *</label>
+                <label className="text-[11px] font-black text-white/50 uppercase tracking-wider">Amount (USD) — for your reference only</label>
                 <div className="relative mt-1">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40 text-sm">$</span>
-                  <input
-                    type="number"
-                    value={amount}
-                    onChange={e=>setAmount(e.target.value)}
-                    min="10"
-                    step="any"
-                    placeholder="Enter amount (e.g. 500)"
-                    autoComplete="amount"
-                    inputMode="decimal"
-                    required
-                    className="w-full bg-[#05081c] border border-white/10 rounded-xl pl-8 pr-4 py-3.5 text-white outline-none focus:border-[#ef4d45] focus:ring-1 focus:ring-[#ef4d45]/20 font-mono font-bold text-lg"
-                  />
+                  <input type="number" value={amount} onChange={e=>setAmount(e.target.value)} min="10" placeholder="Enter amount e.g. 500" autoComplete="amount" inputMode="decimal" className="w-full bg-[#05081c] border border-white/10 rounded-xl pl-8 pr-4 py-3.5 text-white outline-none focus:border-[#ef4d45] focus:ring-1 focus:ring-[#ef4d45]/20 font-mono font-bold text-lg" />
                 </div>
                 <div className="flex flex-wrap gap-2 mt-3">
                   {AMOUNT_SUGGESTIONS.map(val => (
-                    <button
-                      key={val}
-                      type="button"
-                      onClick={()=>setAmount(String(val))}
-                      className={`px-4 py-2 rounded-full text-xs font-black border transition-all ${amount===String(val) ? 'bg-[#ef4d45] border-[#ef4d45] text-white shadow' : 'bg-white/5 border-white/10 text-white/70 hover:border-[#ef4d45]/50 hover:text-white'}`}
-                    >
+                    <button key={val} type="button" onClick={()=>setAmount(String(val))} className={`px-4 py-2 rounded-full text-xs font-black border transition-all ${amount===String(val) ? 'bg-[#ef4d45] border-[#ef4d45] text-white shadow' : 'bg-white/5 border-white/10 text-white/70 hover:border-[#ef4d45]/50 hover:text-white'}`}>
                       ${val.toLocaleString()}
                     </button>
                   ))}
                 </div>
                 {amount && cryptoAmount && selectedCoin && (
-                  <p className="text-xs text-emerald-400/90 mt-2 font-mono">
-                    ≈ {cryptoAmount} {selectedCoin.id} @ ${prices[selectedCoin.id + 'USDT']?.toLocaleString() || '—'} / {selectedCoin.id}
-                  </p>
+                  <p className="text-xs text-white/40 mt-2 font-mono">≈ {cryptoAmount} {selectedCoin.id} @ ${prices[selectedCoin.id + 'USDT']?.toLocaleString() || '—'} / {selectedCoin.id}</p>
                 )}
               </div>
-
-              {/* Transaction Hash (TxID) */}
-              <div>
-                <div className="flex items-center justify-between">
-                  <label className="text-[11px] font-black text-white/50 uppercase tracking-wider">Blockchain Transaction Hash (TxID)</label>
-                  <span className="text-[10px] text-white/40">From your wallet / exchange transfer</span>
-                </div>
-                <input
-                  type="text"
-                  value={txHash}
-                  onChange={e => setTxHash(e.target.value)}
-                  placeholder="e.g. 0x8a92b1... or Tron transaction ID"
-                  className="w-full mt-1 bg-[#05081c] border border-white/10 rounded-xl px-4 py-3 text-white font-mono text-xs outline-none focus:border-[#ef4d45] focus:ring-1 focus:ring-[#ef4d45]/20"
-                />
-              </div>
-
-              {/* Receipt File Upload Dropzone */}
-              <div>
-                <label className="text-[11px] font-black text-white/50 uppercase tracking-wider block mb-1">
-                  Upload Proof of Payment (Screenshot / Receipt) *
-                </label>
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  accept="image/jpeg,image/png,image/webp,image/gif,application/pdf"
-                  onChange={e => {
-                    if (e.target.files?.[0]) processFile(e.target.files[0], setProofFile, setProofPreview);
-                  }}
-                  className="hidden"
-                />
-
-                {!proofFile ? (
-                  <div
-                    onDragOver={e => { e.preventDefault(); setDragOver(true); }}
-                    onDragLeave={() => setDragOver(false)}
-                    onDrop={e => {
-                      e.preventDefault();
-                      setDragOver(false);
-                      if (e.dataTransfer.files?.[0]) processFile(e.dataTransfer.files[0], setProofFile, setProofPreview);
-                    }}
-                    onClick={() => fileInputRef.current?.click()}
-                    className={`border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-all ${
-                      dragOver ? 'border-[#ef4d45] bg-[#ef4d45]/10' : 'border-white/15 bg-white/[0.02] hover:border-[#ef4d45]/60 hover:bg-white/[0.04]'
-                    }`}
-                  >
-                    <div className="size-12 rounded-2xl bg-[#ef4d45]/10 border border-[#ef4d45]/20 flex items-center justify-center mx-auto mb-3 text-[#ef4d45]">
-                      <UploadCloud className="size-6" />
-                    </div>
-                    <p className="text-sm font-bold text-white">Click or drag & drop proof screenshot here</p>
-                    <p className="text-xs text-white/40 mt-1">Supports JPG, PNG, WebP, GIF, or PDF (Up to 10MB)</p>
-                  </div>
-                ) : (
-                  <div className="bg-[#0a0e2a] border border-white/10 rounded-2xl p-4 flex items-center gap-4">
-                    {proofPreview === 'pdf' ? (
-                      <div className="size-16 rounded-xl bg-red-500/10 border border-red-500/20 flex flex-col items-center justify-center shrink-0 text-red-400">
-                        <FileText className="size-7" />
-                        <span className="text-[10px] font-bold mt-0.5">PDF</span>
-                      </div>
-                    ) : (
-                      <div className="size-16 rounded-xl overflow-hidden border border-white/10 shrink-0 bg-black/40">
-                        <img src={proofPreview} alt="Receipt Preview" className="size-full object-cover" />
-                      </div>
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <CheckCircle2 className="size-4 text-emerald-400 shrink-0" />
-                        <p className="text-sm font-bold text-white truncate">{proofFile.name}</p>
-                      </div>
-                      <p className="text-xs text-white/40 mt-0.5">{(proofFile.size / 1024).toFixed(1)} KB • Ready to submit</p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setProofFile(null);
-                        setProofPreview(null);
-                        if (fileInputRef.current) fileInputRef.current.value = '';
-                      }}
-                      className="p-2 rounded-xl bg-white/5 hover:bg-red-500/20 text-white/60 hover:text-red-400 transition-colors"
-                      title="Remove file"
-                    >
-                      <X className="size-4" />
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              {/* Notes */}
-              <div>
-                <label className="text-[11px] font-black text-white/50 uppercase tracking-wider block mb-1">Additional Notes (Optional)</label>
-                <textarea
-                  value={proofNotes}
-                  onChange={e => setProofNotes(e.target.value)}
-                  placeholder="e.g. Sent from Trust Wallet / Binance. Transaction network fee included."
-                  rows={2}
-                  className="w-full bg-[#05081c] border border-white/10 rounded-xl px-4 py-3 text-white text-xs outline-none focus:border-[#ef4d45] focus:ring-1 focus:ring-[#ef4d45]/20 resize-none"
-                />
-              </div>
-
-              {/* Submit Button */}
-              <button
-                type="submit"
-                disabled={submittingProof}
-                className="w-full bg-gradient-to-r from-[#ef4d45] to-[#8c0030] hover:from-[#ff5a4a] hover:to-[#a60039] text-white py-4 rounded-xl font-black text-sm flex items-center justify-center gap-2 shadow-lg shadow-[#ef4d45]/20 disabled:opacity-50 transition-all"
-              >
-                {submittingProof ? (
-                  <><Loader2 className="size-5 animate-spin"/> Submitting Payment Proof...</>
-                ) : (
-                  <><UploadCloud className="size-4"/> Submit Deposit & Proof of Payment <ArrowRight className="size-4"/></>
-                )}
-              </button>
-            </form>
+              <p className="text-[11px] text-white/40">This amount is for your reference. Send any amount of {selectedCoin?.id || 'crypto'} to the address above — we credit what we receive.</p>
+            </div>
           </div>
         </>
       ) : (
@@ -690,364 +358,31 @@ export default function DepositPage() {
         </div>
       </div>
 
-      {/* Recent Deposits with Proof inspection & upload triggers */}
+      {/* Recent Deposits */}
       <div className="bg-[#05081c] border border-white/5 rounded-2xl p-6">
         <div className="flex items-center justify-between mb-4">
-          <div>
-            <h3 className="text-sm font-black text-white uppercase tracking-wider">Recent Deposits</h3>
-            <p className="text-xs text-white/40 mt-0.5">Track your deposit status and attach or view payment proofs</p>
-          </div>
-          <span className="text-xs text-white/40 bg-white/5 px-2.5 py-1 rounded-full border border-white/10">{deposits.length} total</span>
+          <h3 className="text-sm font-black text-white uppercase tracking-wider">Recent Deposits</h3>
+          <span className="text-xs text-white/40 bg-white/5 px-2 py-1 rounded-full border border-white/10">{deposits.length} total</span>
         </div>
         {deposits.length ? (
           <div className="space-y-2">
-            {deposits.slice(0, 10).map(d => (
+            {deposits.slice(0,8).map(d=> (
               <div key={d.id} className="bg-[#010214] border border-white/5 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-white/10 transition-colors">
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="size-10 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center shrink-0">
-                    <Wallet className="size-4 text-white/60"/>
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <p className="text-sm font-black text-white">${Number(d.amount).toFixed(2)}</p>
-                      <span className="text-white/40 text-xs font-normal">• {d.payment}</span>
-                      {d.proof_url && (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full">
-                          <FileCheck className="size-3" /> Proof Attached
-                        </span>
-                      )}
-                    </div>
-                    <p suppressHydrationWarning className="text-[11px] text-white/30 font-mono truncate">
-                      Ref: {d.reference} • {new Date(d.date).toLocaleString()}
-                    </p>
-                    {d.tx_hash && (
-                      <p className="text-[10px] text-white/50 font-mono truncate max-w-xs md:max-w-md mt-0.5">
-                        TxID: {d.tx_hash}
-                      </p>
-                    )}
+                <div className="flex items-center gap-3">
+                  <div className="size-10 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center"><Wallet className="size-4 text-white/60"/></div>
+                  <div>
+                    <p className="text-sm font-black text-white">${Number(d.amount).toFixed(2)} <span className="text-white/40 font-normal">• {d.payment}</span></p>
+                    <p suppressHydrationWarning className="text-[11px] text-white/30 font-mono">{d.reference} • {new Date(d.date).toLocaleString()}</p>
                   </div>
                 </div>
-
-                <div className="flex items-center gap-2 shrink-0">
-                  {d.proof_url ? (
-                    <button
-                      onClick={() => { setViewProofModal(d); setViewZoom(1); }}
-                      className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-white text-xs font-bold transition-all"
-                      title="View Proof Receipt"
-                    >
-                      <Eye className="size-3 text-[#ef4d45]" /> View Proof
-                    </button>
-                  ) : d.status === 'pending' ? (
-                    <button
-                      onClick={() => {
-                        setAttachModalDeposit(d);
-                        setAttachFile(null);
-                        setAttachPreview(null);
-                        setAttachTxHash(d.tx_hash || '');
-                        setAttachNotes(d.notes || '');
-                      }}
-                      className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#ef4d45]/15 hover:bg-[#ef4d45]/25 border border-[#ef4d45]/30 text-[#ff8a5b] text-xs font-bold transition-all"
-                      title="Upload Proof for this Deposit"
-                    >
-                      <UploadCloud className="size-3" /> Upload Proof
-                    </button>
-                  ) : null}
-
-                  <span className={`text-[11px] font-black px-3 py-1 rounded-full border ${
-                    d.status === 'approved' || d.status === 'completed'
-                      ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                      : d.status === 'pending'
-                      ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'
-                      : 'bg-red-500/10 text-red-400 border-red-500/20'
-                  }`}>
-                    {d.status.toUpperCase()}
-                  </span>
+                <div className="flex items-center gap-2">
+                  <span className={`text-[11px] font-black px-3 py-1 rounded-full border ${d.status==='approved'?'bg-emerald-500/10 text-emerald-400 border-emerald-500/20': d.status==='pending'?'bg-yellow-500/10 text-yellow-400 border-yellow-500/20':'bg-red-500/10 text-red-400 border-red-500/20'}`}>{d.status.toUpperCase()}</span>
                 </div>
               </div>
             ))}
           </div>
-        ) : (
-          <div className="text-center py-10">
-            <div className="size-12 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-center mx-auto mb-3">
-              <Wallet className="size-6 text-white/20"/>
-            </div>
-            <p className="text-sm font-bold text-white/40">No deposits yet</p>
-            <p className="text-xs text-white/30">Select a coin above, send crypto to your address, and upload your payment proof.</p>
-          </div>
-        )}
+        ) : <div className="text-center py-10"><div className="size-12 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-center mx-auto mb-3"><Wallet className="size-6 text-white/20"/></div><p className="text-sm font-bold text-white/40">No deposits yet</p><p className="text-xs text-white/30">Select a coin above and send crypto to your deposit address.</p></div>}
       </div>
-
-      {/* MODAL 1: Attach Proof to Existing Pending Deposit */}
-      {attachModalDeposit && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="bg-[#0a0f2e] border border-white/10 rounded-2xl w-full max-w-lg flex flex-col overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200">
-            <div className="p-4 border-b border-white/10 flex items-center justify-between">
-              <div>
-                <h3 className="text-base font-bold text-white flex items-center gap-2">
-                  <UploadCloud className="w-5 h-5 text-[#ef4d45]" />
-                  Upload Payment Proof
-                </h3>
-                <p className="text-xs text-white/50">
-                  Ref: {attachModalDeposit.reference} • ${Number(attachModalDeposit.amount).toFixed(2)} ({attachModalDeposit.payment})
-                </p>
-              </div>
-              <button
-                onClick={() => setAttachModalDeposit(null)}
-                className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/60 hover:text-white transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleAttachProofSubmit} className="p-5 space-y-4">
-              {/* Transaction Hash */}
-              <div>
-                <label className="text-[11px] font-black text-white/50 uppercase tracking-wider block mb-1">
-                  Blockchain Transaction Hash (TxID)
-                </label>
-                <input
-                  type="text"
-                  value={attachTxHash}
-                  onChange={e => setAttachTxHash(e.target.value)}
-                  placeholder="e.g. 0x8a92b1... or Tron transaction ID"
-                  className="w-full bg-[#05081c] border border-white/10 rounded-xl px-4 py-3 text-white font-mono text-xs outline-none focus:border-[#ef4d45]"
-                />
-              </div>
-
-              {/* File Dropzone */}
-              <div>
-                <label className="text-[11px] font-black text-white/50 uppercase tracking-wider block mb-1">
-                  Receipt Screenshot or PDF File *
-                </label>
-                <input
-                  type="file"
-                  ref={attachFileInputRef}
-                  accept="image/jpeg,image/png,image/webp,image/gif,application/pdf"
-                  onChange={e => {
-                    if (e.target.files?.[0]) processFile(e.target.files[0], setAttachFile, setAttachPreview);
-                  }}
-                  className="hidden"
-                />
-
-                {!attachFile ? (
-                  <div
-                    onDragOver={e => { e.preventDefault(); setAttachDragOver(true); }}
-                    onDragLeave={() => setAttachDragOver(false)}
-                    onDrop={e => {
-                      e.preventDefault();
-                      setAttachDragOver(false);
-                      if (e.dataTransfer.files?.[0]) processFile(e.dataTransfer.files[0], setAttachFile, setAttachPreview);
-                    }}
-                    onClick={() => attachFileInputRef.current?.click()}
-                    className={`border-2 border-dashed rounded-2xl p-5 text-center cursor-pointer transition-all ${
-                      attachDragOver ? 'border-[#ef4d45] bg-[#ef4d45]/10' : 'border-white/15 bg-white/[0.02] hover:border-[#ef4d45]/60'
-                    }`}
-                  >
-                    <UploadCloud className="size-8 text-[#ef4d45] mx-auto mb-2" />
-                    <p className="text-xs font-bold text-white">Click or drag & drop proof screenshot here</p>
-                    <p className="text-[10px] text-white/40 mt-1">JPG, PNG, WebP, GIF, or PDF (Up to 10MB)</p>
-                  </div>
-                ) : (
-                  <div className="bg-[#05081c] border border-white/10 rounded-xl p-3 flex items-center gap-3">
-                    {attachPreview === 'pdf' ? (
-                      <div className="size-12 rounded-lg bg-red-500/10 border border-red-500/20 flex flex-col items-center justify-center shrink-0 text-red-400">
-                        <FileText className="size-5" />
-                        <span className="text-[9px] font-bold">PDF</span>
-                      </div>
-                    ) : (
-                      <div className="size-12 rounded-lg overflow-hidden border border-white/10 shrink-0 bg-black/40">
-                        <img src={attachPreview} alt="Preview" className="size-full object-cover" />
-                      </div>
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-bold text-white truncate">{attachFile.name}</p>
-                      <p className="text-[10px] text-white/40">{(attachFile.size / 1024).toFixed(1)} KB</p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setAttachFile(null);
-                        setAttachPreview(null);
-                        if (attachFileInputRef.current) attachFileInputRef.current.value = '';
-                      }}
-                      className="p-1.5 rounded-lg bg-white/5 hover:bg-red-500/20 text-white/60 hover:text-red-400"
-                    >
-                      <X className="size-4" />
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              {/* Notes */}
-              <div>
-                <label className="text-[11px] font-black text-white/50 uppercase tracking-wider block mb-1">
-                  Notes (Optional)
-                </label>
-                <input
-                  type="text"
-                  value={attachNotes}
-                  onChange={e => setAttachNotes(e.target.value)}
-                  placeholder="e.g. Sent from Exodus wallet"
-                  className="w-full bg-[#05081c] border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs outline-none focus:border-[#ef4d45]"
-                />
-              </div>
-
-              <div className="flex gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setAttachModalDeposit(null)}
-                  className="flex-1 py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl text-xs font-bold border border-white/10 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={submittingAttach}
-                  className="flex-1 py-3 bg-gradient-to-r from-[#ef4d45] to-[#8c0030] hover:from-[#ff5a4a] hover:to-[#a60039] text-white rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition-all shadow-lg shadow-[#ef4d45]/20 disabled:opacity-50"
-                >
-                  {submittingAttach ? <Loader2 className="size-4 animate-spin" /> : <UploadCloud className="size-4" />}
-                  Submit Proof
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL 2: View Proof Lightbox Modal */}
-      {viewProofModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="bg-[#0a0f2e] border border-white/10 rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200">
-            <div className="p-4 border-b border-white/10 flex items-center justify-between">
-              <div>
-                <h3 className="text-base font-bold text-white flex items-center gap-2">
-                  <FileCheck className="w-5 h-5 text-emerald-400" />
-                  Proof of Payment Receipt
-                </h3>
-                <p className="text-xs text-white/50">
-                  Ref: {viewProofModal.reference} • ${Number(viewProofModal.amount).toFixed(2)} ({viewProofModal.payment})
-                </p>
-              </div>
-              <button
-                onClick={() => setViewProofModal(null)}
-                className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/60 hover:text-white transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="p-5 flex-1 overflow-y-auto space-y-4">
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-                <div className="bg-white/5 p-2.5 rounded-xl border border-white/5">
-                  <span className="text-white/40 block text-[10px] uppercase font-bold">Deposit Ref</span>
-                  <span className="font-mono text-white text-xs truncate block">{viewProofModal.reference}</span>
-                </div>
-                <div className="bg-white/5 p-2.5 rounded-xl border border-white/5">
-                  <span className="text-white/40 block text-[10px] uppercase font-bold">Amount</span>
-                  <span className="font-black text-emerald-400 text-sm">${Number(viewProofModal.amount).toFixed(2)}</span>
-                </div>
-                <div className="bg-white/5 p-2.5 rounded-xl border border-white/5">
-                  <span className="text-white/40 block text-[10px] uppercase font-bold">Status</span>
-                  <span className="font-bold text-yellow-400 uppercase text-[11px]">{viewProofModal.status}</span>
-                </div>
-                <div className="bg-white/5 p-2.5 rounded-xl border border-white/5">
-                  <span className="text-white/40 block text-[10px] uppercase font-bold">Date</span>
-                  <span className="text-white/80">{new Date(viewProofModal.date).toLocaleDateString()}</span>
-                </div>
-              </div>
-
-              {viewProofModal.tx_hash && (
-                <div className="bg-white/5 p-3 rounded-xl border border-white/5 text-xs">
-                  <span className="text-white/40 block text-[10px] uppercase font-bold">Transaction Hash (TxID)</span>
-                  <span className="font-mono text-white select-all break-all">{viewProofModal.tx_hash}</span>
-                </div>
-              )}
-
-              {viewProofModal.notes && (
-                <div className="bg-white/5 p-3 rounded-xl border border-white/5 text-xs">
-                  <span className="text-white/40 block text-[10px] uppercase font-bold">Notes</span>
-                  <p className="text-white/80">{viewProofModal.notes}</p>
-                </div>
-              )}
-
-              {/* Receipt preview / PDF */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-bold text-white/70">Uploaded Document</span>
-                  <div className="flex items-center gap-1">
-                    {!viewProofModal.proof_url?.toLowerCase().endsWith('.pdf') && !viewProofModal.proof_url?.startsWith('data:application/pdf') && (
-                      <>
-                        <button
-                          onClick={() => setViewZoom(z => Math.max(0.5, z - 0.25))}
-                          className="p-1 rounded bg-white/5 hover:bg-white/10 text-white/60"
-                          title="Zoom Out"
-                        >
-                          <ZoomOut className="w-4 h-4" />
-                        </button>
-                        <span className="text-[11px] text-white/40 px-1 font-mono">{Math.round(viewZoom * 100)}%</span>
-                        <button
-                          onClick={() => setViewZoom(z => Math.min(2.5, z + 0.25))}
-                          className="p-1 rounded bg-white/5 hover:bg-white/10 text-white/60"
-                          title="Zoom In"
-                        >
-                          <ZoomIn className="w-4 h-4" />
-                        </button>
-                      </>
-                    )}
-                    <a
-                      href={viewProofModal.proof_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="p-1 rounded bg-white/5 hover:bg-white/10 text-white/60 hover:text-white"
-                      title="Open full size"
-                    >
-                      <ExternalLink className="w-4 h-4" />
-                    </a>
-                  </div>
-                </div>
-
-                <div className="bg-[#05081c] border border-white/10 rounded-xl p-4 flex items-center justify-center min-h-[220px] max-h-[420px] overflow-auto">
-                  {viewProofModal.proof_url?.toLowerCase().endsWith('.pdf') || viewProofModal.proof_url?.startsWith('data:application/pdf') ? (
-                    <div className="text-center py-6 space-y-3">
-                      <FileText className="w-14 h-14 text-red-400 mx-auto" />
-                      <p className="text-sm font-bold text-white">PDF Receipt Document</p>
-                      <a
-                        href={viewProofModal.proof_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#ef4d45] hover:bg-[#ff5a4a] text-white text-xs font-bold transition-colors"
-                      >
-                        <Download className="w-4 h-4" /> Download / View PDF
-                      </a>
-                    </div>
-                  ) : (
-                    <img
-                      src={viewProofModal.proof_url}
-                      alt="Deposit Proof"
-                      style={{
-                        transform: `scale(${viewZoom})`,
-                        transition: 'transform 0.2s ease',
-                      }}
-                      className="max-w-full max-h-[380px] object-contain rounded-lg"
-                    />
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <div className="p-4 border-t border-white/10 bg-white/[0.02] flex justify-end">
-              <button
-                onClick={() => setViewProofModal(null)}
-                className="px-5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white text-xs font-bold border border-white/10 transition-colors"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
     </DashboardLayout>
   );
 }
-

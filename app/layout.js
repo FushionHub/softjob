@@ -19,14 +19,10 @@ export default function RootLayout({ children }) {
                 <Script id="google-translate-funcs" strategy="beforeInteractive">
                     {`
                         function googleTranslateElementInit2() {
-                            try {
-                                if (document.getElementById('google_translate_element2')) {
-                                    new google.translate.TranslateElement({
-                                        pageLanguage: 'en',
-                                        autoDisplay: false
-                                    }, 'google_translate_element2');
-                                }
-                            } catch (e) {}
+                            new google.translate.TranslateElement({
+                                pageLanguage: 'en',
+                                autoDisplay: false
+                            }, 'google_translate_element2');
                         }
                         
                         function GTranslateFireEvent(a, b) {

@@ -158,7 +158,7 @@ export default function ProfilePage(){
   if(!user) return <div className="min-h-screen bg-[#010214] flex items-center justify-center"><div className="size-10 border-4 border-[#ef4d45] border-t-transparent rounded-full animate-spin"/></div>;
 
   const copyLink=()=>{
-    const base = (typeof window !== 'undefined' && window.location.origin) ? window.location.origin : (process.env.NEXT_PUBLIC_APP_URL || '');
+    const base = process.env.NEXT_PUBLIC_APP_URL || window.location.origin;
     const link=`${base}/register?ref=${user.referral_code||user.username}`;
     navigator.clipboard.writeText(link); setCopied(true); setTimeout(()=>setCopied(false),2000);
   };

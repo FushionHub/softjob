@@ -28,16 +28,10 @@ export default function ReferralsPage(){
 
       <div className="bg-[#05081c] border border-white/5 rounded-2xl p-6">
         <h3 className="text-sm font-black text-white uppercase tracking-wider mb-3 flex items-center gap-2"><Gift className="size-4 text-[#ef4d45]"/> Your Referral Link (Generic & Live)</h3>
-        {(() => {
-          const origin = typeof window !== 'undefined' && window.location.origin ? window.location.origin : '';
-          const activeLink = (data.referralCode && origin) ? `${origin}/register?ref=${data.referralCode}` : (data.referralLink || '');
-          return (
-            <div className="bg-[#010214] border border-white/5 rounded-xl p-4 flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
-              <p className="text-sm font-mono text-white/70 break-all flex-1">{activeLink}</p>
-              <button onClick={()=>copy(activeLink,'link')} className="shrink-0 bg-[#ef4d45] hover:bg-[#d03d35] text-white px-5 py-2.5 rounded-xl text-xs font-black flex items-center gap-2">{copied==='link'?<Check className="size-4"/>:<Copy className="size-4"/>}{copied==='link'?'Copied':'Copy Link'}</button>
-            </div>
-          );
-        })()}
+        <div className="bg-[#010214] border border-white/5 rounded-xl p-4 flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
+          <p className="text-sm font-mono text-white/70 break-all flex-1">{data.referralLink}</p>
+          <button onClick={()=>copy(data.referralLink,'link')} className="shrink-0 bg-[#ef4d45] hover:bg-[#d03d35] text-white px-5 py-2.5 rounded-xl text-xs font-black flex items-center gap-2">{copied==='link'?<Check className="size-4"/>:<Copy className="size-4"/>}{copied==='link'?'Copied':'Copy Link'}</button>
+        </div>
         <p className="text-xs text-white/30 mt-2">Generic: works for any user, instant tracking. Share on WhatsApp, Telegram, social. Bonus auto-credited when referral deposits.</p>
       </div>
 

@@ -33,7 +33,7 @@ export default function DashboardClient() {
 
   const handleCopyReferral = () => {
     const code = user?.referral_code || user?.username || 'user';
-    const base = (typeof window !== 'undefined' && window.location.origin) ? window.location.origin : (process.env.NEXT_PUBLIC_APP_URL || '');
+    const base = process.env.NEXT_PUBLIC_APP_URL || window.location.origin;
     const link = `${base}/register?ref=${code}`;
     navigator.clipboard.writeText(link);
     setCopied(true); setTimeout(() => setCopied(false), 2000);
@@ -76,7 +76,7 @@ export default function DashboardClient() {
     { label: 'Withdrawn', value: Number(dashboardData?.total_withdrawal || 0).toFixed(2), icon: ArrowUpCircle, color: 'from-orange-500/10 to-orange-600/5 border-orange-500/20 text-orange-400' },
   ];
 
-  const baseUrl = (typeof window !== 'undefined' && window.location.origin) ? window.location.origin : (process.env.NEXT_PUBLIC_APP_URL || '');
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || (typeof window !== 'undefined' ? window.location.origin : '');
   const refCode = user?.referral_code || user?.username || '';
   const refLink = `${baseUrl}/register?ref=${refCode}`;
 

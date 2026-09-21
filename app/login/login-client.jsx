@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Eye, EyeOff, AlertCircle, Check, ShieldCheck } from 'lucide-react';
 import GoogleLoginButton from '@/components/google-login-button';
@@ -9,52 +9,11 @@ import GoogleLoginButton from '@/components/google-login-button';
 export default function LoginClient() {
     const searchParams = useSearchParams();
     const router = useRouter();
-
-    // Sanitize redirect to always guarantee a clean local route
-    const sanitizeRedirect = (target) => {
-        if (!target || typeof target !== 'string') return '/dashboard';
-        let t = target.trim();
-        if (t.startsWith('http://') || t.startsWith('https://')) {
-            try {
-                const parsed = new URL(t);
-                t = parsed.pathname + parsed.search;
-            } catch {
-                return '/dashboard';
-            }
-        }
-        if (!t.startsWith('/')) {
-            t = '/' + t;
-        }
-        if (
-            t.startsWith('//') ||
-            t.includes('localhost') ||
-            t.includes('127.0.0.1') ||
-            t.startsWith('/login') ||
-            t.includes('n/dashboard') ||
-            t.includes('?=') ||
-            t.includes('?error=') ||
-            t === '/'
-        ) {
-            return '/dashboard';
-        }
-        return t;
-    };
-
-    const redirectTo = sanitizeRedirect(searchParams.get('redirect'));
-
-    useEffect(() => {
-        if (typeof window !== 'undefined' && window.location.search) {
-            const s = window.location.search;
-            if (s.includes('?=error') || s.includes('n/dashboard') || s.includes('?=')) {
-                window.history.replaceState({}, '', window.location.pathname);
-            }
-        }
-    }, []);
+    const redirectTo = searchParams.get('redirect') || '/dashboard';
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
-    const [loading, setLoading] = useState(false);
 
     const [twoFactorRequired, setTwoFactorRequired] = useState(false);
     const [twoFactorCode, setTwoFactorCode] = useState('');
@@ -76,38 +35,6 @@ export default function LoginClient() {
         : '';
 
     const handleGoogleError = (msg) => setPageError(msg);
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setPageError('');
-        setLoading(true);
-
-        try {
-            const res = await fetch('/api/auth/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    email: email.trim(),
-                    password,
-                    redirect: redirectTo,
-                }),
-            });
-
-            const data = await res.json();
-
-            if (!res.ok) {
-                setPageError(data.error || 'Invalid email/username or password');
-                return;
-            }
-
-            const destination = sanitizeRedirect(data.redirect || redirectTo);
-            window.location.href = destination;
-        } catch (err) {
-            setPageError('An error occurred during sign in. Please try again.');
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const handleVerify2FA = (e) => {
         e.preventDefault();
@@ -224,7 +151,9 @@ export default function LoginClient() {
                                 <div className="h-[1px] bg-border-subtle/30 flex-1"></div>
                             </div>
 
-                            <form onSubmit={handleSubmit} className="space-y-6">
+                            <form action="/api/auth/login" method="POST" className="space-y-6">
+                                <input type="hidden" name="redirect" value={redirectTo} />
+
                                 <div className="flex flex-col gap-2">
                                     <label className="text-xs font-semibold text-text-main">
                                         Email Or Username
@@ -274,10 +203,9 @@ export default function LoginClient() {
                                 <div className="pt-2">
                                     <button
                                         type="submit"
-                                        disabled={loading}
-                                        className="btn-primary w-full py-3.5 text-xs md:text-sm font-semibold rounded-xl flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
+                                        className="btn-primary w-full py-3.5 text-xs md:text-sm font-semibold rounded-xl flex items-center justify-center gap-2"
                                     >
-                                        {loading ? 'Signing In...' : 'Sign In'}
+                                        Sign In
                                     </button>
                                 </div>
                             </form>

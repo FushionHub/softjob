@@ -36,9 +36,10 @@ export default function GoogleLoginButton({ onError, referrer, mode = 'login', t
       if (!r.ok) throw new Error(d.error || 'Google login failed');
       // If needs onboarding and user wants to go to onboarding, otherwise dashboard
       if (d.needsOnboarding) {
-        window.location.href = '/onboarding';
+        // Let caller decide or go to onboarding
+        router.push('/onboarding');
       } else {
-        window.location.href = '/dashboard';
+        router.push('/dashboard');
       }
     } catch (e) {
       onError?.(e.message);

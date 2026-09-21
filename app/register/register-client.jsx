@@ -29,14 +29,12 @@ export default function RegisterClient() {
     
     const [loading, setLoading] = useState(false);
     const [errorMsg, setErrorMsg] = useState('');
-    const [conflictField, setConflictField] = useState('');
     const [successMsg, setSuccessMsg] = useState('');
 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
         setErrorMsg('');
-        setConflictField('');
         setSuccessMsg('');
 
         if (password !== confirmPassword) {
@@ -56,12 +54,12 @@ export default function RegisterClient() {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    name: name.trim(),
-                    email: email.trim(),
-                    username: username.trim(),
-                    phone: phone.trim(),
+                    name,
+                    email,
+                    username,
+                    phone,
                     password,
-                    referrer: referrer.trim(),
+                    referrer,
                     acceptTerms,
                 }),
             });
@@ -69,13 +67,12 @@ export default function RegisterClient() {
             const data = await res.json();
 
             if (res.ok) {
-                setSuccessMsg(data.message || 'Registration successful! You can now sign in.');
+                setSuccessMsg(data.message || 'Registration successful! Please check your email to verify your account.');
                 setTimeout(() => {
-                    window.location.href = '/login';
-                }, 2000);
+                    router.push('/login?verified=pending');
+                }, 3000);
             } else {
                 setErrorMsg(data.error || 'Registration failed. Please try again.');
-                setConflictField(data.conflict || '');
             }
         } catch (err) {
             console.error('Registration error:', err);
@@ -194,33 +191,15 @@ export default function RegisterClient() {
 
                     {/* Error & Success States */}
                     {errorMsg && (
-                        <div className="flex flex-col gap-2 p-3.5 rounded-xl border border-red-500/20 bg-red-500/10 text-red-200 text-xs animate-shake">
-                            <div className="flex items-center gap-2.5">
-                                <AlertCircle className="size-4 shrink-0 text-red-400" />
-                                <span className="font-semibold">{errorMsg}</span>
-                            </div>
-                            {conflictField === 'email' && (
-                                <div className="mt-1 pt-2 border-t border-red-500/20 flex items-center justify-between">
-                                    <span className="text-white/70">Already registered?</span>
-                                    <Link href="/login" className="px-3 py-1 bg-brand-primary text-white font-bold rounded-lg hover:bg-brand-primary/90 transition-all text-[11px]">
-                                        Sign In Here →
-                                    </Link>
-                                </div>
-                            )}
+                        <div className="flex items-center gap-2.5 p-3 rounded-xl border border-red-500/20 bg-red-500/10 text-red-200 text-xs animate-shake">
+                            <AlertCircle className="size-4 shrink-0" />
+                            <span>{errorMsg}</span>
                         </div>
                     )}
                     {successMsg && (
-                        <div className="flex flex-col gap-2 p-3.5 rounded-xl border border-emerald-500/20 bg-emerald-500/10 text-emerald-200 text-xs">
-                            <div className="flex items-center gap-2.5">
-                                <Check className="size-4 shrink-0 text-emerald-400" />
-                                <span className="font-semibold">{successMsg}</span>
-                            </div>
-                            <div className="mt-1 pt-2 border-t border-emerald-500/20 flex items-center justify-between">
-                                <span className="text-white/70">Redirecting to sign in...</span>
-                                <Link href="/login" className="px-3 py-1 bg-emerald-500 text-white font-bold rounded-lg hover:bg-emerald-600 transition-all text-[11px]">
-                                    Go To Sign In →
-                                </Link>
-                            </div>
+                        <div className="flex items-center gap-2.5 p-3 rounded-xl border border-emerald-500/20 bg-emerald-500/10 text-emerald-200 text-xs">
+                            <Check className="size-4 shrink-0" />
+                            <span>{successMsg}</span>
                         </div>
                     )}
 

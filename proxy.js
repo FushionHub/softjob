@@ -47,79 +47,6 @@ async function verifyTokenEdge(token, secret) {
   }
 }
 
-function getPublicHost(req) {
-  const fHost = req.headers.get('x-forwarded-host');
-  if (fHost && !fHost.includes('localhost') && !fHost.includes('127.0.0.1')) {
-    return fHost.split(',')[0].trim();
-  }
-  const host = req.headers.get('host');
-  if (host && !host.includes('localhost') && !host.includes('127.0.0.1')) {
-    return host;
-  }
-  if (process.env.NEXT_PUBLIC_APP_URL) {
-    try {
-      const parsed = new URL(process.env.NEXT_PUBLIC_APP_URL);
-      if (parsed.hostname && !parsed.hostname.includes('localhost') && !parsed.hostname.includes('127.0.0.1')) {
-        return parsed.host;
-      }
-    } catch {}
-  }
-  return (fHost || host || req.nextUrl.host || 'localhost:3000').split(',')[0].trim();
-}
-
-function getPublicProto(req) {
-  const fProto = req.headers.get('x-forwarded-proto');
-  if (fProto) return fProto.split(',')[0].trim();
-  if (process.env.NEXT_PUBLIC_APP_URL?.startsWith('https://')) return 'https';
-  const proto = req.nextUrl.protocol ? req.nextUrl.protocol.replace(':', '') : 'https';
-  return proto;
-}
-
-function createSafeRedirectUrl(targetPath, req) {
-  let cleanPath = String(targetPath || '/dashboard').trim();
-  if (!cleanPath.startsWith('/')) cleanPath = '/' + cleanPath;
-  if (
-    cleanPath.startsWith('//') ||
-    cleanPath.includes('localhost') ||
-    cleanPath.includes('127.0.0.1') ||
-    cleanPath.startsWith('/login') ||
-    cleanPath.includes('n/dashboard') ||
-    cleanPath.includes('?=') ||
-    cleanPath.includes('?error=')
-  ) {
-    cleanPath = '/dashboard';
-  }
-
-  const host = getPublicHost(req);
-  const proto = getPublicProto(req);
-  return new URL(cleanPath, `${proto}://${host}`);
-}
-
-function createLoginRedirectUrl(targetPath, req) {
-  let cleanTarget = '';
-  if (targetPath && typeof targetPath === 'string') {
-    const t = targetPath.trim();
-    if (
-      t.startsWith('/') &&
-      !t.startsWith('//') &&
-      t !== '/' &&
-      t !== '/dashboard' &&
-      !t.startsWith('/login') &&
-      !t.includes('n/dashboard') &&
-      !t.includes('?=') &&
-      !t.includes('?error=')
-    ) {
-      cleanTarget = t;
-    }
-  }
-
-  const url = createSafeRedirectUrl('/login', req);
-  if (cleanTarget) {
-    url.searchParams.set('redirect', cleanTarget);
-  }
-  return url;
-}
-
 export default async function proxy(req) {
   const { pathname } = req.nextUrl
   const token = req.cookies.get('auth_token')?.value
@@ -135,7 +62,7 @@ export default async function proxy(req) {
       if (adminToken) {
         const decoded = await verifyTokenEdge(adminToken, adminSecret)
         if (decoded?.isAdmin) {
-          return NextResponse.redirect(createSafeRedirectUrl('/admin', req))
+          return NextResponse.redirect(new URL('/admin', req.url))
         }
       }
       return NextResponse.next()
@@ -143,11 +70,11 @@ export default async function proxy(req) {
 
     // All other /admin routes require admin auth
     if (!adminToken) {
-      return NextResponse.redirect(createSafeRedirectUrl('/admin/login', req))
+      return NextResponse.redirect(new URL('/admin/login', req.url))
     }
     const decoded = await verifyTokenEdge(adminToken, adminSecret)
     if (!decoded?.isAdmin) {
-      return NextResponse.redirect(createSafeRedirectUrl('/admin/login', req))
+      return NextResponse.redirect(new URL('/admin/login', req.url))
     }
 
     const res = NextResponse.next()
@@ -167,19 +94,23 @@ export default async function proxy(req) {
 
   if (isProtectedRoute) {
     if (!token) {
-      return NextResponse.redirect(createLoginRedirectUrl(pathname, req))
+      const loginUrl = new URL('/login', req.url)
+      loginUrl.searchParams.set('redirect', pathname)
+      return NextResponse.redirect(loginUrl)
     }
 
     const decoded = await verifyTokenEdge(token, userSecret)
     if (!decoded) {
-      return NextResponse.redirect(createLoginRedirectUrl(pathname, req))
+      const loginUrl = new URL('/login', req.url)
+      loginUrl.searchParams.set('redirect', pathname)
+      return NextResponse.redirect(loginUrl)
     }
   }
 
   if ((pathname === '/login' || pathname === '/register') && token) {
     const decoded = await verifyTokenEdge(token, userSecret)
     if (decoded) {
-      return NextResponse.redirect(createSafeRedirectUrl('/dashboard', req))
+      return NextResponse.redirect(new URL('/dashboard', req.url))
     }
   }
 

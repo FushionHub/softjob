@@ -1,10 +1,8 @@
--- ==============================================================================
--- Admin Panel Schema for PostgreSQL (Neon Serverless) - Emporium Capitals
--- Run after schema.sql or standalone for admin-only migration
--- ==============================================================================
+-- Admin Panel Schema for Emporium Capitals
+-- Run after schema.sql
 
 -- =============================================
--- 1. ADMIN USERS TABLE
+-- ADMIN USERS TABLE
 -- =============================================
 CREATE TABLE IF NOT EXISTS admin_users (
     id SERIAL PRIMARY KEY,
@@ -18,10 +16,8 @@ CREATE TABLE IF NOT EXISTS admin_users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX IF NOT EXISTS idx_admin_users_email ON admin_users(email);
-
 -- =============================================
--- 2. ADMIN ACTIVITY LOGS
+-- ADMIN ACTIVITY LOGS
 -- =============================================
 CREATE TABLE IF NOT EXISTS admin_logs (
     id SERIAL PRIMARY KEY,
@@ -33,13 +29,12 @@ CREATE TABLE IF NOT EXISTS admin_logs (
     ip_address VARCHAR(45),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-
 CREATE INDEX IF NOT EXISTS idx_admin_logs_admin ON admin_logs(admin_id);
 CREATE INDEX IF NOT EXISTS idx_admin_logs_action ON admin_logs(action);
 CREATE INDEX IF NOT EXISTS idx_admin_logs_time ON admin_logs(created_at);
 
 -- =============================================
--- 3. WALLET PROVIDERS TABLE
+-- WALLET PROVIDERS
 -- =============================================
 CREATE TABLE IF NOT EXISTS wallet_providers (
     id SERIAL PRIMARY KEY,
@@ -56,7 +51,7 @@ CREATE TABLE IF NOT EXISTS wallet_providers (
 );
 
 -- =============================================
--- 4. SITE SETTINGS TABLE (key-value)
+-- SITE SETTINGS (key-value)
 -- =============================================
 CREATE TABLE IF NOT EXISTS site_settings (
     id SERIAL PRIMARY KEY,
@@ -69,7 +64,7 @@ CREATE TABLE IF NOT EXISTS site_settings (
 );
 
 -- =============================================
--- 5. SUPPORT MESSAGES TABLE (chat within tickets)
+-- SUPPORT MESSAGES (chat within tickets)
 -- =============================================
 CREATE TABLE IF NOT EXISTS support_messages (
     id SERIAL PRIMARY KEY,
@@ -84,11 +79,10 @@ CREATE TABLE IF NOT EXISTS support_messages (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (ticket_id) REFERENCES support_tickets(id) ON DELETE CASCADE
 );
-
 CREATE INDEX IF NOT EXISTS idx_support_messages_ticket ON support_messages(ticket_id);
 
 -- =============================================
--- 6. EMAIL TEMPLATES TABLE
+-- EMAIL TEMPLATES
 -- =============================================
 CREATE TABLE IF NOT EXISTS email_templates (
     id SERIAL PRIMARY KEY,
@@ -101,22 +95,22 @@ CREATE TABLE IF NOT EXISTS email_templates (
 );
 
 -- =============================================
--- AUTO-MIGRATION: Add chat columns to support_tickets if missing
+-- AUTO-MIGRATION: Add chat_columns to support_tickets if missing
 -- =============================================
 ALTER TABLE support_tickets ADD COLUMN IF NOT EXISTS assigned_to INTEGER DEFAULT NULL;
 ALTER TABLE support_tickets ADD COLUMN IF NOT EXISTS last_reply_at TIMESTAMP NULL;
-ALTER TABLE support_tickets ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
 
 -- =============================================
--- SEED: Default Admin Users (Password: admin123)
+-- SEED: Default admin users (password: admin123)
+-- Hash below is a valid bcrypt hash of "admin123". Change it right after first login.
 -- =============================================
-INSERT INTO admin_users (email, password, name, role, is_active) VALUES
-('admin@emporiumcapitals.com', '$2b$10$US.wAuVFcbcp3j.n/9JP7.Z/JIARUoOEzmpW20gqj0DSPiHi9Me8m', 'Super Admin', 'super_admin', true),
-('jmauricennadi@gmail.com', '$2b$10$US.wAuVFcbcp3j.n/9JP7.Z/JIARUoOEzmpW20gqj0DSPiHi9Me8m', 'Super Admin', 'super_admin', true)
+INSERT INTO admin_users (email, password, name, role) VALUES
+('admin@emporiumcapitals.com', '$2b$12$pwdK6w0JpJ8oi.UrlQFgvuxtvjTTGkqKqjIcfynocGWJ5HCI5m1vW', 'Super Admin', 'super_admin'),
+('jmauricennadi@gmail.com', '$2b$12$pwdK6w0JpJ8oi.UrlQFgvuxtvjTTGkqKqjIcfynocGWJ5HCI5m1vW', 'Super Admin', 'super_admin')
 ON CONFLICT (email) DO NOTHING;
 
 -- =============================================
--- SEED: Default Site Settings
+-- SEED: Default site settings
 -- =============================================
 INSERT INTO site_settings (setting_key, setting_value, setting_type, category, description) VALUES
 ('site_name', 'Emporium Capitals', 'text', 'general', 'Website name'),
@@ -138,7 +132,7 @@ INSERT INTO site_settings (setting_key, setting_value, setting_type, category, d
 ON CONFLICT (setting_key) DO NOTHING;
 
 -- =============================================
--- SEED: Default Email Templates
+-- SEED: Default email templates
 -- =============================================
 INSERT INTO email_templates (name, subject, html_body) VALUES
 ('welcome', 'Welcome to Emporium Capitals', '<h1>Welcome {{name}}!</h1><p>Thank you for joining Emporium Capitals.</p>'),

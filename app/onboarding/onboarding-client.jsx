@@ -24,7 +24,7 @@ export default function OnboardingClient() {
         setForm({ username: d.user.username||'', phone: d.user.phone||'', name: d.user.name||'' });
         if (!d.needsOnboarding) {
           // Already completed, go to dashboard
-          window.location.href = '/dashboard';
+          router.push('/dashboard');
         }
       } catch (e) {
         setMsg({ type:'error', text: e.message });
@@ -41,7 +41,7 @@ export default function OnboardingClient() {
       const d = await r.json();
       if (!r.ok) throw new Error(d.error);
       setMsg({type:'success', text:'Profile completed! Redirecting...'});
-      setTimeout(()=> { window.location.href = '/dashboard'; }, 800);
+      setTimeout(()=> router.push('/dashboard'), 800);
     } catch (e) { setMsg({type:'error', text: e.message}); } finally { setSaving(false); }
   };
 
@@ -51,7 +51,7 @@ export default function OnboardingClient() {
       const r = await fetch('/api/auth/onboarding', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ action:'skip' })});
       const d = await r.json();
       if (!r.ok) throw new Error(d.error);
-      window.location.href = '/dashboard';
+      router.push('/dashboard');
     } catch (e) { setMsg({type:'error', text: e.message}); } finally { setSkipping(false); }
   };
 

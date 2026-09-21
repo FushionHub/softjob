@@ -10,11 +10,7 @@ export default function IframeErrorSuppressor() {
         m.includes('contentwindow is not available') ||
         m.includes('cannot listen to the event from the provided iframe') ||
         m.includes('crxlauncher') ||
-        m.includes('invalid source map') ||
-        m.includes('language detection is not supported') ||
-        m.includes('could not establish connection') ||
-        m.includes('receiving end does not exist') ||
-        m.includes('all-frames.js')
+        m.includes('invalid source map')
       );
     };
     const origError = console.error;
