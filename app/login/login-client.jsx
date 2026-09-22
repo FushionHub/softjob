@@ -5,11 +5,13 @@ import { useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Eye, EyeOff, AlertCircle, Check, ShieldCheck } from 'lucide-react';
 import GoogleLoginButton from '@/components/google-login-button';
+import { useSiteSettings } from '@/components/settings-provider';
 
 export default function LoginClient() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const redirectTo = searchParams.get('redirect') || '/dashboard';
+    const { siteName, siteLogo } = useSiteSettings();
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -51,8 +53,8 @@ export default function LoginClient() {
                 <div className="relative z-10 flex items-center gap-2">
                     <Link href="/">
                         <img
-                            src="/assets/logo.png"
-                            alt="Emporium Capitals Logo"
+                            src={siteLogo || "/assets/logo.png"}
+                            alt={`${siteName} Logo`}
                             className="h-10 w-auto object-contain transition-transform duration-300 hover:scale-105"
                         />
                     </Link>
@@ -63,7 +65,7 @@ export default function LoginClient() {
                         <h2 className="text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight">
                             Welcome to <br />
                             <span className="text-brand-primary bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent">
-                                Emporium Capitals
+                                {siteName}
                             </span>
                         </h2>
                     </div>
@@ -91,7 +93,7 @@ export default function LoginClient() {
                 </div>
 
                 <div className="relative z-10 text-xs text-text-muted/40">
-                    © 2026 Emporium Capitals. All rights reserved.
+                    © {new Date().getFullYear()} {siteName}. All rights reserved.
                 </div>
             </section>
 
@@ -100,8 +102,8 @@ export default function LoginClient() {
                 <div className="absolute top-8 left-8 md:hidden z-10">
                     <Link href="/">
                         <img
-                            src="/assets/logo.png"
-                            alt="Emporium Capitals Logo"
+                            src={siteLogo || "/assets/logo.png"}
+                            alt={`${siteName} Logo`}
                             className="h-8 w-auto object-contain"
                         />
                     </Link>

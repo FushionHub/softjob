@@ -2,8 +2,11 @@
 
 import Link from "next/link";
 import GoogleTranslate from "./google-translate";
+import { useSiteSettings } from "./settings-provider";
 
 export default function Footer() {
+    const { siteName, siteLogo, siteTagline, disclaimerFooter, disclaimerTrading } = useSiteSettings();
+
     const sections = [
         {
             title: 'Company',
@@ -41,13 +44,13 @@ export default function Footer() {
                     <div className="lg:col-span-2 space-y-4">
                         <Link href="/" className="inline-block">
                             <img 
-                                src="/assets/logo.png" 
-                                alt="Emporium Capitals Logo" 
+                                src={siteLogo || "/assets/logo.png"} 
+                                alt={`${siteName} Logo`} 
                                 className="h-10 w-auto object-contain"
                             />
                         </Link>
                         <p className="max-w-sm text-sm leading-relaxed">
-                            Emporium Capitals is a forward-thinking financial company committed to transforming the investment landscape by blending AI-driven strategies with client-first security.
+                            {siteName} is a forward-thinking financial company committed to transforming the investment landscape by blending AI-driven strategies with client-first security.
                         </p>
                         
                         {/* Google Translate Widget 2 */}
@@ -80,7 +83,7 @@ export default function Footer() {
                         <div className="lg:col-span-2 space-y-3">
                             <p className="font-semibold text-text-main text-sm">Subscribe to our newsletter</p>
                             <p className="max-w-2xl text-xs leading-relaxed text-text-muted">
-                                Join the 450K+ people that use Emporium Capitals. Get weekly market analysis, AI trade summaries, and platform updates delivered straight to your inbox.
+                                Join the 450K+ people that use {siteName}. Get weekly market analysis, AI trade summaries, and platform updates delivered straight to your inbox.
                             </p>
                             <div className="flex max-w-md items-center mt-3">
                                 <Link href="/register" className="btn-primary rounded-full text-xs px-6 py-2 shrink-0">
@@ -90,17 +93,24 @@ export default function Footer() {
                         </div>
 
                         <div className="space-y-2 text-left">
-                            <p className="font-semibold text-text-main text-xs">Risk Warning</p>
+                            <p className="font-semibold text-text-main text-xs">Risk & Compliance Notice</p>
                             <p className="text-[11px] leading-relaxed text-text-muted">
-                                Trading cryptocurrencies and leveraged financial instruments involves high risk and can result in the loss of your capital. You should not invest more than you can afford to lose and ensure you fully understand the risks involved.
+                                {disclaimerTrading || disclaimerFooter || 'Trading cryptocurrencies and leveraged financial instruments involves high risk and can result in the loss of your capital. You should not invest more than you can afford to lose and ensure you fully understand the risks involved.'}
                             </p>
                         </div>
                     </div>
                 </div>
 
+                {/* Full Footer Financial Disclaimer */}
+                {disclaimerFooter && (
+                    <div className="mt-8 border-t border-border-subtle/50 pt-4 text-[11px] leading-relaxed text-text-muted/80">
+                        <p>{disclaimerFooter}</p>
+                    </div>
+                )}
+
                 {/* Copyright & Info */}
-                <div className="mt-12 border-t border-border-subtle pt-6 flex flex-col md:flex-row items-center justify-between text-xs text-text-muted gap-4">
-                    <p>© 2026 Emporium Capitals. All rights reserved.</p>
+                <div className="mt-8 border-t border-border-subtle pt-6 flex flex-col md:flex-row items-center justify-between text-xs text-text-muted gap-4">
+                    <p>© {new Date().getFullYear()} {siteName}. All rights reserved.</p>
                     <div className="flex gap-6">
                         <Link href="/privacy" className="hover:text-brand-primary">Privacy Policy</Link>
                         <Link href="/terms" className="hover:text-brand-primary">Terms of Service</Link>

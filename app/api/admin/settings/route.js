@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getAdminSession, logAdminAction } from '@/lib/admin-auth';
 import { query } from '@/lib/db';
+import { invalidateSettingsCache } from '@/lib/settings';
 
 export async function GET(request) {
     try {
@@ -16,13 +17,15 @@ export async function GET(request) {
         );
 
         const grouped = {};
+        const flat = {};
         for (const row of rows) {
             const cat = row.category || 'general';
             if (!grouped[cat]) grouped[cat] = [];
             grouped[cat].push(row);
+            flat[row.setting_key] = row.setting_value;
         }
 
-        return NextResponse.json({ settings: grouped, total: rows.length });
+        return NextResponse.json({ settings: grouped, flat, total: rows.length });
     } catch (error) {
         console.error('Settings list error:', error);
         return NextResponse.json({ error: 'Failed to fetch settings' }, { status: 500 });
@@ -48,17 +51,15 @@ export async function PUT(request) {
             return NextResponse.json({ error: 'No settings provided' }, { status: 400 });
         }
 
-        const existingRows = await query(
-            `SELECT setting_key FROM site_settings WHERE setting_key = ANY($1)`,
-            [keys]
-        );
+        // Fetch all existing keys in a cross-database compatible manner (MySQL and Postgres)
+        const existingRows = await query(`SELECT setting_key FROM site_settings`);
         const existingKeys = new Set(existingRows.map(r => r.setting_key));
 
         const updatedKeys = [];
         const insertedKeys = [];
 
         for (const [key, value] of Object.entries(settings)) {
-            const stringValue = typeof value === 'object' ? JSON.stringify(value) : String(value);
+            const stringValue = typeof value === 'object' ? JSON.stringify(value) : String(value ?? '');
 
             if (existingKeys.has(key)) {
                 await query(
@@ -75,6 +76,9 @@ export async function PUT(request) {
                 insertedKeys.push(key);
             }
         }
+
+        // Invalidate settings cache immediately so changes take effect in real-time
+        invalidateSettingsCache();
 
         await logAdminAction(admin.id, 'settings_update', 'site_settings', null, {
             updated: updatedKeys,

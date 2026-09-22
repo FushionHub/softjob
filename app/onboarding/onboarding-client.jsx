@@ -3,8 +3,10 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { User, Phone, Mail, Check, AlertCircle, Loader2, ArrowRight, SkipForward } from 'lucide-react';
+import { useSiteSettings } from '@/components/settings-provider';
 
 export default function OnboardingClient() {
+  const { siteName, siteLogo } = useSiteSettings();
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -61,7 +63,7 @@ export default function OnboardingClient() {
     <main className="min-h-screen bg-bg-base flex flex-col md:flex-row">
       <section className="hidden md:flex flex-col justify-between w-[48%] bg-[#010214] p-12 lg:p-16 relative overflow-hidden">
         <div className="absolute top-1/4 left-1/4 size-96 bg-[#ef4d45]/10 rounded-full blur-3xl"/>
-        <Link href="/"><img src="/assets/logo.png" alt="logo" className="h-10 w-auto relative z-10"/></Link>
+        <Link href="/"><img src={siteLogo || "/assets/logo.png"} alt={siteName || "Logo"} className="h-10 w-auto relative z-10"/></Link>
         <div className="relative z-10 space-y-4 max-w-md">
           <h2 className="text-4xl font-black text-white leading-tight">Almost <span className="bg-gradient-to-r from-[#ef4d45] to-[#ff8a5b] bg-clip-text text-transparent">there!</span></h2>
           <p className="text-sm text-white/60">Complete your profile to unlock deposits, trading and withdrawals. You can skip and complete later in Profile → Edit.</p>
@@ -70,7 +72,7 @@ export default function OnboardingClient() {
             <div><p className="text-white font-bold text-sm">{user?.name}</p><p className="text-white/50 text-xs">{user?.email}</p></div>
           </div>
         </div>
-        <p className="relative z-10 text-xs text-white/20">© 2026 Emporium Capitals</p>
+        <p className="relative z-10 text-xs text-white/20">© {new Date().getFullYear()} {siteName || "Emporium Capitals"}</p>
       </section>
 
       <section className="flex-1 flex flex-col justify-center items-center px-6 py-12 md:py-16 bg-bg-base">

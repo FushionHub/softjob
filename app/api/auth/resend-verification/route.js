@@ -54,7 +54,7 @@ export async function POST(request) {
 
     // Try to send verification email
     try {
-      await sendVerificationEmail(user.email, user.name, verificationToken);
+      await sendVerificationEmail(user.email, user.name, verificationToken, request);
     } catch (emailError) {
       console.error('Failed to send verification email (SMTP not configured):', emailError.message);
       return NextResponse.json(

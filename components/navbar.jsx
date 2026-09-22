@@ -4,11 +4,13 @@ import { MenuIcon, XIcon, SunIcon, MoonIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
 import { useTheme } from './theme-provider';
+import { useSiteSettings } from './settings-provider';
 import GoogleTranslate from './google-translate';
 
 export default function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
     const { theme, toggleTheme } = useTheme();
+    const { siteName, siteLogo } = useSiteSettings();
 
     const links = [
         { name: 'Home', href: '/' },
@@ -23,8 +25,8 @@ export default function Navbar() {
             <nav className="sticky top-0 z-50 flex w-full items-center justify-between border-b border-border-subtle bg-bg-base/75 px-6 py-4 backdrop-blur-md md:px-16 lg:px-24 transition-colors duration-300">
                 <Link href="/" className="flex items-center gap-2">
                     <img 
-                        src="/assets/logo.png" 
-                        alt="Emporium Capitals Logo" 
+                        src={siteLogo || "/assets/logo.png"} 
+                        alt={`${siteName} Logo`} 
                         className="h-9 w-auto object-contain brightness-100 dark:brightness-100" 
                     />
                 </Link>
@@ -91,9 +93,9 @@ export default function Navbar() {
                 <div>
                     <div className="flex items-center justify-between pb-6 border-b border-border-subtle">
                         <img 
-                            src="/assets/logo.png" 
-                            alt="Emporium Capitals Logo" 
-                            className="h-8 w-auto" 
+                            src={siteLogo || "/assets/logo.png"} 
+                            alt={`${siteName} Logo`} 
+                            className="h-8 w-auto object-contain" 
                         />
                         <button 
                             onClick={() => setIsOpen(false)} 

@@ -13,8 +13,9 @@ Premium Crypto Investment & Trading Platform — Next.js 16 fullstack applicatio
 ├── app/                  # Next.js App Router pages + 60+ API routes
 ├── components/           # Reusable UI components
 ├── sections/             # Marketing and dashboard section layouts
-├── lib/                  # Core services (db.js, auth.js, email.js, wallets.js, etc.)
+├── lib/                  # Core services (db.js, auth.js, email.js, settings.js, wallets.js, etc.)
 │   ├── db.js             # Dual-driver DB adapter (MySQL & PostgreSQL Neon)
+│   ├── settings.js       # Dynamic settings engine, cache, & public URL resolver
 │   └── wallets.js        # Static deposit wallet addresses config
 ├── public/               # Static public assets (images, icons, fonts)
 ├── cpanelsetup/          # cPanel management & monitoring suite
@@ -307,15 +308,30 @@ The application supports **two database engines** via `lib/db.js` with automatic
 
 ---
 
-## Security Advisory & Email Disclaimers
+---
 
-All automated transactional emails (Welcome, Verification, Deposit Initiated/Confirmed, Withdrawal, Investment, Password Reset, KYC) feature:
-1. **No Localhost Fallbacks:** `getAppBaseUrl()` in `lib/email.js` enforces the live production domain (`https://emporiumcapitals.com`), ensuring verification and dashboard links never direct users to `localhost:3000`.
-2. **Official Security & Anti-Impersonation Warning:**
-   - Warns users that official communication is ONLY conducted from `@emporiumcapitals.com`.
-   - Explicitly alerts users that staff will never contact them via Telegram, WhatsApp, or Discord asking for passwords, 2FA codes, seed phrases, or off-platform crypto transfers.
-3. **Deposit & Withdrawal Policy Disclaimer:**
-   - Alerts users to only initiate transactions through their authenticated account dashboard and verify network compatibility to prevent asset loss.
+## Real-Time Admin Site Settings & Customization (`/admin/settings`)
+
+The platform includes a real-time configuration engine allowing administrators to rebrand and adjust platform parameters without modifying code or restarting PM2:
+
+1. **Brand Identity & Media Uploads:**
+   - **Logo Upload:** Upload transparent PNG, SVG, or WebP logo via drag-and-drop or file selector. Updates reflect immediately across navbar, sidebar, login/register screens, footers, and email templates.
+   - **Favicon Upload:** Upload custom `.ico` or `.png` tab icon, instantly served to browser tabs.
+   - **OpenGraph Social Preview:** Upload custom 1200x630px social banner for Telegram, WhatsApp, Twitter/X, and Facebook share links.
+   - **Site Name & Tagline:** Change platform name in real-time with instant client-side event synchronization (`site_settings_updated`).
+
+2. **Domain URL & Zero-Localhost Email Guarantee:**
+   - **Canonical Live URL:** Configure `site_url` in Admin Settings (e.g. `https://yourdomain.com`).
+   - `getPublicSiteUrl(req)` prioritizes this setting and incoming HTTP request headers (`x-forwarded-host`, `host`), guaranteeing that account activation links, verification tokens, and Bachs checkout callbacks **never** contain `localhost:3000`.
+
+3. **Dynamic Real-Time SEO & Metadata:**
+   - Next.js App Router root layout dynamically resolves `meta_title`, `meta_description`, `meta_keywords`, and OpenGraph images via `generateMetadata()` backed by a 5-second in-memory cache.
+   - Sets dynamic `metadataBase` to prevent localhost fallbacks in search crawler indexing.
+
+4. **Risk Disclaimers & Compliance Controls:**
+   - **Website Footer Disclaimer:** Real-time regulatory disclosure text rendered in desktop and mobile footers.
+   - **Trading Risk Warning:** Customizable risk warning displayed on the live trading terminal.
+   - **Email Compliance Notice:** Included in all system transactional emails alongside the official Anti-Impersonation Advisory.
 
 ---
 

@@ -2,12 +2,14 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { MessageCircle, Smile, Send, X, ExternalLink } from 'lucide-react';
+import { useSiteSettings } from '@/components/settings-provider';
 
 export default function FloatingWidgets() {
+    const { siteName, siteLogo } = useSiteSettings();
     // Chat Widget State
     const [chatOpen, setChatOpen] = useState(false);
     const [chatMessages, setChatMessages] = useState([
-        { id: 1, sender: 'agent', text: 'Welcome to Emporium Capitals! How can we assist you with your investment journey today?', time: 'Just now' }
+        { id: 1, sender: 'agent', text: `Welcome to ${siteName || 'our platform'}! How can we assist you with your investment journey today?`, time: 'Just now' }
     ]);
     const [userMessage, setUserMessage] = useState('');
     const chatEndRef = useRef(null);
@@ -133,10 +135,10 @@ export default function FloatingWidgets() {
                         
                         {/* Logo Circle */}
                         <div className="size-14 rounded-full bg-black flex items-center justify-center p-1 shadow-md mb-3 border border-gray-200">
-                            <img src="/assets/logo.png" alt="Emporium logo" className="size-full object-contain" />
+                            <img src={siteLogo || "/assets/logo.png"} alt={siteName || "logo"} className="size-full object-contain" />
                         </div>
                         
-                        <h4 className="text-sm font-black text-gray-900 tracking-tight">Welcome to Emporium</h4>
+                        <h4 className="text-sm font-black text-gray-900 tracking-tight">Welcome to {siteName || "our platform"}</h4>
                         <p className="text-[11px] text-gray-500 mt-1 mb-4 leading-relaxed font-medium">Click below to start a live conversation with our investment desk.</p>
                         
                         {/* Red Pill Button "Let's Chat" */}
@@ -161,10 +163,10 @@ export default function FloatingWidgets() {
                         <div className="bg-[#ef4d45] text-white px-5 py-4 flex items-center justify-between shadow-md relative">
                             <div className="flex items-center gap-3">
                                 <div className="size-9 rounded-full bg-black flex items-center justify-center p-1 border border-white/20">
-                                    <img src="/assets/logo.png" alt="Emporium" className="size-full object-contain" />
+                                    <img src={siteLogo || "/assets/logo.png"} alt={siteName || "logo"} className="size-full object-contain" />
                                 </div>
                                 <div className="text-left">
-                                    <h4 className="text-xs font-bold leading-tight">Emporium Support</h4>
+                                    <h4 className="text-xs font-bold leading-tight">{siteName || "Support"} Desk</h4>
                                     <span className="flex items-center gap-1.5 text-[10px] text-white/95 mt-0.5">
                                         <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
                                         We reply immediately
@@ -188,7 +190,7 @@ export default function FloatingWidgets() {
                                 >
                                     {msg.sender === 'agent' && (
                                         <div className="size-7 rounded-full bg-black shrink-0 flex items-center justify-center p-0.5 border border-border-subtle">
-                                            <img src="/assets/logo.png" alt="agent" className="size-full object-contain" />
+                                            <img src={siteLogo || "/assets/logo.png"} alt="agent" className="size-full object-contain" />
                                         </div>
                                     )}
                                     <div className="flex flex-col gap-1">

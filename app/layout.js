@@ -1,15 +1,63 @@
 import './globals.css';
 import LenisScroll from '@/components/lenis-scroll';
 import { ThemeProvider } from '@/components/theme-provider';
+import { SiteSettingsProvider } from '@/components/settings-provider';
 import FloatingWidgets from '@/components/floating-widgets';
 import NetworkStatus from '@/components/network-status';
 import IframeErrorSuppressor from '@/components/iframe-error-suppressor';
 import Script from 'next/script';
+import { getSiteSettings, getPublicSiteUrl } from '@/lib/settings';
 
-export const metadata = {
-    title: 'Emporium Capitals | Home',
-    description: 'Start your passive income journey with Emporium Capitals. It\'s effortless—we manage the process and you reap the profits.',
-};
+export async function generateMetadata() {
+    const settings = await getSiteSettings();
+    const siteUrl = await getPublicSiteUrl();
+    const siteName = settings.site_name || 'Emporium Capitals';
+    const tagline = settings.site_tagline || 'Premium Crypto Investment Platform';
+    const title = settings.meta_title || `${siteName} | ${tagline}`;
+    const description = settings.meta_description || 'Start your passive income journey with cutting-edge AI trading, secure portfolio packages, and enterprise asset management.';
+    const keywords = settings.meta_keywords || 'crypto, bitcoin, trading, investment, forex, ai trading, passive income, arbitrage';
+    const ogImage = settings.og_image || settings.site_logo || '/assets/logo.png';
+    const favicon = settings.site_favicon || '/favicon.ico';
+
+    let baseOrigin = 'https://emporiumcapitals.com';
+    try {
+        baseOrigin = new URL(siteUrl).origin;
+    } catch (e) {}
+
+    return {
+        metadataBase: new URL(baseOrigin),
+        title: {
+            default: title,
+            template: `%s | ${siteName}`,
+        },
+        description,
+        keywords,
+        icons: {
+            icon: favicon,
+            apple: '/apple-icon.png',
+        },
+        openGraph: {
+            title,
+            description,
+            siteName,
+            images: [
+                {
+                    url: ogImage,
+                    width: 1200,
+                    height: 630,
+                    alt: siteName,
+                },
+            ],
+            type: 'website',
+        },
+        twitter: {
+            card: 'summary_large_image',
+            title,
+            description,
+            images: [ogImage],
+        },
+    };
+}
 
 export default function RootLayout({ children }) {
     return (
@@ -58,14 +106,16 @@ export default function RootLayout({ children }) {
             </head>
             <body className="font-sans" suppressHydrationWarning>
                 <IframeErrorSuppressor />
-                <ThemeProvider>
-                    <LenisScroll />
-                    <NetworkStatus />
-                    {children}
-                    <FloatingWidgets />
-                    {/* Hidden div required by Google Translate */}
-                    <div id="google_translate_element2" style={{ display: 'none' }}></div>
-                </ThemeProvider>
+                <SiteSettingsProvider>
+                    <ThemeProvider>
+                        <LenisScroll />
+                        <NetworkStatus />
+                        {children}
+                        <FloatingWidgets />
+                        {/* Hidden div required by Google Translate */}
+                        <div id="google_translate_element2" style={{ display: 'none' }}></div>
+                    </ThemeProvider>
+                </SiteSettingsProvider>
             </body>
         </html>
     );
