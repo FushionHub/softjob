@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/dashboard-layout';
+import RiskDisclaimer from '@/components/risk-disclaimer';
 export default function TransactionsPage(){
   const [user,setUser]=useState(null);
   const [txs,setTxs]=useState([]);
@@ -32,6 +33,8 @@ export default function TransactionsPage(){
           </table>
         </div>
       </div>
+
+      <RiskDisclaimer />
     </DashboardLayout>
   );
 }

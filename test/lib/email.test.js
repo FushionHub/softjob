@@ -15,8 +15,7 @@ vi.mock('@/lib/db', () => ({
     getDb: vi.fn(),
 }));
 
-import { query } from '@/lib/db';
-import { sendVerificationEmail } from '@/lib/email';
+import { sendVerificationEmail, sendWelcomeEmail, sendPasswordResetEmail } from '@/lib/email';
 import { invalidateSettingsCache } from '@/lib/settings';
 
 describe('lib/email', () => {
@@ -28,38 +27,56 @@ describe('lib/email', () => {
         delete process.env.SMTP_FROM;
     });
 
-    it('sends verification email with dynamic site URL, site name, and disclaimer without localhost', async () => {
-        query.mockResolvedValueOnce([
-            { setting_key: 'site_name', setting_value: 'Quantum Capital' },
-            { setting_key: 'site_url', setting_value: 'https://quantumcapital.io' },
-            { setting_key: 'disclaimer_email', setting_value: 'Custom regulatory and risk notice for investors.' },
-        ]);
-
+    it('sends verification email with correct subject and branded from address', async () => {
         mockSendMail.mockResolvedValueOnce({ messageId: 'msg-123' });
 
-        const req = {
-            headers: new Headers({
-                'x-forwarded-host': 'quantumcapital.io',
-                'x-forwarded-proto': 'https',
-            }),
-            url: 'https://quantumcapital.io/api/auth/register',
-        };
-
-        const result = await sendVerificationEmail('investor@example.com', 'Jane Doe', 'test-token-xyz', req);
+        const result = await sendVerificationEmail('investor@example.com', 'Jane Doe', 'test-token-xyz');
         expect(result).toBeDefined();
         expect(mockSendMail).toHaveBeenCalledTimes(1);
 
         const callArgs = mockSendMail.mock.calls[0][0];
         expect(callArgs.to).toBe('investor@example.com');
         expect(callArgs.subject).toContain('Verify Your Email');
-        expect(callArgs.from).toContain('Quantum Capital');
+        expect(callArgs.subject).toContain('Emporium Capitals');
+        expect(callArgs.from).toContain('Emporium Capitals');
 
-        // Check HTML content
         const html = callArgs.html;
-        expect(html).not.toContain('localhost:3000');
-        expect(html).toContain('https://quantumcapital.io/api/auth/verify-email?token=test-token-xyz');
-        expect(html).toContain('Quantum Capital');
-        expect(html).toContain('Custom regulatory and risk notice for investors.');
-        expect(html).toContain('Risk & Compliance Disclaimer');
+        expect(html).toContain('/api/auth/verify-email?token=test-token-xyz');
+        expect(html).toContain('Emporium Capitals');
+        expect(html).toContain('Verify Email Address');
+    });
+
+    it('sends welcome email with correct subject', async () => {
+        mockSendMail.mockResolvedValueOnce({ messageId: 'msg-456' });
+
+        const result = await sendWelcomeEmail('investor@example.com', 'Jane Doe');
+        expect(result).toBeDefined();
+        expect(mockSendMail).toHaveBeenCalledTimes(1);
+
+        const callArgs = mockSendMail.mock.calls[0][0];
+        expect(callArgs.to).toBe('investor@example.com');
+        expect(callArgs.subject).toContain('Welcome to Emporium Capitals');
+        expect(callArgs.from).toContain('Emporium Capitals');
+
+        const html = callArgs.html;
+        expect(html).toContain('Emporium Capitals');
+        expect(html).toContain('Go to Dashboard');
+    });
+
+    it('sends password reset email with correct link', async () => {
+        mockSendMail.mockResolvedValueOnce({ messageId: 'msg-789' });
+
+        const result = await sendPasswordResetEmail('investor@example.com', 'Jane Doe', 'reset-token-abc');
+        expect(result).toBeDefined();
+        expect(mockSendMail).toHaveBeenCalledTimes(1);
+
+        const callArgs = mockSendMail.mock.calls[0][0];
+        expect(callArgs.to).toBe('investor@example.com');
+        expect(callArgs.subject).toContain('Password Reset');
+        expect(callArgs.from).toContain('Emporium Capitals');
+
+        const html = callArgs.html;
+        expect(html).toContain('reset-token-abc');
+        expect(html).toContain('Emporium Capitals');
     });
 });

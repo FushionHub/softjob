@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/dashboard-layout';
+import RiskDisclaimer from '@/components/risk-disclaimer';
 import { Users, Copy, Check, Gift, TrendingUp } from 'lucide-react';
 export default function ReferralsPage(){
   const [user,setUser]=useState(null);
@@ -43,6 +44,8 @@ export default function ReferralsPage(){
           </div>
         ) : <div className="text-center py-10 text-white/30"><TrendingUp className="size-8 mx-auto mb-2 opacity-40"/><p className="text-sm font-bold">No referrals yet</p><p className="text-xs">Share your link to start earning 5% per deposit</p></div>}
       </div>
+
+      <RiskDisclaimer />
     </DashboardLayout>
   );
 }

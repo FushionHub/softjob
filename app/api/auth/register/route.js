@@ -128,7 +128,7 @@ export async function POST(request) {
 
     // Try to send verification email, but don't fail if SMTP is not configured
     try {
-      await sendVerificationEmail(email, name, verificationToken, req);
+      await sendVerificationEmail(email, name, verificationToken);
     } catch (emailError) {
       console.error('Failed to send verification email (SMTP not configured):', emailError.message);
       // Continue anyway - user is already verified
@@ -136,7 +136,7 @@ export async function POST(request) {
 
     // Try to send admin notification, but don't fail if SMTP is not configured
     try {
-      await sendAdminNotification(email, name, username, req);
+      await sendAdminNotification(email, name, username);
     } catch (adminEmailError) {
       console.error('Failed to send admin notification (SMTP not configured):', adminEmailError.message);
       // Continue anyway

@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/dashboard-layout';
+import RiskDisclaimer from '@/components/risk-disclaimer';
 import { Check, Loader2, Wallet } from 'lucide-react';
 
 export default function PackagesPage() {
@@ -99,6 +100,8 @@ export default function PackagesPage() {
           </form>
         )}
       </div>
+
+      <RiskDisclaimer />
     </DashboardLayout>
   );
 }

@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/dashboard-layout';
+import RiskDisclaimer from '@/components/risk-disclaimer';
 import { History, TrendingUp } from 'lucide-react';
 export default function InvestmentHistoryPage() {
   const [user,setUser]=useState(null);
@@ -32,6 +33,8 @@ export default function InvestmentHistoryPage() {
           </div>
         ) : <div className="text-center py-12 text-white/30"><TrendingUp className="size-8 mx-auto mb-2 opacity-50"/><p className="text-sm font-bold">No investments yet</p><p className="text-xs">Start investing from Deposits or Packages</p></div>}
       </div>
+
+      <RiskDisclaimer />
     </DashboardLayout>
   );
 }

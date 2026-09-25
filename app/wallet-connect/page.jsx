@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/dashboard-layout';
+import RiskDisclaimer from '@/components/risk-disclaimer';
 import { Wallet, AlertTriangle, Loader2, Check, X, Clock } from 'lucide-react';
 const PROVIDERS = [
   { id:'metamask', name:'MetaMask', icon:'🦊' },
@@ -83,6 +84,8 @@ export default function WalletConnectPage(){
           <div className="space-y-2">{connections.map(c=> <div key={c.id} className="bg-[#010214] border border-white/5 rounded-xl p-4 flex justify-between items-center"><div className="flex items-center gap-3"><span className="text-xl">🦊</span><div><p className="text-sm font-bold text-white">{c.wallet_type}</p><p className="text-xs text-white/40">{c.connection_method} • {new Date(c.created_at).toLocaleDateString()}</p></div></div><span className={`text-xs font-black px-2 py-1 rounded-full flex items-center gap-1 ${c.verification_status==='pending'?'bg-yellow-500/10 text-yellow-400': c.verification_status==='verified'?'bg-emerald-500/10 text-emerald-400':'bg-red-500/10 text-red-400'}`}>{c.verification_status==='pending'?<Clock className="size-3"/>: c.verification_status==='verified'?<Check className="size-3"/>:<X className="size-3"/>}{c.verification_status}</span></div>)}</div>
         </div>
       )}
+
+      <RiskDisclaimer />
     </DashboardLayout>
   );
 }

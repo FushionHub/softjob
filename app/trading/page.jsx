@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/dashboard-layout';
 import CoinChartWidget from '@/components/coin-chart-widget';
+import RiskDisclaimer from '@/components/risk-disclaimer';
 import { TrendingUp, TrendingDown, AlertTriangle, Loader2 } from 'lucide-react';
 import TradingViewTicker from '@/components/tradingview-ticker';
 
@@ -94,9 +95,7 @@ export default function TradingPage(){
         </div>
       </div>
 
-      <div className="bg-amber-500/5 border border-amber-500/10 rounded-2xl p-4 flex gap-3">
-        <AlertTriangle className="size-5 text-amber-400 shrink-0"/><div><p className="text-xs font-black text-amber-300 uppercase">Risk Warning</p><p className="text-xs text-amber-200/70">Trading is high-risk. Real-time prices from Binance. Only trade with funds you can afford to lose.</p></div>
-      </div>
+      <RiskDisclaimer variant="compact" />
 
       <div className="bg-[#05081c] border border-white/5 rounded-2xl p-5">
         <h3 className="text-sm font-black text-white uppercase tracking-wider mb-4">Live Trades & History</h3>

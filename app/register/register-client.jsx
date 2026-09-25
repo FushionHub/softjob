@@ -5,10 +5,8 @@ import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Eye, EyeOff, Check, AlertCircle } from 'lucide-react';
 import GoogleLoginButton from '@/components/google-login-button';
-import { useSiteSettings } from '@/components/settings-provider';
 
 export default function RegisterClient() {
-    const { siteName, siteLogo } = useSiteSettings();
     const router = useRouter();
     const searchParams = useSearchParams();
 
@@ -98,8 +96,8 @@ export default function RegisterClient() {
                 <div className="relative z-10 flex items-center gap-2">
                     <Link href="/">
                         <img 
-                            src={siteLogo || "/assets/logo.png"} 
-                            alt={`${siteName || "Emporium Capitals"} Logo`} 
+                            src="/assets/logo.png" 
+                            alt="Emporium Capitals Logo" 
                             className="h-10 w-auto object-contain transition-transform duration-300 hover:scale-105" 
                         />
                     </Link>
@@ -111,7 +109,7 @@ export default function RegisterClient() {
                         <h2 className="text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight">
                             Welcome to <br />
                             <span className="text-brand-primary bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent">
-                                {siteName || "Emporium Capitals"}
+                                Emporium Capitals
                             </span>
                         </h2>
                     </div>
@@ -146,7 +144,7 @@ export default function RegisterClient() {
 
                 {/* Left Bottom Details */}
                 <div className="relative z-10 text-xs text-text-muted/40">
-                    © {new Date().getFullYear()} {siteName || "Emporium Capitals"}. All rights reserved.
+                    © 2026 Emporium Capitals. All rights reserved.
                 </div>
             </section>
 
@@ -156,8 +154,8 @@ export default function RegisterClient() {
                 <div className="absolute top-8 left-8 md:hidden z-10">
                     <Link href="/">
                         <img 
-                            src={siteLogo || "/assets/logo.png"} 
-                            alt={`${siteName || "Emporium Capitals"} Logo`} 
+                            src="/assets/logo.png" 
+                            alt="Emporium Capitals Logo" 
                             className="h-8 w-auto object-contain" 
                         />
                     </Link>

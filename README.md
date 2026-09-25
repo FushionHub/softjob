@@ -13,9 +13,8 @@ Premium Crypto Investment & Trading Platform — Next.js 16 fullstack applicatio
 ├── app/                  # Next.js App Router pages + 60+ API routes
 ├── components/           # Reusable UI components
 ├── sections/             # Marketing and dashboard section layouts
-├── lib/                  # Core services (db.js, auth.js, email.js, settings.js, wallets.js, etc.)
+├── lib/                  # Core services (db.js, auth.js, email.js, wallets.js, etc.)
 │   ├── db.js             # Dual-driver DB adapter (MySQL & PostgreSQL Neon)
-│   ├── settings.js       # Dynamic settings engine, cache, & public URL resolver
 │   └── wallets.js        # Static deposit wallet addresses config
 ├── public/               # Static public assets (images, icons, fonts)
 ├── cpanelsetup/          # cPanel management & monitoring suite
@@ -64,13 +63,8 @@ npm test
 
 Default Admin Credentials:
 - URL: `/admin/login`
-- Authorized Admin Emails:
-  - `jotahecomng@gmail.com` *(Primary Administrator)*
-  - `jmauricennadi@gmail.com`
-  - `admin@emporiumcapitals.com`
-  - Or any email configured as `ADMIN_EMAIL` in `.env`
-- Default Password: `admin123` *(Or set custom password via `ADMIN_PASSWORD` in `.env`)*
-- Portal: `/admin` (Access control protected, requires super_admin session)
+- Email: `jmauricennadi@gmail.com`
+- Password: `admin123` *(Change on initial login)*
 
 ---
 
@@ -281,57 +275,21 @@ The application supports **two database engines** via `lib/db.js` with automatic
 
 ---
 
-## Deposit & Payment System
+## Deposit System
 
-### 1. Direct Crypto Deposits & Proof of Payment Upload
-- **User Flow (`/deposit`):**
-  1. **Select Coin & Send Funds:** Users pick their coin (BTC, ETH, USDT, SOL, BNB, XRP, etc.) and view their dedicated wallet address + QR code.
-  2. **Step 2: Confirm Payment & Upload Proof:**
-     - Enter exact deposit amount in USD (with real-time crypto rate calculations).
-     - Input blockchain transaction hash / TxID.
-     - Drag & drop payment proof receipt (supports JPG, PNG, WebP, GIF, or PDF up to 10MB).
-     - Submit deposit proof for prioritized compliance review.
-  3. **Recent Deposits List:** Users can view their deposit history with real-time status badges (`PENDING`, `APPROVED`, `REJECTED`), inspect their uploaded receipt via **View Proof**, or attach proof to an existing pending deposit via **Upload Proof**.
+### Default: Direct Crypto Deposits
+Users send crypto directly to static wallet addresses configured in `.env`:
 
-### 2. Admin Deposit Inspection & Approval Suite (`/admin/deposits`)
-- **Interactive Lightbox Modal:** Full preview of uploaded payment screenshots and embedded PDF reader. Includes zoom (+/-), 90° rotation, and original resolution download.
-- **Instant Approval:** Admin can click **Approve & Credit Balance** directly in the lightbox or table.
-  - Automatically credits the user's available balance and `total_deposit`.
-  - Automatically activates the user's investment plan in `user_investments` if deposit was tied to a plan.
-  - Issues a 5% referral bonus to the referrer's account and logs it in `profit_history`.
-  - Dispatches an in-app notification and an automated deposit confirmation email to the user.
-- **Rejection with Reason:** Admin can reject deposits with custom notes forwarded to the user.
+```
+USDT_DEPOSIT_ADDRESS=T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb
+BTC_DEPOSIT_ADDRESS=bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh
+ETH_DEPOSIT_ADDRESS=0x71C836eB3F3d44F6bF0Fe331d279148d4b3bEAc2
+```
 
-### 3. Bachs.io Card & Mobile Money Checkout
-- Users can deposit USD using debit/credit card or mobile money rails via Bachs.io.
-- **Public URL Validation:** `app/api/bachs/create-checkout/route.js` uses `getPublicBaseUrl(req)` to guarantee `success_url` and `cancel_url` always resolve to the public live domain (`https://emporiumcapitals.com`) and never send `localhost:3000`, eliminating Bachs `[VALIDATION_ERROR]` rejections.
+Wallet addresses are managed via `lib/wallets.js` and served through `/api/wallets`. QR codes are generated client-side via the `api.qrserver.com` API.
 
----
-
----
-
-## Real-Time Admin Site Settings & Customization (`/admin/settings`)
-
-The platform includes a real-time configuration engine allowing administrators to rebrand and adjust platform parameters without modifying code or restarting PM2:
-
-1. **Brand Identity & Media Uploads:**
-   - **Logo Upload:** Upload transparent PNG, SVG, or WebP logo via drag-and-drop or file selector. Updates reflect immediately across navbar, sidebar, login/register screens, footers, and email templates.
-   - **Favicon Upload:** Upload custom `.ico` or `.png` tab icon, instantly served to browser tabs.
-   - **OpenGraph Social Preview:** Upload custom 1200x630px social banner for Telegram, WhatsApp, Twitter/X, and Facebook share links.
-   - **Site Name & Tagline:** Change platform name in real-time with instant client-side event synchronization (`site_settings_updated`).
-
-2. **Domain URL & Zero-Localhost Email Guarantee:**
-   - **Canonical Live URL:** Configure `site_url` in Admin Settings (e.g. `https://yourdomain.com`).
-   - `getPublicSiteUrl(req)` prioritizes this setting and incoming HTTP request headers (`x-forwarded-host`, `host`), guaranteeing that account activation links, verification tokens, and Bachs checkout callbacks **never** contain `localhost:3000`.
-
-3. **Dynamic Real-Time SEO & Metadata:**
-   - Next.js App Router root layout dynamically resolves `meta_title`, `meta_description`, `meta_keywords`, and OpenGraph images via `generateMetadata()` backed by a 5-second in-memory cache.
-   - Sets dynamic `metadataBase` to prevent localhost fallbacks in search crawler indexing.
-
-4. **Risk Disclaimers & Compliance Controls:**
-   - **Website Footer Disclaimer:** Real-time regulatory disclosure text rendered in desktop and mobile footers.
-   - **Trading Risk Warning:** Customizable risk warning displayed on the live trading terminal.
-   - **Email Compliance Notice:** Included in all system transactional emails alongside the official Anti-Impersonation Advisory.
+### Alternative: Bachs.io Card Payments
+Users can also pay with card, mobile money, or bank transfer via Bachs.io hosted checkout. Set `BACHS_API_KEY=sk_live_...` in `.env` to enable.
 
 ---
 

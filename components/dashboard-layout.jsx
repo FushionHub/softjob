@@ -10,7 +10,6 @@ import {
 } from 'lucide-react';
 import GoogleTranslate from '@/components/google-translate';
 import { useTheme } from '@/components/theme-provider';
-import { useSiteSettings } from '@/components/settings-provider';
 
 const NAV_GROUPS = [
   {
@@ -46,7 +45,6 @@ const NAV_GROUPS = [
 ];
 
 export default function DashboardLayout({ children, title, user }) {
-  const { siteName, siteLogo } = useSiteSettings();
   const pathname = usePathname();
   const router = useRouter();
   const { theme, toggleTheme } = useTheme();
@@ -81,7 +79,7 @@ export default function DashboardLayout({ children, title, user }) {
         <div className="space-y-6 overflow-y-auto scrollbar-thin">
           <div className="flex items-center justify-between">
             <Link href="/" className="flex items-center gap-2">
-              <img src={siteLogo || "/assets/logo.png"} alt={siteName || "Logo"} className="h-9 w-auto object-contain" />
+              <img src="/assets/logo.png" alt="Emporium" className="h-9 w-auto object-contain" />
             </Link>
             <button onClick={() => setMobileOpen(false)} className="lg:hidden p-1 text-white/60 hover:text-white"><X className="size-5" /></button>
           </div>

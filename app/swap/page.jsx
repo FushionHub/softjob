@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
 import DashboardLayout from '@/components/dashboard-layout';
+import RiskDisclaimer from '@/components/risk-disclaimer';
 import { ArrowLeftRight, Loader2, TrendingUp, AlertTriangle, Wallet, ShieldCheck } from 'lucide-react';
 
 const ASSETS = ['BTC','ETH','USDT','SOL','BNB','XRP','ADA','DOGE'];
@@ -176,6 +177,8 @@ export default function SwapPage() {
           </div>
         </div>
       </div>
+
+      <RiskDisclaimer />
     </DashboardLayout>
   );
 }

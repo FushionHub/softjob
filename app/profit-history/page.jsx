@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/dashboard-layout';
+import RiskDisclaimer from '@/components/risk-disclaimer';
 import { DollarSign } from 'lucide-react';
 export default function ProfitHistoryPage(){
   const [user,setUser]=useState(null);
@@ -31,6 +32,8 @@ export default function ProfitHistoryPage(){
           </div>
         ) : <p className="text-center py-10 text-white/30 text-sm">No profit history yet - profits appear as investments mature or trades close</p>}
       </div>
+
+      <RiskDisclaimer />
     </DashboardLayout>
   );
 }

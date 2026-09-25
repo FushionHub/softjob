@@ -5,6 +5,7 @@ import Link from 'next/link';
 import DashboardLayout from '@/components/dashboard-layout';
 import CoinChartWidget, { MiniChart } from '@/components/coin-chart-widget';
 import TradingViewTicker from '@/components/tradingview-ticker';
+import RiskDisclaimer from '@/components/risk-disclaimer';
 import { Wallet, TrendingUp, DollarSign, ArrowUpCircle, Copy, Check, AlertCircle, Mail, Loader2, RefreshCw } from 'lucide-react';
 
 export default function DashboardClient() {
@@ -186,6 +187,8 @@ export default function DashboardClient() {
         </div>
         <p className="text-[11px] text-white/30 mt-3">Share this link. When friends register with your code, you earn bonus instantly credited. Track in <Link href="/referrals" className="text-[#ef4d45] font-bold hover:underline">Referrals</Link>.</p>
       </div>
+
+      <RiskDisclaimer />
     </DashboardLayout>
   );
 }

@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/dashboard-layout';
+import RiskDisclaimer from '@/components/risk-disclaimer';
 import { ArrowUpCircle, Copy, Check, X, AlertTriangle, Loader2 } from 'lucide-react';
 
 export default function WithdrawClient(){
@@ -70,6 +71,8 @@ export default function WithdrawClient(){
         <h3 className="text-sm font-black text-white uppercase tracking-wider mb-4">Withdrawal History</h3>
         {withdrawals.length ? <div className="space-y-3">{withdrawals.map(wd=> <div key={wd.id} className="bg-[#010214] border border-white/5 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3"><div className="flex items-center gap-3"><div className="size-10 rounded-full bg-white/5 flex items-center justify-center"><ArrowUpCircle className="size-5 text-[#ef4d45]"/></div><div><p className="text-sm font-black text-white">${Number(wd.amount).toFixed(2)}</p><p className="text-[11px] text-white/40">{new Date(wd.created_at).toLocaleString()} • {wd.network||wd.wallet_address?.slice(0,20)}</p></div></div><div className="flex items-center gap-2"><span className="font-mono text-[11px] text-white/40 bg-white/5 px-2 py-1 rounded-full">{wd.wallet_address?.slice(0,12)}...{wd.wallet_address?.slice(-6)}</span><span className={`text-[10px] font-black uppercase px-2.5 py-1 rounded-full border ${statusColor(wd.status)}`}>{wd.status}</span></div></div>)}</div> : <p className="text-center py-8 text-white/30 text-sm">No withdrawals yet</p>}
       </div>
+
+      <RiskDisclaimer />
     </DashboardLayout>
   );
 }
