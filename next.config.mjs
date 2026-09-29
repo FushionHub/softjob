@@ -4,6 +4,7 @@ const nextConfig = {
         unoptimized: true,
     },
     productionBrowserSourceMaps: false,
+    turbopack: {},
     // Turbopack sourceMap warnings are from node_modules dev server chunks — ignore
     webpack: (config) => {
         config.ignoreWarnings = [

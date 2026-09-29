@@ -9,11 +9,15 @@ import GoogleLoginButton from '@/components/google-login-button';
 export default function LoginClient() {
     const searchParams = useSearchParams();
     const router = useRouter();
-    const redirectTo = searchParams.get('redirect') || '/dashboard';
+    const rawRedirect = searchParams.get('redirect');
+    const redirectTo = (rawRedirect && rawRedirect.startsWith('/') && rawRedirect !== '/login' && rawRedirect !== '/register')
+        ? rawRedirect
+        : '/dashboard';
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
+    const [loading, setLoading] = useState(false);
 
     const [twoFactorRequired, setTwoFactorRequired] = useState(false);
     const [twoFactorCode, setTwoFactorCode] = useState('');
@@ -35,6 +39,49 @@ export default function LoginClient() {
         : '';
 
     const handleGoogleError = (msg) => setPageError(msg);
+
+    const handleLoginSubmit = async (e) => {
+        e.preventDefault();
+        setPageError('');
+
+        const cleanEmail = email.trim();
+        if (!cleanEmail || !password) {
+            setPageError('Email/username and password are required.');
+            return;
+        }
+
+        setLoading(true);
+
+        try {
+            const res = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    email: cleanEmail,
+                    password,
+                    redirect: redirectTo,
+                }),
+            });
+
+            const data = await res.json().catch(() => ({}));
+
+            if (!res.ok) {
+                setPageError(data.error || 'Invalid email/username or password');
+                setLoading(false);
+                return;
+            }
+
+            // Successfully authenticated!
+            // Redirect to dashboard (or requested destination) on the current domain
+            window.location.href = redirectTo || '/dashboard';
+        } catch (err) {
+            console.error('Login submit error:', err);
+            setPageError('Network error. Please check your connection and try again.');
+            setLoading(false);
+        }
+    };
 
     const handleVerify2FA = (e) => {
         e.preventDefault();
@@ -151,7 +198,7 @@ export default function LoginClient() {
                                 <div className="h-[1px] bg-border-subtle/30 flex-1"></div>
                             </div>
 
-                            <form action="/api/auth/login" method="POST" className="space-y-6">
+                            <form onSubmit={handleLoginSubmit} action="/api/auth/login" method="POST" className="space-y-6">
                                 <input type="hidden" name="redirect" value={redirectTo} />
 
                                 <div className="flex flex-col gap-2">
@@ -203,9 +250,17 @@ export default function LoginClient() {
                                 <div className="pt-2">
                                     <button
                                         type="submit"
-                                        className="btn-primary w-full py-3.5 text-xs md:text-sm font-semibold rounded-xl flex items-center justify-center gap-2"
+                                        disabled={loading}
+                                        className="btn-primary w-full py-3.5 text-xs md:text-sm font-semibold rounded-xl flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
                                     >
-                                        Sign In
+                                        {loading ? (
+                                            <>
+                                                <div className="size-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                                <span>Signing In...</span>
+                                            </>
+                                        ) : (
+                                            <span>Sign In</span>
+                                        )}
                                     </button>
                                 </div>
                             </form>

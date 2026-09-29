@@ -37,10 +37,32 @@ async function ensureUserSchema() {
   }
 }
 
+function getRedirectUrl(request, path, params = {}) {
+  const forwardedProto = request.headers.get('x-forwarded-proto');
+  const forwardedHost = request.headers.get('x-forwarded-host');
+  const host = forwardedHost || request.headers.get('host');
+  
+  let baseOrigin = '';
+  if (host) {
+    const proto = forwardedProto || (process.env.NODE_ENV === 'production' ? 'https' : 'http');
+    baseOrigin = `${proto}://${host}`;
+  } else if (process.env.NEXT_PUBLIC_APP_URL) {
+    baseOrigin = process.env.NEXT_PUBLIC_APP_URL;
+  } else {
+    baseOrigin = request.url;
+  }
+
+  const cleanPath = path.startsWith('/') ? path : `/${path}`;
+  const url = new URL(cleanPath, baseOrigin);
+  for (const [key, value] of Object.entries(params)) {
+    if (value) url.searchParams.set(key, value);
+  }
+  return url;
+}
+
 function failRedirect(request, code) {
-  const url = new URL('/login', request.url);
-  url.searchParams.set('error', code);
-  return NextResponse.redirect(url);
+  const url = getRedirectUrl(request, '/login', { error: code });
+  return NextResponse.redirect(url, 303);
 }
 
 export async function POST(request) {
@@ -118,8 +140,12 @@ export async function POST(request) {
       return response;
     }
 
-    const redirectUrl = new URL(destination, request.url);
-    const response = NextResponse.redirect(redirectUrl, 302);
+    let target = destination || '/dashboard';
+    if (!target.startsWith('/') || target === '/login' || target === '/register') {
+      target = '/dashboard';
+    }
+    const redirectUrl = getRedirectUrl(request, target);
+    const response = NextResponse.redirect(redirectUrl, 303);
     response.cookies.set('auth_token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -133,8 +159,7 @@ export async function POST(request) {
     if (request.headers.get('content-type')?.includes('application/json')) {
       return NextResponse.json({ error: 'Login failed. Please try again.' }, { status: 500 });
     }
-    const url = new URL('/login', request.url);
-    url.searchParams.set('error', 'server_error');
-    return NextResponse.redirect(url);
+    const url = getRedirectUrl(request, '/login', { error: 'server_error' });
+    return NextResponse.redirect(url, 303);
   }
 }

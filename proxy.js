@@ -47,6 +47,22 @@ async function verifyTokenEdge(token, secret) {
   }
 }
 
+function createRedirectUrl(req, pathname, searchParams = {}) {
+  const forwardedProto = req.headers.get('x-forwarded-proto')
+  const forwardedHost = req.headers.get('x-forwarded-host') || req.headers.get('host')
+  const proto = forwardedProto || (process.env.NODE_ENV === 'production' ? 'https' : (req.nextUrl.protocol ? req.nextUrl.protocol.replace(':', '') : 'http'))
+  
+  const url = req.nextUrl.clone()
+  url.protocol = proto + ':'
+  if (forwardedHost) url.host = forwardedHost
+  url.pathname = pathname
+  url.search = ''
+  for (const [key, value] of Object.entries(searchParams)) {
+    if (value) url.searchParams.set(key, value)
+  }
+  return url
+}
+
 export default async function proxy(req) {
   const { pathname } = req.nextUrl
   const token = req.cookies.get('auth_token')?.value
@@ -62,7 +78,7 @@ export default async function proxy(req) {
       if (adminToken) {
         const decoded = await verifyTokenEdge(adminToken, adminSecret)
         if (decoded?.isAdmin) {
-          return NextResponse.redirect(new URL('/admin', req.url))
+          return NextResponse.redirect(createRedirectUrl(req, '/admin'))
         }
       }
       return NextResponse.next()
@@ -70,11 +86,11 @@ export default async function proxy(req) {
 
     // All other /admin routes require admin auth
     if (!adminToken) {
-      return NextResponse.redirect(new URL('/admin/login', req.url))
+      return NextResponse.redirect(createRedirectUrl(req, '/admin/login'))
     }
     const decoded = await verifyTokenEdge(adminToken, adminSecret)
     if (!decoded?.isAdmin) {
-      return NextResponse.redirect(new URL('/admin/login', req.url))
+      return NextResponse.redirect(createRedirectUrl(req, '/admin/login'))
     }
 
     const res = NextResponse.next()
@@ -94,23 +110,19 @@ export default async function proxy(req) {
 
   if (isProtectedRoute) {
     if (!token) {
-      const loginUrl = new URL('/login', req.url)
-      loginUrl.searchParams.set('redirect', pathname)
-      return NextResponse.redirect(loginUrl)
+      return NextResponse.redirect(createRedirectUrl(req, '/login', { redirect: pathname }))
     }
 
     const decoded = await verifyTokenEdge(token, userSecret)
     if (!decoded) {
-      const loginUrl = new URL('/login', req.url)
-      loginUrl.searchParams.set('redirect', pathname)
-      return NextResponse.redirect(loginUrl)
+      return NextResponse.redirect(createRedirectUrl(req, '/login', { redirect: pathname }))
     }
   }
 
   if ((pathname === '/login' || pathname === '/register') && token) {
     const decoded = await verifyTokenEdge(token, userSecret)
     if (decoded) {
-      return NextResponse.redirect(new URL('/dashboard', req.url))
+      return NextResponse.redirect(createRedirectUrl(req, '/dashboard'))
     }
   }
 
