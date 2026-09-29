@@ -191,9 +191,19 @@ export default function RegisterClient() {
 
                     {/* Error & Success States */}
                     {errorMsg && (
-                        <div className="flex items-center gap-2.5 p-3 rounded-xl border border-red-500/20 bg-red-500/10 text-red-200 text-xs animate-shake">
-                            <AlertCircle className="size-4 shrink-0" />
-                            <span>{errorMsg}</span>
+                        <div className="flex items-center justify-between gap-2.5 p-3 rounded-xl border border-red-500/20 bg-red-500/10 text-red-200 text-xs animate-shake">
+                            <div className="flex items-center gap-2 min-w-0">
+                                <AlertCircle className="size-4 shrink-0 text-red-400" />
+                                <span>{errorMsg}</span>
+                            </div>
+                            {(errorMsg.toLowerCase().includes('sign in') || errorMsg.toLowerCase().includes('already exists')) && (
+                                <Link
+                                    href="/login"
+                                    className="font-bold underline text-white hover:text-[#ef4d45] whitespace-nowrap ml-2 cursor-pointer transition-colors"
+                                >
+                                    Sign In →
+                                </Link>
+                            )}
                         </div>
                     )}
                     {successMsg && (

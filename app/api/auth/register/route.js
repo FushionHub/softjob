@@ -78,15 +78,36 @@ export async function POST(request) {
       );
     }
 
-    // Check if user already exists
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanUsername = username.trim();
+    const cleanName = name.trim();
+
+    // Check if user already exists (case-insensitive)
     const existingUsers = await query(
-      'SELECT * FROM users WHERE email = $1 OR username = $2',
-      [email, username]
+      'SELECT id, email, username FROM users WHERE LOWER(email) = LOWER($1) OR LOWER(username) = LOWER($2)',
+      [cleanEmail, cleanUsername]
     );
 
     if (existingUsers.length > 0) {
+      const emailTaken = existingUsers.some(u => (u.email || '').toLowerCase() === cleanEmail);
+      const usernameTaken = existingUsers.some(u => (u.username || '').toLowerCase() === cleanUsername.toLowerCase());
+
+      if (emailTaken) {
+        return NextResponse.json(
+          { error: 'An account with this email address already exists. Please sign in instead.' },
+          { status: 409 }
+        );
+      }
+
+      if (usernameTaken) {
+        return NextResponse.json(
+          { error: `The username "${cleanUsername}" is already taken. Please choose a different username.` },
+          { status: 409 }
+        );
+      }
+
       return NextResponse.json(
-        { error: 'User with this email or username already exists' },
+        { error: 'An account with this email or username already exists. Please sign in instead.' },
         { status: 409 }
       );
     }
@@ -95,8 +116,8 @@ export async function POST(request) {
     const hashedPassword = await bcrypt.hash(password, 12);
 
     // Generate verification token & referral_code (generic)
-    const verificationToken = await signToken({ email }, '24h');
-    const referralCode = username.toUpperCase().slice(0,4) + Math.random().toString(36).slice(2,6).toUpperCase() + Date.now().toString().slice(-3);
+    const verificationToken = await signToken({ email: cleanEmail }, '24h');
+    const referralCode = cleanUsername.toUpperCase().slice(0,4) + Math.random().toString(36).slice(2,6).toUpperCase() + Date.now().toString().slice(-3);
 
     // Resolve referrer: supports referral_code OR username OR email
     let referrerId = null;
@@ -110,7 +131,7 @@ export async function POST(request) {
       `INSERT INTO users (name, email, username, phone, password, referrer, referral_code, verification_token, email_verified, accept_terms)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
        RETURNING id`,
-      [name, email, username, phone || null, hashedPassword, referrer || null, referralCode, verificationToken, false, true]
+      [cleanName, cleanEmail, cleanUsername, phone || null, hashedPassword, referrer || null, referralCode, verificationToken, false, true]
     );
 
     const userId = result[0].id;
