@@ -8,6 +8,7 @@ export async function GET() {
       {
         prices: data.prices,
         changes: data.changes,
+        tickers: data.tickers || {},
         source: data.source,
         timestamp: Date.now(),
       },
@@ -22,6 +23,7 @@ export async function GET() {
       {
         prices: data.prices,
         changes: data.changes,
+        tickers: data.tickers || {},
         source: 'fallback',
         timestamp: Date.now(),
       },

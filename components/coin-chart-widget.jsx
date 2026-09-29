@@ -9,6 +9,8 @@ const SYMBOLS = [
   { value: 'BINANCE:BNBUSDT', label: 'BNB/USDT' },
   { value: 'BINANCE:XRPUSDT', label: 'XRP/USDT' },
   { value: 'BINANCE:ADAUSDT', label: 'ADA/USDT' },
+  { value: 'BINANCE:DOGEUSDT', label: 'DOGE/USDT' },
+  { value: 'BINANCE:TRXUSDT', label: 'TRX/USDT' },
 ];
 
 export default function CoinChartWidget({ symbol = 'BINANCE:BTCUSDT', height = 400, showSelector = true }) {
