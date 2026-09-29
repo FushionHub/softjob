@@ -2,26 +2,10 @@ import { NextResponse } from 'next/server';
 import { query, getDb } from '@/lib/db';
 import { getSessionUser } from '@/lib/auth';
 import { sendSwapEmail, safeSend } from '@/lib/email';
-
-const STATIC_RATES = {
-  'BTC_ETH': 15.2,
-  'ETH_BTC': 0.065,
-  'BTC_USDT': 67000,
-  'USDT_BTC': 0.0000149,
-  'ETH_USDT': 3500,
-  'USDT_ETH': 0.000285,
-  'BTC_SOL': 450,
-  'SOL_BTC': 0.0022,
-  'USDT_SOL': 0.0067,
-  'SOL_USDT': 149,
-};
+import { STATIC_RATES, getCryptoMarketData, getSingleLivePrice } from '@/lib/crypto-prices';
 
 async function fetchLivePrice(symbol) {
-  try {
-    const r = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${symbol}`, { next: { revalidate: 2 } });
-    if (r.ok) { const j = await r.json(); return Number(j.price); }
-  } catch {}
-  return null;
+  return getSingleLivePrice(symbol);
 }
 
 async function getLiveRate(from, to, liveCache = {}) {
@@ -67,16 +51,8 @@ export async function GET() {
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     let liveRates = {};
     try {
-      const symbols = ['BTCUSDT','ETHUSDT','SOLUSDT','BNBUSDT','XRPUSDT','ADAUSDT','DOGEUSDT','TRXUSDT'];
-      const results = await Promise.all(symbols.map(async s => {
-        const p = await fetchLivePrice(s);
-        return [s, p];
-      }));
-      results.forEach(([s, p]) => { if (p) liveRates[s] = p; });
-      // update static for subsequent POSTs
-      if (liveRates.BTCUSDT) STATIC_RATES.BTC_USDT = liveRates.BTCUSDT;
-      if (liveRates.ETHUSDT) STATIC_RATES.ETH_USDT = liveRates.ETHUSDT;
-      if (liveRates.SOLUSDT) STATIC_RATES.SOL_USDT = liveRates.SOLUSDT;
+      const data = await getCryptoMarketData();
+      liveRates = data.prices || {};
     } catch {}
     const swaps = await query('SELECT * FROM swaps WHERE user_id=$1 ORDER BY created_at DESC LIMIT 20', [session.userId]).catch(()=>[]);
     const userBal = await query('SELECT balance FROM users WHERE id=$1', [session.userId]).catch(()=>[{balance:0}]);

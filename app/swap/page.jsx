@@ -51,8 +51,8 @@ export default function SwapPage() {
   // real-time preview using liveRates
   useEffect(()=> {
     const getPrice = (asset) => {
-      if (asset==='USDT' || asset==='USDC') return 1;
-      return liveRates[`${asset}USDT`] || null;
+      if (asset === 'USDT' || asset === 'USDC') return 1;
+      return liveRates[`${asset}USDT`] || liveRates[asset] || null;
     };
     let r = 1;
     const fromPrice = getPrice(from);
@@ -60,11 +60,20 @@ export default function SwapPage() {
     if (fromPrice && toPrice) r = fromPrice / toPrice;
     else {
       // fallback static via USDT
-      const map = { BTC_USDT: liveRates.BTCUSDT||67000, ETH_USDT: liveRates.ETHUSDT||3500, SOL_USDT: liveRates.SOLUSDT||149, BNB_USDT: liveRates.BNBUSDT||600, XRP_USDT: liveRates.XRPUSDT||0.6, ADA_USDT: liveRates.ADAUSDT||0.45, DOGE_USDT: liveRates.DOGEUSDT||0.12 };
+      const map = {
+        BTC_USDT: liveRates.BTCUSDT || liveRates.BTC || 83500,
+        ETH_USDT: liveRates.ETHUSDT || liveRates.ETH || 2690,
+        SOL_USDT: liveRates.SOLUSDT || liveRates.SOL || 120,
+        BNB_USDT: liveRates.BNBUSDT || liveRates.BNB || 755,
+        XRP_USDT: liveRates.XRPUSDT || liveRates.XRP || 1.50,
+        ADA_USDT: liveRates.ADAUSDT || liveRates.ADA || 0.25,
+        DOGE_USDT: liveRates.DOGEUSDT || liveRates.DOGE || 0.095,
+        TRX_USDT: liveRates.TRXUSDT || liveRates.TRX || 0.33,
+      };
       const get = (a) => map[`${a}_USDT`] || 1;
-      if (from==='USDT') r = 1 / (get(to));
-      else if (to==='USDT') r = get(from);
-      else r = get(from)/get(to);
+      if (from === 'USDT') r = 1 / get(to);
+      else if (to === 'USDT') r = get(from);
+      else r = get(from) / get(to);
       if (!fromPrice || !toPrice) r = r || 1;
     }
     const amt = parseFloat(amount||0);

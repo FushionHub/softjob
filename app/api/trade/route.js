@@ -3,6 +3,7 @@ import { query, getDb } from '@/lib/db';
 import { getSessionUser } from '@/lib/auth';
 import { sendTradeEmail, safeSend } from '@/lib/email';
 import { settleExpiredTrades } from '@/lib/lifecycle';
+import { getSingleLivePrice } from '@/lib/crypto-prices';
 
 export async function POST(req) {
     try {
@@ -31,20 +32,9 @@ export async function POST(req) {
         // Fetch real-time price BEFORE touching money: the balance lock below
         // must be held for the shortest possible time, and a crash between a
         // committed deduct and the trade INSERT would lose user funds.
-        let entryPrice;
-        try {
-            const symbol = asset.replace('USD', 'USDT');
-            const priceRes = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${symbol}`);
-            if (priceRes.ok) {
-                const priceData = await priceRes.json();
-                entryPrice = parseFloat(priceData.price);
-            } else {
-                // Fallback if API fails
-                entryPrice = asset === 'BTCUSD' ? 45000 : asset === 'ETHUSD' ? 3000 : 100;
-            }
-        } catch (error) {
-            console.error('Failed to fetch price:', error);
-            entryPrice = asset === 'BTCUSD' ? 45000 : asset === 'ETHUSD' ? 3000 : 100;
+        let entryPrice = await getSingleLivePrice(asset);
+        if (!entryPrice || isNaN(entryPrice)) {
+            entryPrice = asset === 'BTCUSD' ? 83500 : asset === 'ETHUSD' ? 2690 : 100;
         }
 
         const idemKeyTrade = idempotencyKey || `tr_${userId}_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
