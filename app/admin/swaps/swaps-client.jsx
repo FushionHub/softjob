@@ -37,8 +37,8 @@ export default function SwapsClient() {
       setStats({
         totalSwaps: swapsData.length,
         completedSwaps: swapsData.filter(s => s.status === 'completed').length,
-        totalVolume: swapsData.reduce((acc, s) => acc + (s.fromAmount || 0), 0),
-        totalFees: swapsData.reduce((acc, s) => acc + (s.fee || 0), 0)
+        totalVolume: swapsData.reduce((acc, s) => acc + Number(s.from_amount || s.fromAmount || 0), 0),
+        totalFees: swapsData.reduce((acc, s) => acc + Number(s.fee || 0), 0)
       })
     } catch (err) {
       setError(err.message)
@@ -227,16 +227,16 @@ export default function SwapsClient() {
                   <tbody className="divide-y divide-white/5">
                     {swaps.map((swap) => (
                       <tr key={swap.id} className="hover:bg-white/5 transition-colors">
-                        <td className="px-6 py-4 text-sm text-gray-400 font-mono">{swap.id?.slice(0, 8)}...</td>
-                        <td className="px-6 py-4 text-sm text-white">{swap.userName || swap.userEmail}</td>
-                        <td className="px-6 py-4 text-sm text-white font-medium">{swap.fromAsset}</td>
-                        <td className="px-6 py-4 text-sm text-white font-medium">{swap.toAsset}</td>
-                        <td className="px-6 py-4 text-sm text-gray-300">{formatNumber(swap.fromAmount)}</td>
-                        <td className="px-6 py-4 text-sm text-gray-300">{formatNumber(swap.toAmount)}</td>
-                        <td className="px-6 py-4 text-sm text-gray-400">{swap.rate ? formatNumber(swap.rate) : '-'}</td>
-                        <td className="px-6 py-4 text-sm text-[#ef4d45]">{swap.fee ? formatCurrency(swap.fee) : '-'}</td>
+                        <td className="px-6 py-4 text-sm text-gray-400 font-mono">#{String(swap.id).slice(0, 8)}</td>
+                        <td className="px-6 py-4 text-sm text-white">{swap.name || swap.userName || swap.email || swap.userEmail || `User #${swap.user_id}`}</td>
+                        <td className="px-6 py-4 text-sm text-white font-medium">{swap.from_asset || swap.fromAsset}</td>
+                        <td className="px-6 py-4 text-sm text-white font-medium">{swap.to_asset || swap.toAsset}</td>
+                        <td className="px-6 py-4 text-sm text-gray-300">{formatNumber(Number(swap.from_amount || swap.fromAmount || 0))}</td>
+                        <td className="px-6 py-4 text-sm text-gray-300">{formatNumber(Number(swap.to_amount || swap.toAmount || 0))}</td>
+                        <td className="px-6 py-4 text-sm text-gray-400">{swap.rate ? formatNumber(Number(swap.rate)) : '-'}</td>
+                        <td className="px-6 py-4 text-sm text-[#ef4d45]">{swap.fee ? formatCurrency(Number(swap.fee)) : '-'}</td>
                         <td className="px-6 py-4">{getStatusBadge(swap.status)}</td>
-                        <td className="px-6 py-4 text-sm text-gray-400 whitespace-nowrap">{formatDate(swap.createdAt)}</td>
+                        <td className="px-6 py-4 text-sm text-gray-400 whitespace-nowrap">{formatDate(swap.created_at || swap.createdAt)}</td>
                       </tr>
                     ))}
                   </tbody>

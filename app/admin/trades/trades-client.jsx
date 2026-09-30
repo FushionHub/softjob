@@ -257,22 +257,22 @@ export default function TradesClient() {
                   <tbody className="divide-y divide-white/5">
                     {trades.map((trade) => (
                       <tr key={trade.id} className="hover:bg-white/5 transition-colors">
-                        <td className="px-6 py-4 text-sm text-gray-400 font-mono">{trade.id?.slice(0, 8)}...</td>
-                        <td className="px-6 py-4 text-sm text-white">{trade.userName || trade.userEmail}</td>
-                        <td className="px-6 py-4 text-sm text-white font-medium">{trade.asset}</td>
+                        <td className="px-6 py-4 text-sm text-gray-400 font-mono">#{String(trade.id).slice(0, 8)}</td>
+                        <td className="px-6 py-4 text-sm text-white">{trade.name || trade.userName || trade.email || trade.userEmail || `User #${trade.user_id}`}</td>
+                        <td className="px-6 py-4 text-sm text-white font-medium">{trade.asset || trade.symbol}</td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                            trade.type === 'buy' ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'
+                            (trade.type || '').toLowerCase() === 'call' || (trade.type || '').toLowerCase() === 'buy' ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'
                           }`}>
                             {trade.type}
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-sm text-white">{formatCurrency(trade.amount)}</td>
-                        <td className="px-6 py-4 text-sm text-gray-300">{formatCurrency(trade.entryPrice)}</td>
-                        <td className="px-6 py-4 text-sm text-gray-300">{trade.exitPrice ? formatCurrency(trade.exitPrice) : '-'}</td>
+                        <td className="px-6 py-4 text-sm text-white">{formatCurrency(trade.amount || 0)}</td>
+                        <td className="px-6 py-4 text-sm text-gray-300">{formatCurrency(trade.entry_price ?? trade.entryPrice ?? 0)}</td>
+                        <td className="px-6 py-4 text-sm text-gray-300">{(trade.exit_price ?? trade.exitPrice) ? formatCurrency(trade.exit_price ?? trade.exitPrice) : '-'}</td>
                         <td className="px-6 py-4 text-sm">
-                          <span className={trade.profit >= 0 ? 'text-green-400' : 'text-red-400'}>
-                            {trade.profit ? formatCurrency(trade.profit) : '-'}
+                          <span className={Number(trade.profit || 0) >= 0 ? 'text-green-400' : 'text-red-400'}>
+                            {trade.profit !== null && trade.profit !== undefined ? formatCurrency(trade.profit) : '-'}
                           </span>
                         </td>
                         <td className="px-6 py-4">{getStatusBadge(trade.status)}</td>
@@ -282,7 +282,7 @@ export default function TradesClient() {
                             {trade.duration || '-'}
                           </div>
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-400 whitespace-nowrap">{formatDate(trade.createdAt)}</td>
+                        <td className="px-6 py-4 text-sm text-gray-400 whitespace-nowrap">{formatDate(trade.created_at || trade.createdAt)}</td>
                       </tr>
                     ))}
                   </tbody>
