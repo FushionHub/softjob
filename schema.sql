@@ -214,9 +214,63 @@ CREATE TABLE IF NOT EXISTS profit_history (
 CREATE INDEX IF NOT EXISTS idx_profit_user ON profit_history(user_id);
 
 -- =============================================
--- TRANSACTIONS VIEW (UNIFIED)
+-- TRANSACTIONS TABLE
 -- =============================================
--- No physical table; API unions deposits/withdrawals/swaps/trades
+CREATE TABLE IF NOT EXISTS transactions (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    type VARCHAR(50) NOT NULL,
+    amount DECIMAL(15, 2) NOT NULL,
+    description TEXT DEFAULT NULL,
+    status VARCHAR(50) DEFAULT 'completed',
+    reference VARCHAR(255) DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_transactions_user ON transactions(user_id);
+CREATE INDEX IF NOT EXISTS idx_transactions_type ON transactions(type);
+
+-- =============================================
+-- TRADES TABLE (Real-time binary / crypto trading)
+-- =============================================
+CREATE TABLE IF NOT EXISTS trades (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    symbol VARCHAR(20) NOT NULL,
+    asset VARCHAR(50) DEFAULT 'Crypto',
+    type VARCHAR(10) NOT NULL, -- 'call' | 'put'
+    amount DECIMAL(15, 2) NOT NULL,
+    entry_price DECIMAL(20, 8) NOT NULL,
+    exit_price DECIMAL(20, 8) DEFAULT NULL,
+    profit DECIMAL(15, 2) DEFAULT 0.00,
+    status VARCHAR(20) DEFAULT 'open', -- 'open' | 'won' | 'lost' | 'cancelled'
+    duration VARCHAR(20) DEFAULT '60s',
+    settled_at TIMESTAMP NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_trades_user ON trades(user_id);
+CREATE INDEX IF NOT EXISTS idx_trades_status ON trades(status);
+
+-- =============================================
+-- SWAPS TABLE (Instant crypto conversion)
+-- =============================================
+CREATE TABLE IF NOT EXISTS swaps (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    from_asset VARCHAR(20) NOT NULL,
+    to_asset VARCHAR(20) NOT NULL,
+    from_amount DECIMAL(20, 8) NOT NULL,
+    to_amount DECIMAL(20, 8) NOT NULL,
+    rate DECIMAL(20, 8) NOT NULL,
+    fee DECIMAL(15, 6) DEFAULT 0,
+    status VARCHAR(50) DEFAULT 'completed',
+    idempotency_key VARCHAR(100) UNIQUE DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_swaps_user ON swaps(user_id);
+CREATE INDEX IF NOT EXISTS idx_swaps_idempotency ON swaps(idempotency_key);
 
 -- =============================================
 -- WALLET CONNECTIONS TABLE
