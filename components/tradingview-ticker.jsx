@@ -1,9 +1,17 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 export default function TradingViewTicker() {
+  const containerRef = useRef(null);
+
   useEffect(() => {
+    if (!containerRef.current) return;
+    containerRef.current.innerHTML = '';
+
+    const widgetDiv = document.createElement('div');
+    widgetDiv.className = 'tradingview-widget-container';
+
     const script = document.createElement('script');
     script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js';
     script.type = 'text/javascript';
@@ -26,20 +34,18 @@ export default function TradingViewTicker() {
       "locale": "en"
     });
 
-    const container = document.querySelector('.tradingview-ticker-container');
-    if (container) {
-      container.appendChild(script);
-    }
+    widgetDiv.appendChild(script);
+    containerRef.current.appendChild(widgetDiv);
 
     return () => {
-      if (container && container.contains(script)) {
-        container.removeChild(script);
+      if (containerRef.current) {
+        containerRef.current.innerHTML = '';
       }
     };
   }, []);
 
   return (
-    <div className="tradingview-ticker-container w-full">
+    <div ref={containerRef} className="tradingview-ticker-container w-full">
       <div className="tradingview-widget-container"></div>
     </div>
   );
