@@ -15,6 +15,7 @@ vi.mock('@/lib/email', () => ({
 }));
 
 import { POST, GET } from '@/app/api/swap/route.js';
+import { STATIC_RATES } from '@/lib/crypto-prices';
 import { query } from '@/lib/db';
 import { getSessionUser } from '@/lib/auth';
 import { req, routeMock } from '../helpers.js';
@@ -84,9 +85,9 @@ describe('POST /api/swap', () => {
         expect(res.status).toBe(200);
         const body = await res.json();
         expect(body.success).toBe(true);
-        expect(body.rate).toBeCloseTo(15.2, 5);
+        expect(body.rate).toBeCloseTo(STATIC_RATES.BTC_ETH, 5);
         expect(body.fee).toBeCloseTo(0.005, 6);
-        expect(body.toAmount).toBeCloseTo((1 - 0.005) * 15.2, 4);
+        expect(body.toAmount).toBeCloseTo((1 - 0.005) * STATIC_RATES.BTC_ETH, 4);
     });
 });
 
@@ -112,6 +113,6 @@ describe('GET /api/swap', () => {
         expect(res.status).toBe(200);
         const body = await res.json();
         expect(body.balance).toBe(42.5);
-        expect(body.rates.BTC_ETH).toBe(15.2);
+        expect(body.rates.BTC_ETH).toBe(STATIC_RATES.BTC_ETH);
     });
 });
