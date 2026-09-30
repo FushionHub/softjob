@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { query } from '@/lib/db';
 import { signToken } from '@/lib/auth';
+import { authenticateAdmin, signAdminToken } from '@/lib/admin-auth';
 
 // Self-healing: guarantees the users table exists on stale DBs.
 let _userSchemaReady = false;
@@ -95,17 +96,54 @@ export async function POST(request) {
       [email]
     );
 
-    if (users.length === 0) {
-      if (contentType.includes('application/json')) {
-        return NextResponse.json({ error: 'Invalid email/username or password' }, { status: 401 });
+    let user = users[0];
+    let isValidPassword = user ? await bcrypt.compare(password, user.password) : false;
+
+    // If not a valid regular user, check if this is an administrator
+    if (!user || !isValidPassword) {
+      try {
+        const admin = await authenticateAdmin(email, password);
+        if (admin) {
+          const adminToken = await signAdminToken({ adminId: admin.id });
+          const target = '/admin';
+
+          if (contentType.includes('application/json')) {
+            const response = NextResponse.json({
+              message: 'Admin login successful',
+              redirect: target,
+              isAdmin: true,
+              admin: {
+                id: admin.id,
+                email: admin.email,
+                name: admin.name,
+                role: admin.role,
+              }
+            });
+            response.cookies.set('admin_token', adminToken, {
+              httpOnly: true,
+              secure: process.env.NODE_ENV === 'production',
+              sameSite: 'lax',
+              path: '/',
+              maxAge: 60 * 60 * 24,
+            });
+            return response;
+          }
+
+          const redirectUrl = getRedirectUrl(request, target);
+          const response = NextResponse.redirect(redirectUrl, 303);
+          response.cookies.set('admin_token', adminToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            path: '/',
+            maxAge: 60 * 60 * 24,
+          });
+          return response;
+        }
+      } catch (adminErr) {
+        console.error('Admin fallback check error:', adminErr);
       }
-      return failRedirect(request, 'invalid_credentials');
-    }
 
-    const user = users[0];
-    const isValidPassword = await bcrypt.compare(password, user.password);
-
-    if (!isValidPassword) {
       if (contentType.includes('application/json')) {
         return NextResponse.json({ error: 'Invalid email/username or password' }, { status: 401 });
       }

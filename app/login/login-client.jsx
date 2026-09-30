@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Eye, EyeOff, AlertCircle, Check, ShieldCheck } from 'lucide-react';
+import { Eye, EyeOff, AlertCircle, Check, ShieldCheck, User } from 'lucide-react';
 import GoogleLoginButton from '@/components/google-login-button';
 
 export default function LoginClient() {
@@ -74,8 +74,9 @@ export default function LoginClient() {
             }
 
             // Successfully authenticated!
-            // Redirect to dashboard (or requested destination) on the current domain
-            window.location.href = redirectTo || '/dashboard';
+            // Redirect to admin desk if admin credentials or target destination
+            const targetUrl = data.redirect || (data.isAdmin ? '/admin' : redirectTo) || '/dashboard';
+            window.location.href = targetUrl;
         } catch (err) {
             console.error('Login submit error:', err);
             setPageError('Network error. Please check your connection and try again.');
@@ -154,7 +155,22 @@ export default function LoginClient() {
                     </Link>
                 </div>
 
-                <div className="w-full max-w-md space-y-8 relative z-10 text-left">
+                <div className="w-full max-w-md space-y-6 relative z-10 text-left">
+                    {/* Portal Switcher Tabs */}
+                    <div className="flex p-1 bg-white/5 border border-border-subtle rounded-xl">
+                        <div className="flex-1 py-2 text-center text-xs font-bold rounded-lg bg-brand-primary text-white shadow-sm flex items-center justify-center gap-1.5 cursor-default">
+                            <User className="size-3.5" />
+                            Investor Login
+                        </div>
+                        <Link
+                            href="/admin/login"
+                            className="flex-1 py-2 text-center text-xs font-bold rounded-lg text-text-muted hover:text-text-main transition-colors flex items-center justify-center gap-1.5 hover:bg-white/[0.03]"
+                        >
+                            <ShieldCheck className="size-3.5 text-[#ef4d45]" />
+                            Admin Portal
+                        </Link>
+                    </div>
+
                     <div className="space-y-2">
                         <h1 className="text-3xl font-extrabold text-text-main tracking-tight">
                             {twoFactorRequired ? 'Verify Two-Factor Auth' : 'Sign In To Your Account'}
@@ -262,6 +278,16 @@ export default function LoginClient() {
                                             <span>Sign In</span>
                                         )}
                                     </button>
+                                </div>
+
+                                <div className="text-center pt-2 border-t border-border-subtle/30">
+                                    <Link
+                                        href="/admin/login"
+                                        className="text-xs text-text-muted hover:text-brand-primary transition-colors inline-flex items-center gap-1.5"
+                                    >
+                                        <ShieldCheck className="size-3.5 text-[#ef4d45]" />
+                                        <span>Staff or Platform Manager? Go to Admin Portal →</span>
+                                    </Link>
                                 </div>
                             </form>
                         </>

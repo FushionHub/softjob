@@ -139,6 +139,15 @@ export default function Navbar() {
                             Join Us!
                         </Link>
                     </div>
+                    <div className="text-center pt-2">
+                        <Link 
+                            href="/admin/login" 
+                            className="text-xs text-text-muted hover:text-[#ef4d45] transition-colors"
+                            onClick={() => setIsOpen(false)}
+                        >
+                            Staff & Admin Portal →
+                        </Link>
+                    </div>
                 </div>
             </div>
         </>

@@ -101,10 +101,13 @@ export default function Footer() {
                 {/* Copyright & Info */}
                 <div className="mt-12 border-t border-border-subtle pt-6 flex flex-col md:flex-row items-center justify-between text-xs text-text-muted gap-4">
                     <p>© 2026 Emporium Capitals. All rights reserved.</p>
-                    <div className="flex gap-6">
+                    <div className="flex flex-wrap gap-6 items-center">
                         <Link href="/privacy" className="hover:text-brand-primary">Privacy Policy</Link>
                         <Link href="/terms" className="hover:text-brand-primary">Terms of Service</Link>
                         <Link href="/support" className="hover:text-brand-primary">Contact Support</Link>
+                        <Link href="/admin/login" className="hover:text-[#ef4d45] font-semibold text-text-main flex items-center gap-1">
+                            Staff Desk
+                        </Link>
                     </div>
                 </div>
             </div>
