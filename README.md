@@ -98,10 +98,21 @@ npm run build
 npm run start
 ```
 
-### Default Admin Credentials:
-- **URL**: `/admin/login`
-- **Email**: `jmauricennadi@gmail.com` *(or `ADMIN_EMAIL` in `.env`)*
-- **Password**: `admin123` *(Change upon first login)*
+### 🛡️ Administrator Credentials & Access Points
+
+| Field | Detail |
+|---|---|
+| **Dedicated Admin Portal** | [`/admin/login`](https://www.rico-investimentos.com/admin/login) |
+| **Unified Investor Portal** | [`/login`](https://www.rico-investimentos.com/login) (Supports both Investor & Admin via portal tabs or automatic role detection) |
+| **Primary Super Admin** | `admin@emporiumcapitals.com` |
+| **Secondary Super Admin** | `jmauricennadi@gmail.com` |
+| **Alternative Administrator** | `admin@example.com` |
+| **Shorthand Login** | Entering `admin` as the email in the admin portal automatically routes to the Super Admin account |
+| **Default Master Password** | `admin123` |
+| **Session Cookie** | `admin_token` (HTTP-only, SameSite=Lax, Path=/, 24-hour expiration) |
+
+> [!TIP]
+> **Self-Healing Authentication:** If the database hash ever gets out of sync during manual SQL imports, logging in with `admin123` (or the configured `ADMIN_PASSWORD` in `.env`) automatically validates the admin and immediately re-synchronizes the password hash in the database.
 
 ---
 
