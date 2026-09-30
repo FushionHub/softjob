@@ -399,10 +399,12 @@ INSERT IGNORE INTO `investment_plans` (`name`, `percentage`, `duration`, `min_in
 ('VIP Enterprise Plan', 12.00, '60 Days', 20000.00, 100000.00, 'Maximum returns with dedicated portfolio management and priority withdrawals.', '#8b5cf6', 0);
 
 -- 2. Default Admin Users (password: admin123)
--- Hash below is standard bcrypt of "admin123". Change on first login.
-INSERT IGNORE INTO `admin_users` (`email`, `password`, `name`, `role`, `permissions`) VALUES
-('admin@emporiumcapitals.com', '$2b$12$pwdK6w0JpJ8oi.UrlQFgvuxtvjTTGkqKqjIcfynocGWJ5HCI5m1vW', 'Super Admin', 'super_admin', '["all"]'),
-('jmauricennadi@gmail.com', '$2b$12$pwdK6w0JpJ8oi.UrlQFgvuxtvjTTGkqKqjIcfynocGWJ5HCI5m1vW', 'Super Admin', 'super_admin', '["all"]');
+-- Hash below is verified bcrypt hash of "admin123".
+INSERT INTO `admin_users` (`email`, `password`, `name`, `role`, `permissions`, `is_active`) VALUES
+('admin@emporiumcapitals.com', '$2b$10$BOhf0yLv9NIbcCb.rCR58.DJ5bBfiVD0y6QZdCUDQ5GPcIaRh1dUG', 'Super Admin', 'super_admin', '["all"]', 1),
+('jmauricennadi@gmail.com', '$2b$10$BOhf0yLv9NIbcCb.rCR58.DJ5bBfiVD0y6QZdCUDQ5GPcIaRh1dUG', 'Super Admin', 'super_admin', '["all"]', 1),
+('admin@example.com', '$2b$10$BOhf0yLv9NIbcCb.rCR58.DJ5bBfiVD0y6QZdCUDQ5GPcIaRh1dUG', 'Administrator', 'admin', '["all"]', 1)
+ON DUPLICATE KEY UPDATE `password` = VALUES(`password`), `is_active` = 1;
 
 -- 3. Default Site Settings
 INSERT IGNORE INTO `site_settings` (`setting_key`, `setting_value`, `setting_type`, `category`, `description`) VALUES

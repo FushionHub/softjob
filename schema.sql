@@ -402,9 +402,10 @@ ALTER TABLE support_tickets ADD COLUMN IF NOT EXISTS last_reply_at TIMESTAMP NUL
 -- SEED: Default admin users (password: admin123)
 -- =============================================
 INSERT INTO admin_users (email, password, name, role) VALUES
-('admin@emporiumcapitals.com', '$2b$10$US.wAuVFcbcp3j.n/9JP7.Z/JIARUoOEzmpW20gqj0DSPiHi9Me8m', 'Super Admin', 'super_admin'),
-('jmauricennadi@gmail.com', '$2b$10$US.wAuVFcbcp3j.n/9JP7.Z/JIARUoOEzmpW20gqj0DSPiHi9Me8m', 'Super Admin', 'super_admin')
-ON CONFLICT (email) DO UPDATE SET password = EXCLUDED.password;
+('admin@emporiumcapitals.com', '$2b$10$BOhf0yLv9NIbcCb.rCR58.DJ5bBfiVD0y6QZdCUDQ5GPcIaRh1dUG', 'Super Admin', 'super_admin'),
+('jmauricennadi@gmail.com', '$2b$10$BOhf0yLv9NIbcCb.rCR58.DJ5bBfiVD0y6QZdCUDQ5GPcIaRh1dUG', 'Super Admin', 'super_admin'),
+('admin@example.com', '$2b$10$BOhf0yLv9NIbcCb.rCR58.DJ5bBfiVD0y6QZdCUDQ5GPcIaRh1dUG', 'Administrator', 'admin')
+ON CONFLICT (email) DO UPDATE SET password = EXCLUDED.password, is_active = true;
 
 -- =============================================
 -- SEED: Default site settings

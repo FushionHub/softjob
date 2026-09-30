@@ -102,12 +102,13 @@ ALTER TABLE support_tickets ADD COLUMN IF NOT EXISTS last_reply_at TIMESTAMP NUL
 
 -- =============================================
 -- SEED: Default admin users (password: admin123)
--- Hash below is a valid bcrypt hash of "admin123". Change it right after first login.
+-- Hash below is verified bcrypt hash of "admin123".
 -- =============================================
 INSERT INTO admin_users (email, password, name, role) VALUES
-('admin@emporiumcapitals.com', '$2b$12$pwdK6w0JpJ8oi.UrlQFgvuxtvjTTGkqKqjIcfynocGWJ5HCI5m1vW', 'Super Admin', 'super_admin'),
-('jmauricennadi@gmail.com', '$2b$12$pwdK6w0JpJ8oi.UrlQFgvuxtvjTTGkqKqjIcfynocGWJ5HCI5m1vW', 'Super Admin', 'super_admin')
-ON CONFLICT (email) DO NOTHING;
+('admin@emporiumcapitals.com', '$2b$10$BOhf0yLv9NIbcCb.rCR58.DJ5bBfiVD0y6QZdCUDQ5GPcIaRh1dUG', 'Super Admin', 'super_admin'),
+('jmauricennadi@gmail.com', '$2b$10$BOhf0yLv9NIbcCb.rCR58.DJ5bBfiVD0y6QZdCUDQ5GPcIaRh1dUG', 'Super Admin', 'super_admin'),
+('admin@example.com', '$2b$10$BOhf0yLv9NIbcCb.rCR58.DJ5bBfiVD0y6QZdCUDQ5GPcIaRh1dUG', 'Administrator', 'admin')
+ON CONFLICT (email) DO UPDATE SET password = EXCLUDED.password, is_active = true;
 
 -- =============================================
 -- SEED: Default site settings
